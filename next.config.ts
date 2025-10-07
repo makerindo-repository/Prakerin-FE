@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "prakerin.id",
+        hostname: "api.prakerin.id",
         port: "",
         pathname: "/**",
       },
