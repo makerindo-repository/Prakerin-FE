@@ -8,17 +8,38 @@ import ServiceButton from "@/components/Service";
 import { API, ENDPOINTS } from "../../utils/config";
 import Loader from "@/components/loader";
 
+interface Partner {
+  id: string;
+  name: string;
+  address: string;
+  logo: string;
+}
+
+interface CommentPrakerin {
+  id: string;
+  photo_profile: string;
+  name: string;
+  position: string;
+  comment: string;
+}
+
 export default function HomePage() {
   const [activeSection, setActiveSection] = useState("home");
 
-  const [data, setData] = useState<any>();
+  const [homepages, setHomepages] = useState<any>();
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [commentPrakerins, setCommentPrakerins] = useState<CommentPrakerin[]>(
+    []
+  );
+
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchData = async () => {
     try {
       const response = await API.get(ENDPOINTS.HOMEPAGES);
-      setData(response.data.data);
-      console.log("Data fetched successfully:", response.data.data);
+      setHomepages(response.data.data.homepages);
+      setPartners(response.data.data.partners);
+      setCommentPrakerins(response.data.data.comment_prakerins);
     } catch (error) {
       console.error("Error fetching homepage data:", error);
     } finally {
@@ -43,28 +64,20 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader width={64} height={64} />
-      </div>
-    );
-
   return (
     <>
       <Navigation section={activeSection} setSection={setActiveSection} />
-      {activeSection === "home" && <LandingPage data={data} />}
-      {activeSection === "about" && (
-        <div className="flex justify-center items-center text-3xl font-extrabold text-gray-400 h-screen">
-          About Section
+      {loading && (
+        <div className="fixed w-full inset-0 flex justify-center items-center h-screen z-10 bg-white">
+          <Loader width={64} height={64} />
         </div>
       )}
-      {activeSection === "internship" && (
-        <div className="flex justify-center items-center text-3xl font-extrabold text-gray-400 h-screen">
-          Internship Section
-        </div>
-      )}
-      <ContactPage />
+      <LandingPage
+        homepages={homepages}
+        partners={partners}
+        comments={commentPrakerins}
+      />
+      <ContactPage homepages={homepages} />
       <ServiceButton />
       <FooterPage />
     </>

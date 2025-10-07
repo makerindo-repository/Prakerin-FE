@@ -7,7 +7,7 @@ import {
   Search,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
@@ -22,6 +22,11 @@ interface Task {
   id: number;
   title: string;
   due_date: string;
+  internship: {
+    student: {
+      name: string;
+    };
+  };
   status: "in_progress" | "pending" | "completed" | "cancelled";
 }
 
@@ -40,8 +45,8 @@ const TasklistPage: React.FC = () => {
     "Dibatalkan",
   ];
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const router = useRouter();
   const [isReload, setIsReload] = useState<boolean>(false);
+  const [authorization, setAuthorization] = useState<string>();
 
   const [pages, setPages] = useState<Pages>({
     activePages: 1,
@@ -153,6 +158,10 @@ const TasklistPage: React.FC = () => {
     fetchTasks();
   }, [pages.activePages, isReload]);
 
+  useEffect(() => {
+    setAuthorization(Cookies.get("authorization") || "");
+  }, []);
+
   return (
     <main className="p-6">
       {/* Page Header */}
@@ -209,6 +218,11 @@ const TasklistPage: React.FC = () => {
                 <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Nama Tugas
                 </th>
+                {authorization === "company" && (
+                  <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                    Nama Pemagang
+                  </th>
+                )}
                 <th className="text-left p-3 font-medium text-gray-600 uppercase">
                   Tenggat Waktu
                 </th>
@@ -228,6 +242,11 @@ const TasklistPage: React.FC = () => {
                       {index + 1 + (pages.activePages - 1) * 10}
                     </td>
                     <td className="p-4 text-gray-800">{task.title}</td>
+                    {authorization === "company" && (
+                      <td className="p-4 text-gray-800">
+                        {task.internship.student.name}
+                      </td>
+                    )}
                     <td className="p-4 text-gray-600">
                       {getDeadline(task.due_date)}
                     </td>
@@ -252,7 +271,10 @@ const TasklistPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="text-center p-4 text-gray-600">
+                  <td
+                    colSpan={authorization === "company" ? 6 : 5}
+                    className="text-center p-4 text-gray-600"
+                  >
                     <Loader />
                   </td>
                 </tr>
@@ -267,8 +289,6 @@ const TasklistPage: React.FC = () => {
             <NotFoundComponent text="Anda belum memiliki tugas." />
           </div>
         )}
-
-        
       </div>
 
       <PaginationComponent

@@ -13,8 +13,32 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../utils/config";
 import Loading from "./masuk/loading";
+import Image from "next/image";
+import NotFoundComponent from "@/components/NotFoundComponent";
 
-export default function LandingPage({ data }: { data: any }) {
+interface Partner {
+  id: string;
+  name: string;
+  address: string;
+  logo: string;
+}
+interface CommentPrakerin {
+  id: string;
+  photo_profile: string;
+  name: string;
+  position: string;
+  comment: string;
+}
+
+export default function LandingPage({
+  homepages,
+  partners,
+  comments,
+}: {
+  homepages: any;
+  partners: Partner[];
+  comments: CommentPrakerin[];
+}) {
   const router = useRouter();
 
   const [inputSearch, setInputSearch] = useState<string>("");
@@ -31,7 +55,7 @@ export default function LandingPage({ data }: { data: any }) {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6  animate-slide-in-left">
             <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent leading-tight">
-              {data?.["title-landing-1"] ?? "-"}
+              {homepages?.["title-landing-1"] ?? "-"}
             </h1>
             <p className="text-gray-600 text-lg">
               Temukan peluang magang dari berbagai perusahaan terkemuka. Daftar,
@@ -69,7 +93,7 @@ export default function LandingPage({ data }: { data: any }) {
                 Digital Marketing
               </button>
               <button
-                onClick={() => setInputSearch("Backhand Developer")}
+                onClick={() => setInputSearch("Backend Developer")}
                 className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm"
               >
                 Backend Developer
@@ -93,10 +117,10 @@ export default function LandingPage({ data }: { data: any }) {
         <div className="container mx-auto">
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl md:text-4xl font-bold mb-4">
-              {data?.["title-landing-2"] ?? "-"}
+              {homepages?.["title-landing-2"] ?? "-"}
             </h2>
             <p className="text-base md:text-lg opacity-90">
-              {data?.["subtitle-landing-2"] ?? "-"}
+              {homepages?.["subtitle-landing-2"] ?? "-"}
             </p>
           </div>
 
@@ -108,10 +132,10 @@ export default function LandingPage({ data }: { data: any }) {
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
-                    {data?.["title-content-landing-2-1"] ?? "-"}
+                    {homepages?.["title-content-landing-2-1"] ?? "-"}
                   </h3>
                   <p className="opacity-90 text-sm md:text-base">
-                    {data?.["desc-content-landing-2-1"] ?? "-"}
+                    {homepages?.["desc-content-landing-2-1"] ?? "-"}
                   </p>
                 </div>
               </div>
@@ -122,10 +146,10 @@ export default function LandingPage({ data }: { data: any }) {
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
-                    {data?.["title-content-landing-2-2"] ?? "-"}
+                    {homepages?.["title-content-landing-2-2"] ?? "-"}
                   </h3>
                   <p className="opacity-90 text-sm md:text-base">
-                    {data?.["desc-content-landing-2-2"] ?? "-"}
+                    {homepages?.["desc-content-landing-2-2"] ?? "-"}
                   </p>
                 </div>
               </div>
@@ -136,22 +160,50 @@ export default function LandingPage({ data }: { data: any }) {
                 </div>
                 <div>
                   <h3 className="text-lg md:text-xl font-bold mb-2">
-                    {data?.["title-content-landing-2-3"] ?? "-"}
+                    {homepages?.["title-content-landing-2-3"] ?? "-"}
                   </h3>
                   <p className="opacity-90 text-sm md:text-base">
-                    {data?.["desc-content-landing-2-3"] ?? "-"}
+                    {homepages?.["desc-content-landing-2-3"] ?? "-"}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="relative animate-slide-in-right mt-8 md:mt-0">
+            <div className="relative animate-slide-in-right mt-8 md:mt-0 ">
+              <div className="bg-white rounded-2xl  shadow-2xl">
+                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 overflow-hidden">
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  >
+                    <source
+                      src="/video/Iklan Indihome Paket Phoenix Dj Ubur Ubur.mp4"
+                      type="video/mp4"
+                    />
+                    <source
+                      src="/video/rick-roll-video-meme-template-video-1da252ec.mp4"
+                      type="video/mp4"
+                    />
+                    {/* Fallback untuk browser yang tidak support video */}
+                    Browser Anda tidak mendukung video HTML5.
+                  </video>
+                </div>
+              </div>
+            </div>
+
+            {/* <div className="relative animate-slide-in-right mt-8 md:mt-0">
               <div className="bg-white rounded-2xl p-4 md:p-6 shadow-2xl">
                 <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-12 h-12 md:w-16 md:h-16 bg-prakerin rounded-full flex items-center justify-center mx-auto mb-4">
-                      <video>
-                        <source />
+                      <video width={100} height={100} autoPlay loop muted>
+                        <source
+                          src="/rick-roll-video-meme-template-video-1da252ec.mp4"
+                          type="video/mp4"
+                        />
                       </video>
                     </div>
                     <p className="text-gray-600 text-xs md:text-base">
@@ -170,7 +222,7 @@ export default function LandingPage({ data }: { data: any }) {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
@@ -179,149 +231,120 @@ export default function LandingPage({ data }: { data: any }) {
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              {data?.["title-landing-3"] ?? "-"}
+              {homepages?.["title-landing-3"] ?? "-"}
             </h2>
             <p className="text-gray-600 mb-5">
-              {data?.["subtitle-landing-3"] ?? "-"}
+              {homepages?.["subtitle-landing-3"] ?? "-"}
             </p>
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>
 
           {/* Ini Card */}
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center transition-all duration-300 transform hover:scale-105 hover-lift bg-gray-50 border border-gray-100 shadow-2xl rounded-2xl p-8 animate-fade-in-up">
-              <div className="w-50 h-50 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <img src={"Makerindo_PS.png"} alt="" />
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">
-                PT Makerindo Cipta Solusi
-              </h3>
-              <p className="text-gray-600 text-sm">Software Company</p>
-            </div>
-            <div className="text-center transition-all duration-300 transform hover:scale-105 hover-lift bg-gray-50 border border-gray-100 shadow-2xl rounded-2xl p-8 animate-fade-in-up">
-              <div className="w-50 h-50 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <img src={"Makerindo_PS.png"} alt="" />
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">
-                PT Makerindo Cipta Solusi
-              </h3>
-              <p className="text-gray-600 text-sm">Software Company</p>
-            </div>
-            <div className="text-center transition-all duration-300 transform hover:scale-105 hover-lift bg-gray-50 border border-gray-100 shadow-2xl rounded-2xl p-8 animate-fade-in-up">
-              <div className="w-50 h-50 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <img src={"Makerindo_PS.png"} alt="" />
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">
-                PT Makerindo Cipta Solusi
-              </h3>
-              <p className="text-gray-600 text-sm">Software Company</p>
+          <div className="relative">
+            {/* Efek gradasi di sisi kiri & kanan */}
+            <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
+
+            {/* Wrapper scroll */}
+            <div className="overflow-x-auto scrollbar-hide scroll-smooth relative min-h-[260px]">
+              {partners && partners.length > 0 ? (
+                <div className="flex gap-6 md:gap-8 pb-4 snap-x snap-mandatory">
+                  {partners.map((item) => (
+                    <div
+                      key={item.id}
+                      className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center transition-all duration-300 transform hover:scale-105 bg-white border border-gray-100 shadow-md hover:shadow-lg rounded-2xl p-6 snap-center cursor-pointer"
+                    >
+                      {/* Logo Mitra */}
+                      <div className="w-32 h-32 bg-gradient-to-br from-accent/10 to-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center relative overflow-hidden shadow-inner">
+                        <Image
+                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                          alt={item.name}
+                          fill
+                          sizes="100%"
+                          className="object-cover rounded-full transition-transform duration-500 group-hover:scale-110"
+                        />
+                      </div>
+
+                      {/* Detail Mitra */}
+                      <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                        {item.name}
+                      </h3>
+                      <p className="text-gray-500 text-sm">{item.address}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex flex-col justify-center items-center text-center">
+                  <NotFoundComponent text="Tidak ada mitra yang ditemukan." />
+                </div>
+              )}
             </div>
           </div>
         </div>
       </section>
-
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
+          {/* Judul Section */}
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              {data?.["title-landing-4"] ?? "-"}
+              {homepages?.["title-landing-4"] ?? "-"}
             </h2>
             <p className="text-gray-600 mb-5">
-              {data?.["subtitle-landing-4"] ?? "-"}
+              {homepages?.["subtitle-landing-4"] ?? "-"}
             </p>
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>
+
           {/* Testimoni */}
-          <div className="flex space-x-8 overflow-x-auto scrollbar-hide p-5">
-            <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
-              {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full"
-                viewBox="0 0 16 16"
-              >
-                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
-              </svg>
-              <p className="text-gray-700 mb-4">
-                "Magang di Prakerin sangat membantu saya mendapatkan pengalaman
-                kerja nyata dan memperluas relasi di dunia industri."
-              </p>
-              <span className="font-semibold text-prakerin">
-                Rizky, Mahasiswa Informatika
-              </span>
-            </div>
-            <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
-              {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full"
-                viewBox="0 0 16 16"
-              >
-                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
-              </svg>
-              <p className="text-gray-700 mb-4">
-                "Magang di Prakerin sangat membantu saya mendapatkan pengalaman
-                kerja nyata dan memperluas relasi di dunia industri."
-              </p>
-              <span className="font-semibold text-prakerin">
-                Rizky, Mahasiswa Informatika
-              </span>
-            </div>
-            <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
-              {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full"
-                viewBox="0 0 16 16"
-              >
-                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
-              </svg>
-              <p className="text-gray-700 mb-4">
-                "Magang di Prakerin sangat membantu saya mendapatkan pengalaman
-                kerja nyata dan memperluas relasi di dunia industri."
-              </p>
-              <span className="font-semibold text-prakerin">
-                Rizky, Mahasiswa Informatika
-              </span>
-            </div>
-            <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
-              {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full"
-                viewBox="0 0 16 16"
-              >
-                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
-              </svg>
-              <p className="text-gray-700 mb-4">
-                "Magang di Prakerin sangat membantu saya mendapatkan pengalaman
-                kerja nyata dan memperluas relasi di dunia industri."
-              </p>
-              <span className="font-semibold text-prakerin">
-                Rizky, Mahasiswa Informatika
-              </span>
-            </div>
-            <div className="bg-white md:min-w-80 space-y-5 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center animate-fade-in-up">
-              {/* <img src="/avatar1.png" alt="Avatar Siswa" className="w-16 h-16 rounded-full mb-4" /> */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                className="w-16 h-16 text-white bg-gray-400 p-2 rounded-full"
-                viewBox="0 0 16 16"
-              >
-                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
-              </svg>
-              <p className="text-gray-700 mb-4">
-                "Magang di Prakerin sangat membantu saya mendapatkan pengalaman
-                kerja nyata dan memperluas relasi di dunia industri."
-              </p>
-              <span className="font-semibold text-prakerin">
-                Rizky, Mahasiswa Informatika
-              </span>
+          <div className="relative">
+            {/* Gradasi sisi kiri & kanan (opsional, biar lebih estetik) */}
+            <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
+            <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
+
+            {/* Scroll Wrapper */}
+            <div className="overflow-x-auto scrollbar-hide scroll-smooth">
+              <div className="flex gap-6 md:gap-8 pb-6 px-4 snap-x snap-mandatory">
+                {comments.length !== 0 ? (
+                  comments.map((item) => (
+                    <div
+                      key={item.id}
+                      className="min-w-[300px] max-w-[320px] h-[320px] bg-white rounded-2xl shadow-lg 
+                           p-8 flex flex-col items-center text-center 
+                           flex-shrink-0 snap-center transition-all duration-300 
+                           hover:shadow-xl hover:-translate-y-1"
+                    >
+                      {/* Foto Profil */}
+                      <div
+                        className="w-24 h-24 bg-gradient-to-br from-accent/10 to-blue-100 
+                                rounded-full mx-auto mb-4 flex items-center justify-center 
+                                relative overflow-hidden shadow-inner"
+                      >
+                        <Image
+                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.photo_profile}`}
+                          alt={item.name}
+                          fill
+                          sizes="100%"
+                          className="object-cover rounded-full transition-transform duration-500 group-hover:scale-110"
+                        />
+                      </div>
+
+                      {/* Komentar */}
+                      <p className="text-gray-700 mb-4 italic leading-relaxed">
+                        “{item.comment}”
+                      </p>
+
+                      {/* Nama dan Posisi */}
+                      <span className="font-semibold text-prakerin">
+                        {item.name} – {item.position}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex justify-center items-center w-full h-[320px]">
+                    <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -331,10 +354,10 @@ export default function LandingPage({ data }: { data: any }) {
         <div className="container flex flex-col md:flex-row items-center justify-between mx-auto md:px-20 px-4 gap-6">
           <div className="text-center md:text-left">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              {data?.["title-landing-5"] ?? "-"}
+              {homepages?.["title-landing-5"] ?? "-"}
             </h2>
             <p className="text-lg opacity-90">
-              {data?.["subtitle-landing-5"] ?? "-"}
+              {homepages?.["subtitle-landing-5"] ?? "-"}
             </p>
           </div>
           <Link
@@ -350,10 +373,10 @@ export default function LandingPage({ data }: { data: any }) {
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              {data?.["title-landing-6"] ?? "-"}
+              {homepages?.["title-landing-6"] ?? "-"}
             </h2>
             <p className="text-gray-600 mb-5">
-              {data?.["subtitle-landing-7"] ?? "-"}
+              {homepages?.["subtitle-landing-7"] ?? "-"}
             </p>
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>

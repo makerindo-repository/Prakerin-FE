@@ -4,12 +4,21 @@ import PrakerinRegistrationSiswaForm from "./AsSiswa";
 import { useState } from "react";
 import PrakerinRegistrationSekolahForm from "./AsSekolah";
 import PrakerinRegistrationIndustryForm from "./AsIndustry";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function DaftarPage() {
   const [showForm, setShowForm] = useState<string>("");
+  const route = useRouter();
 
   return (
     <>
+      <button
+        onClick={() => route.back()}
+        className="absolute top-4 left-4 p-3 rounded-full hover:bg-accent-hover transition bg-accent cursor-pointer shadow-md"
+      >
+        <ArrowLeft className="text-white" />
+      </button>
       <section
         className={`${
           showForm ? "hidden" : "flex"
@@ -28,12 +37,19 @@ export default function DaftarPage() {
               }}
               value={showForm}
               id="email"
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-lg px-5"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-lg px-5 cursor-pointer"
             >
               <option value="">Pilih daftar sebagai</option>
-              <option value="siswa">Siswa</option>
+              <option value="siswa">Siswa/Mahasiswa</option>
               <option value="sekolah">Sekolah</option>
+              <option value="university">Perguruan Tinggi</option>
               <option value="company">Perusahaan</option>
+              <option value="teacher" disabled>
+                Guru Pembimbing
+              </option>
+              <option value="company_mentor" disabled>
+                Pembimbing Perusahaan
+              </option>
             </select>
           </form>
           <div>
@@ -54,7 +70,9 @@ export default function DaftarPage() {
     if (form === "siswa")
       return <PrakerinRegistrationSiswaForm setShowForm={setShowForm} />;
     if (form === "sekolah")
-      return <PrakerinRegistrationSekolahForm setShowForm={setShowForm} />;
+      return <PrakerinRegistrationSekolahForm setShowForm={setShowForm} typeSchool="school" />;
+    if (form === "university")
+      return <PrakerinRegistrationSekolahForm setShowForm={setShowForm} typeSchool="university" />;
     if (form === "company")
       return <PrakerinRegistrationIndustryForm setShowForm={setShowForm} />;
     return null;

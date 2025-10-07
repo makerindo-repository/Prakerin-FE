@@ -1,3 +1,4 @@
+"use client";
 import { XCircle } from "lucide-react";
 import React from "react";
 

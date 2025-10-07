@@ -236,7 +236,7 @@ const lamaranPage: React.FC = () => {
           <input
             type="text"
             placeholder={`Cari kerja sama melalui nama ${
-              authorization === "school" ? "perusahaan" : "sekolah"
+              authorization === "school" ? "perusahaan" : "sekolah/universitas"
             }...`}
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
@@ -255,7 +255,7 @@ const lamaranPage: React.FC = () => {
                   No
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {authorization === "school" ? "Perusahaan" : "Sekolah"}
+                  {authorization === "school" ? "Perusahaan" : "Sekolah/Universitas"}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tanggal Mulai

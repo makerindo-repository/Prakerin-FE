@@ -127,7 +127,7 @@ const LowonganArchivePage: React.FC = () => {
                 </div>
                 {job.is_paid && (
                   <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                    Paid
+                    Dibayar
                   </span>
                 )}
               </div>

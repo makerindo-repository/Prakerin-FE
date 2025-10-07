@@ -118,7 +118,7 @@ export default function BarChartComponent({
       </div>
       {/* Additional info */}
       <div className="mt-2 text-center">
-        <p className="text-sm text-gray-600">Siswa Magang</p>
+        <p className="text-sm text-gray-600">Siswa/Mahasiswa Magang</p>
       </div>
     </div>
   );

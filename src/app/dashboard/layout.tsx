@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react"; // TAMBAHKAN: useRef
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   Home,
   Briefcase,
@@ -55,9 +61,150 @@ interface Profile {
   photo_profile?: string | null;
   name: string;
   email: string;
-  role: "Siswa" | "Perusahaan" | "Sekolah" | "Super Admin" | "";
+  // role:
+  //   | "Siswa/Mahasiswa"
+  //   | "Perusahaan"
+  //   | "Sekolah/Universitas"
+  //   | "Super Admin"
+  //   | "";
+  role: Role;
   username: string;
 }
+
+type Role =
+  | "Siswa"
+  | "Mahasiswa"
+  | "Perusahaan"
+  | "Sekolah"
+  | "Perguruan Tinggi"
+  | "Super Admin"
+  | "";
+
+// A constant map of menus per role to avoid recreating arrays every render
+const MENU_MAP: Record<string, MenuItem[]> = {
+  student: [
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
+    { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan" },
+    { icon: FileText, label: "Curriculum Vitae", href: "/dashboard/cv" },
+    { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan" },
+    {
+      icon: ClipboardCheck,
+      label: "Daftar Tugas",
+      href: "/dashboard/tasklist",
+    },
+    { icon: MessageSquare, label: "Ulasan", href: "/dashboard/feedback" },
+    { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat" },
+    { icon: Medal, label: "Pembimbing", href: "/dashboard/pembimbing" },
+    { icon: User, label: "Profil", href: "/dashboard/profile" },
+  ],
+  company: [
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
+    {
+      icon: UsersRound,
+      label: "Siswa/Mahasiswa Magang",
+      href: "/dashboard/siswa-magang",
+    },
+    { icon: HelpCircle, label: "Tes", href: "/dashboard/tes" },
+    { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan" },
+    { icon: FileText, label: "Lamaran", href: "/dashboard/industry/lamaran" },
+    {
+      icon: ClipboardCheck,
+      label: "Daftar Tugas",
+      href: "/dashboard/tasklist",
+    },
+    {
+      icon: BookOpen,
+      label: "Sekolah/Universitas",
+      href: "/dashboard/sekolah",
+    },
+    { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou" },
+    { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
+    { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback" },
+    { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat" },
+    {
+      icon: Medal,
+      label: "Pembimbing Perusahaan",
+      href: "/dashboard/pembimbing-perusahaan",
+    },
+    { icon: User, label: "Profil", href: "/dashboard/profile" },
+  ],
+  school: [
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
+    {
+      icon: UsersRound,
+      label: "Daftar Siswa/Mahasiswa",
+      href: "/dashboard/school/daftarsiswa",
+    },
+    { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan" },
+    { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan" },
+    { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou" },
+    { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
+    { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback" },
+    {
+      icon: Medal,
+      label: "Guru Pembimbing",
+      href: "/dashboard/guru-pembimbing",
+    },
+    { icon: User, label: "Profil", href: "/dashboard/profile" },
+  ],
+  super_admin: [
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
+    {
+      icon: Database,
+      label: "Master Data",
+      children: [
+        {
+          icon: Map,
+          label: "Provinsi",
+          href: "/dashboard/master-data/provinsi",
+        },
+        {
+          icon: Building2,
+          label: "Kota/Kabupaten",
+          href: "/dashboard/master-data/kota-kabupaten",
+        },
+        {
+          icon: Factory,
+          label: "Sektor Perusahaan",
+          href: "/dashboard/master-data/sektor",
+        },
+        {
+          icon: IdCard,
+          label: "Posisi Magang(Deprecated)",
+          href: "/dashboard/master-data/posisi",
+        },
+        {
+          icon: CalendarClock,
+          label: "Durasi Magang",
+          href: "/dashboard/master-data/durasi",
+        },
+        {
+          icon: GraduationCap,
+          label: "Jurusan Siswa",
+          href: "/dashboard/master-data/jurusan",
+        },
+        {
+          icon: BriefcaseBusiness,
+          label: "Bidang Magang",
+          href: "/dashboard/master-data/bidang",
+        },
+      ],
+    },
+    {
+      icon: LayoutDashboard,
+      label: "Isi Halaman",
+      href: "/dashboard/isi-halaman",
+    },
+    { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan" },
+    {
+      icon: BookOpen,
+      label: "Sekolah/Universitas",
+      href: "/dashboard/sekolah",
+    },
+    { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
+    { icon: User, label: "Profil", href: "/dashboard/profile" },
+  ],
+};
 
 export default function DashboardLayout({
   children,
@@ -65,11 +212,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-
-  // --- TAMBAHKAN LOGIKA DROPDOWN DI SINI ---
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [profile, setProfile] = useState<Profile>({
     username: "",
     name: "",
@@ -103,290 +247,99 @@ export default function DashboardLayout({
     Cookies.remove("authorization");
     router.replace("/");
   };
+  // Menu definitions moved outside component for readability and to avoid
+  // recreating large arrays on every render. We'll compute the menu for the
+  // current role using useMemo below.
 
-  useEffect(() => {
-    const authorization = Cookies.get("authorization");
-    switch (authorization) {
-      case "student":
-        setMenuItems([
-          { icon: Home, label: "Dashboard", href: "/dashboard" },
-          {
-            icon: Briefcase,
-            label: "Lowongan",
-            href: "/dashboard/lowongan",
-          },
-          {
-            icon: FileText,
-            label: "Curriculum Vitae",
-            href: "/dashboard/cv",
-          },
-          {
-            icon: Building,
-            label: "Perusahaan",
-            href: "/dashboard/perusahaan",
-          },
-          {
-            icon: ClipboardCheck,
-            label: "Daftar Tugas",
-            href: "/dashboard/tasklist",
-          },
-          {
-            icon: MessageSquare,
-            label: "Ulasan",
-            href: "/dashboard/feedback",
-          },
-          {
-            icon: Medal,
-            label: "Sertifikat",
-            href: "/dashboard/sertifikat",
-          },
-          { icon: User, label: "Profil", href: "/dashboard/profile" },
-        ]);
-        break;
-      case "company":
-        setMenuItems([
-          {
-            icon: Home,
-            label: "Dashboard",
-            href: "/dashboard",
-          },
-          {
-            icon: UsersRound,
-            label: "Siswa Magang",
-            href: "/dashboard/siswa-magang",
-          },
-          {
-            icon: HelpCircle,
-            label: "Tes",
-            href: "/dashboard/tes",
-          },
-          {
-            icon: Briefcase,
-            label: "Lowongan",
-            href: "/dashboard/lowongan",
-          },
-          {
-            icon: FileText,
-            label: "Lamaran",
-            href: "/dashboard/industry/lamaran",
-          },
-          {
-            icon: ClipboardCheck,
-            label: "Daftar Tugas",
-            href: "/dashboard/tasklist",
-          },
-          {
-            icon: BookOpen,
-            label: "Sekolah",
-            href: "/dashboard/sekolah",
-          },
-          {
-            icon: Handshake,
-            label: "Kerja Sama",
-            href: "/dashboard/mou",
-          },
-          {
-            icon: Award,
-            label: "Penghargaan",
-            href: "/dashboard/penghargaan",
-          },
-          {
-            icon: MessageSquareText,
-            label: "Ulasan",
-            href: "/dashboard/feedback",
-          },
-          {
-            icon: Medal,
-            label: "Sertifikat",
-            href: "/dashboard/sertifikat",
-          },
-          {
-            icon: User,
-            label: "Profil",
-            href: "/dashboard/profile",
-          },
-        ]);
-        break;
-      case "school":
-        setMenuItems([
-          { icon: Home, label: "Dashboard", href: "/dashboard" },
-          {
-            icon: UsersRound,
-            label: "Daftar Siswa",
-            href: "/dashboard/school/daftarsiswa",
-          },
-          {
-            icon: MapPin,
-            label: "Penempatan",
-            href: "/dashboard/school/penempatan",
-          },
-          {
-            icon: Building,
-            label: "Perusahaan",
-            href: "/dashboard/perusahaan",
-          },
-          {
-            icon: Handshake,
-            label: "Kerja Sama",
-            href: "/dashboard/mou",
-          },
-          {
-            icon: Award,
-            label: "Penghargaan",
-            href: "/dashboard/penghargaan",
-          },
-          {
-            icon: MessageSquareText,
-            label: "Ulasan",
-            href: "/dashboard/feedback",
-          },
-          {
-            icon: User,
-            label: "Profil",
-            href: "/dashboard/profile",
-          },
-        ]);
-        break;
-      case "super_admin":
-        setMenuItems([
-          {
-            icon: Home,
-            label: "Dashboard",
-            href: "/dashboard",
-          },
-          {
-            icon: Database,
-            label: "Master Data",
-            children: [
-              {
-                icon: Map,
-                label: "Provinsi",
-                href: "/dashboard/master-data/provinsi",
-              },
-              {
-                icon: Building2,
-                label: "Kota/Kabupaten",
-                href: "/dashboard/master-data/kota-kabupaten",
-              },
-              {
-                icon: Factory,
-                label: "Sektor Perusahaan",
-                href: "/dashboard/master-data/sektor",
-              },
-              {
-                icon: IdCard,
-                label: "Posisi Magang(Deprecated)",
-                href: "/dashboard/master-data/posisi",
-              },
-              {
-                icon: CalendarClock,
-                label: "Durasi Magang",
-                href: "/dashboard/master-data/durasi",
-              },
-              {
-                icon: GraduationCap,
-                label: "Jurusan Siswa",
-                href: "/dashboard/master-data/jurusan",
-              },
-              {
-                icon: BriefcaseBusiness,
-                label: "Bidang Magang",
-                href: "/dashboard/master-data/bidang",
-              },
-            ],
-          },
-          {
-            icon: LayoutDashboard,
-            label: "Isi Halaman",
-            href: "/dashboard/isi-halaman",
-          },
-          {
-            icon: Building,
-            label: "Perusahaan",
-            href: "/dashboard/perusahaan",
-          },
-          {
-            icon: BookOpen,
-            label: "Sekolah",
-            href: "/dashboard/sekolah",
-          },
-
-          {
-            icon: Award,
-            label: "Penghargaan",
-            href: "/dashboard/penghargaan",
-          },
-          {
-            icon: User,
-            label: "Profil",
-            href: "/dashboard/profile",
-          },
-        ]);
-        break;
-    }
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async (signal?: AbortSignal) => {
     try {
       const response = await API.get(`${ENDPOINTS.USERS}/profile`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
+        signal,
       });
       if (response.status === 200) {
-        switch (response.data.data.role) {
-          case "student":
-            response.data.data.role = "Siswa";
-            break;
-          case "company":
-            response.data.data.role = "Perusahaan";
-            break;
-          case "school":
-            response.data.data.role = "Sekolah";
-            break;
-          case "super_admin":
-            response.data.data.role = "Super Admin";
-            break;
-          default:
-            response.data.data.role = "";
+        const data = response.data.data;
+        console.log(data);
+        // map role to readable
+        const roleMap: Record<string, string> = {
+          student: "Siswa/Mahasiswa",
+          company: "Perusahaan",
+          school: "Sekolah/Universitas",
+          super_admin: "Super Admin",
+        };
+        var roleLabel = "";
+        if (data.role === "school") {
+          roleLabel =
+            data.school.type === "school" ? "Sekolah" : "Perguruan Tinggi";
+        } else if (data.role === "student") {
+          roleLabel =
+            data.student.school.type === "school" ? "Siswa" : "Mahasiswa";
+        } else if (data.role === "company") {
+          roleLabel = "Perusahaan";
+        } else if (data.role === "super_admin") {
+          roleLabel = "Super Admin";
+        } else {
+          roleLabel = "";
         }
-        setProfile(response.data.data);
+        setProfile({ ...data, role: roleLabel ?? "" });
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
+    } catch (error: any) {
+      if (error.name !== "CanceledError" && error.name !== "AbortError") {
+        console.error("Error fetching profile:", error);
+      }
     }
-  };
-
-  useEffect(() => {
-    fetchProfile();
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchProfile(controller.signal);
+    return () => controller.abort();
+  }, [fetchProfile]);
+
+  // Only compute and render time/date after client mount to avoid
+  // server/client locale and timing mismatch which causes hydration errors.
   const [time, setTime] = useState<Date | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Set waktu pertama kali saat mount
+    // run only on client
+    setMounted(true);
     setTime(new Date());
-
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-
+    const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  if (!time) return null; // jangan render sampai ada waktu di client
-
-  const timeString = time.toLocaleTimeString("id-ID", { hour12: false });
-  const dateString = time.toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const timeString = time
+    ? time.toLocaleTimeString("id-ID", { hour12: false })
+    : "--:--:--";
+  const dateString = time
+    ? time.toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "-";
 
   const handleBack = () => {
     router.push("/");
   };
+
+  const toggleDropdown = useCallback(() => setDropdownOpen((v) => !v), []);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+  const openSidebar = useCallback(() => setSidebarOpen(true), []);
+
+  // compute menuItems on client only to avoid reading cookies during SSR which
+  // leads to hydration mismatches. Start with empty array on first render.
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
+  useEffect(() => {
+    const authorization =
+      typeof window !== "undefined" ? Cookies.get("authorization") ?? "" : "";
+    setMenuItems(MENU_MAP[authorization] ?? []);
+  }, []);
 
   return (
     <div className="min-h-screen bg-blue-50">
@@ -416,22 +369,22 @@ export default function DashboardLayout({
           <div className="flex bg-accent-light/15 mx-6 p-3 rounded-xl text-accent-dark justify-center space-x-2 ">
             <Clock className="w-7 my-auto h-7 " />
             <div className="">
-              <h3 className="font-medium">{timeString}</h3>
+              <h3 className="font-md">{timeString}</h3>
               <h3 className="text-xs">{dateString}</h3>
             </div>
           </div>
-          {menuItems.map((item, index) => (
-            <div key={index}>
+          {menuItems.map((item) => (
+            <div key={item.href ?? item.label}>
               {item.children ? (
                 <SidebarDropdownMenu
                   item={item}
                   pathName={pathName}
-                  setSidebarOpen={setSidebarOpen}
+                  setSidebarOpen={closeSidebar}
                 />
               ) : (
                 <Link
                   href={item.href!}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={closeSidebar}
                   className={`flex rounded-xl items-center mx-6 p-3 my-3 text-gray-700 transition-colors ${
                     (
                       item.href === "/dashboard"
@@ -461,7 +414,7 @@ export default function DashboardLayout({
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-white"
+                className="lg:hidden text-white cursor-pointer"
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -471,7 +424,7 @@ export default function DashboardLayout({
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-3"
+                  className="flex items-center space-x-3 cursor-pointer"
                 >
                   <div className="text-right hidden sm:block">
                     <span className="text-sm font-bold block">
@@ -484,13 +437,11 @@ export default function DashboardLayout({
                     </span>
                   </div>
                   {profile.photo_profile ? (
-                    <div className="w-10 h-10 relative rounded-full border-white border">
-                      <Image
+                    <div className="w-10 h-10 rounded-full border-white border overflow-hidden">
+                      <img
                         src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${profile.photo_profile}`}
                         alt="Photo Profile"
-                        fill
-                        sizes="100%"
-                        className="object-cover rounded-full"
+                        className="object-cover rounded-full w-full h-full"
                       />
                     </div>
                   ) : (
@@ -571,22 +522,27 @@ export default function DashboardLayout({
   );
 }
 
-function SidebarDropdownMenu({
+const SidebarDropdownMenu = React.memo(function SidebarDropdownMenu({
   item,
   pathName,
   setSidebarOpen,
 }: {
   item: MenuItem;
   pathName: string;
-  setSidebarOpen: (open: boolean) => void;
+  // simple callback to close sidebar (no args)
+  setSidebarOpen: () => void;
 }) {
   const [open, setOpen] = useState(false);
 
   // Cek apakah salah satu child aktif
-  const isActive = item.children?.some(
-    (child) =>
-      pathName === child.href ||
-      (child.href && pathName.startsWith(child.href + "/"))
+  const isActive = useMemo(
+    () =>
+      !!item.children?.some(
+        (child) =>
+          pathName === child.href ||
+          (child.href && pathName.startsWith(child.href + "/"))
+      ),
+    [item.children, pathName]
   );
 
   return (
@@ -620,11 +576,11 @@ function SidebarDropdownMenu({
       </button>
       {open && (
         <div className="ml-6 mt-2 space-y-1">
-          {item.children?.map((child, idx) => (
+          {item.children?.map((child) => (
             <Link
-              key={idx}
+              key={child.href ?? child.label}
               href={child.href!}
-              onClick={() => setSidebarOpen(false)}
+              onClick={setSidebarOpen}
               className={`flex items-center rounded-lg px-3 py-2 text-sm transition-colors ${
                 pathName === child.href ||
                 (child.href && pathName.startsWith(child.href + "/"))
@@ -640,4 +596,4 @@ function SidebarDropdownMenu({
       )}
     </div>
   );
-}
+});

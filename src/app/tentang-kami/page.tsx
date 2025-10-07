@@ -3,41 +3,71 @@
 import ContactPage from "@/components/Contact";
 import FooterPage from "@/components/Footer";
 import Navigation from "@/components/Navigation";
-import { useState } from "react";
-import UnderConstruction from "@/components/UnderConstruction";
+import { useEffect, useState } from "react";
+import Loader from "@/components/loader";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const cards = [
   {
     title: "Menambah Pengalaman",
     desc: "Jaminan Pengalaman dengan industry industry yang terpercaya dan ter pantau dengan baik",
-    bg: "bg-[url(/images/pengalaman.jpeg)] bg-cover",
+    bgImage: "/images/pengalaman.jpeg",
     gradient: "bg-gradient-to-t from-black/50 from-20% to-white/0",
   },
   {
     title: "Meningkatkan Wawasan",
     desc: "Menambah wawasan baru terkait ragam dunia industry yang ada",
-    bg: "bg-[url(/images/wawasan.jpeg)] bg-cover",
+    bgImage: "/images/wawasan.jpeg",
     gradient: "bg-gradient-to-t from-black/50 from-20% to-white/0",
   },
   {
     title: "Mudah",
     desc: "Memudah kan para Siswa atau Mahasiswa yang mencari tempat magang yang bagus dan berkualitas",
-    bg: "bg-[url(/images/mudah.jpeg)] bg-cover",
+    bgImage: "/images/mudah.jpeg",
     gradient: "bg-gradient-to-t from-black/50 from-20% to-white/0",
   },
 ];
 
 export default function AboutPage() {
   const [active, setActive] = useState(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const prev = () =>
+  const prev = () => {
     setActive((prev) => (prev === 0 ? cards.length - 1 : prev - 1));
-  const next = () =>
+  };
+
+  const next = () => {
     setActive((prev) => (prev === cards.length - 1 ? 0 : prev + 1));
+  };
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (!isPaused) {
+      const interval = setInterval(() => {
+        setActive((prev) => (prev === cards.length - 1 ? 0 : prev + 1));
+      }, 4000); // 4 detik
+
+      return () => clearInterval(interval);
+    }
+  }, [isPaused]);
+
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+  }, []);
 
   return (
     <>
       <Navigation section={""} setSection={() => {}} />
+      {loading && (
+        <div className="fixed w-full inset-0 flex justify-center items-center h-screen z-10 bg-white">
+          <Loader width={64} height={64} />
+        </div>
+      )}
+
       {/* Section 1: Tentang Kami */}
 
       {/* <UnderConstruction /> */}
@@ -63,57 +93,92 @@ export default function AboutPage() {
       {/* Section 2: Our Story & Mission */}
       <section className="grid grid-cols-1 md:grid-cols-10 md:grid-rows-2 md:max-h-100 gap-4 mx-4 md:mx-20 mt-10">
         <div
-          className={`grid grid-cols-1 grid-rows-7 md:col-span-6 min-h-80 max-h-80 overflow-hidden md:max-h-100 row-span-2 rounded-2xl w-full text-white shadow-xl transition-all duration-500 ${cards[active].bg}`}
+          className="md:col-span-6 row-span-2 relative overflow-hidden rounded-2xl shadow-xl"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
         >
-          <div className="row-span-4 flex items-end justify-between p-5">
-            <button
-              onClick={prev}
-              className="p-2 rounded-full w-10 h-10 flex items-center justify-center bg-gray-600/50 hover:bg-gray-300 text-xl"
-              aria-label="Sebelumnya"
+          {/* Carousel container - ShadCN style */}
+          <div className="relative w-full h-80 md:h-full">
+            {/* All slides container */}
+            <div
+              className="flex transition-transform duration-500 ease-out h-full"
+              style={{ transform: `translateX(-${active * 100}%)` }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                className="bi bi-arrow-left-short"
-                viewBox="0 0 16 16"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={next}
-              className="p-2 rounded-full w-10 h-10 flex items-center justify-center bg-gray-600/50 hover:bg-gray-300 text-xl"
-              aria-label="Berikutnya"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                className="bi bi-arrow-right-short"
-                viewBox="0 0 16 16"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"
-                />
-              </svg>
-            </button>
-          </div>
-          <div
-            className={`rounded-2xl row-span-3 ${cards[active].gradient} p-5 overflow-hidden`}
-          >
-            <h1 className="text-xl md:text-2xl font-bold">
-              {cards[active].title}
-            </h1>
-            <div className="overflow-hidden mb-10">
-              <p className="text-xs md:text-base mt-2">{cards[active].desc}</p>
+              {cards.map((card, index) => (
+                <div key={index} className="relative flex-none w-full h-full">
+                  {/* Background image */}
+                  <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                      backgroundImage: `url(${card.bgImage})`,
+                    }}
+                  />
+
+                  {/* Content overlay */}
+                  <div className="relative z-10 flex flex-col h-full text-white">
+                    {/* Navigation buttons */}
+                    <div className="absolute inset-0 flex items-center justify-between p-5 z-10">
+                      <button
+                        onClick={() => {
+                          setIsPaused(true);
+                          prev();
+                          setTimeout(() => setIsPaused(false), 5000); // Resume after 5 seconds
+                        }}
+                        className="p-2 rounded-full w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/40 text-xl transition-colors duration-200 backdrop-blur-sm"
+                        aria-label="Sebelumnya"
+                      >
+                        <ArrowLeft />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsPaused(true);
+                          next();
+                          setTimeout(() => setIsPaused(false), 5000); // Resume after 5 seconds
+                        }}
+                        className="p-2 rounded-full w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/40 text-xl transition-colors duration-200 backdrop-blur-sm"
+                        aria-label="Berikutnya"
+                      >
+                        <ArrowRight />
+                      </button>
+                    </div>
+
+                    {/* Content area */}
+                    <div className={`${card.gradient} p-5 pb-12 mt-auto`}>
+                      <h1 className="text-xl md:text-2xl font-bold mb-3">
+                        {card.title}
+                      </h1>
+                      <p className="text-sm md:text-base leading-relaxed">
+                        {card.desc}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* Dots indicator */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+            {cards.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setIsPaused(true);
+                  setActive(index);
+                  setTimeout(() => setIsPaused(false), 3000); // Resume after 3 seconds
+                }}
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  index === active
+                    ? "bg-white w-8"
+                    : "bg-white/50 hover:bg-white/75"
+                }`}
+                aria-label={`Slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
+
         <div className="bg-blue-400 hover:bg-blue-500 col-span-1 md:col-span-4 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
-          <div className="col-span-3 row-span-2"></div>
           <div className="col-span-2 p-5 row-span-3 text-white">
             <h1 className="text-xl md:text-2xl font-bold">Visi</h1>
             <p className="text-xs md:text-xs">
@@ -123,9 +188,8 @@ export default function AboutPage() {
             </p>
           </div>
         </div>
-        <div className="bg-accent col-span-1 md:col-span-4 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
-            <div className="col-span-3 row-span-2 hidden lg:block transition-all duration-300 hover:opacity-0"></div>
-            <div className="col-span-2 p-5 row-span-3 text-white bg-black/10 transition-all duration-300 hover:row-span-5 hover:bg-black/0">
+        <div className="bg-accent hover:bg-accent-hover col-span-1 md:col-span-4 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
+          <div className="col-span-2 p-5 row-span-3 text-white">
             <h1 className="text-xl md:text-2xl font-bold">Our Mission</h1>
             <p className="text-xs md:text-xs">
               1. Menyediakan peluang magang terverifikasi dari perusahaan

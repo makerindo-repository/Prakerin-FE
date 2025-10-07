@@ -214,11 +214,11 @@ const DaftarSiswaPage: React.FC = () => {
     <main className="p-6">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-accent-dark text-sm mb-5">Daftar Siswa</h1>
+        <h1 className="text-accent-dark text-sm mb-5">Daftar Siswa/Mahasiswa</h1>
         <div className="mb-8">
           <div className="flex items-center space-x-2 font-extrabold text-accent">
             <UsersRound className="w-5 h-5" />
-            <h2 className="text-2xl mt-2">Daftar Siswa</h2>
+            <h2 className="text-2xl mt-2">Daftar Siswa/Mahasiswa</h2>
           </div>
         </div>
 
@@ -268,7 +268,7 @@ const DaftarSiswaPage: React.FC = () => {
             className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center"
           >
             <Plus size={16} className="mr-1" />
-            Tambah Siswa
+            Tambah Siswa/Mahasiswa
           </Link>
         </div>
       </div>
@@ -280,7 +280,7 @@ const DaftarSiswaPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Cari siswa..."
+            placeholder="Cari siswa/mahasiswa..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
@@ -346,7 +346,7 @@ const DaftarSiswaPage: React.FC = () => {
         {/* Empty State (if no tasks) */}
         {students.length === 0 && !isLoading && (
           <div className="text-center py-12 col-span-2 ">
-            <NotFoundComponent text="Tidak ada siswa yang ditemukan." />
+            <NotFoundComponent text="Tidak ada siswa/mahasiswa yang ditemukan." />
           </div>
         )}
       </div>

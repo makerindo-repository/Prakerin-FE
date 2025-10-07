@@ -194,7 +194,7 @@ const AdminSekolah: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Cari sekolah..."
+            placeholder="Cari sekolah/universitas..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
             className="w-full bg-accent text-white pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-transparent transition-colors"

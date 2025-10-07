@@ -93,11 +93,13 @@ const PerusahaanPage: React.FC = () => {
 
   return (
     <main className="p-6">
-      <h1 className="text-accent-dark text-sm mb-5">Daftar Penempatan Siswa</h1>
+      <h1 className="text-accent-dark text-sm mb-5">
+        Daftar Penempatan Siswa/Mahasiswa
+      </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <MapPin className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Daftar Penempatan Siswa</h2>
+          <h2 className="text-2xl mt-2">Daftar Penempatan Siswa/Mahasiswa</h2>
         </div>
       </div>
       <div className="lg:flex lg:justify-between items-end mb-5">
@@ -106,7 +108,7 @@ const PerusahaanPage: React.FC = () => {
             <h1 className="text-2xl font-extrabold">
               {count.total_student_internship}
             </h1>
-            <span className="text-sm">Total Siswa Magang</span>
+            <span className="text-sm">Total Siswa/Mahasiswa Magang</span>
           </div>
           <BriefcaseBusiness className="w-10 h-10  text-accent" />
         </div>
@@ -116,7 +118,7 @@ const PerusahaanPage: React.FC = () => {
               type="text"
               onChange={(e) => setSearchTerm(e.target.value)}
               value={searchTerm}
-              placeholder="Cari penampatan siswa..."
+              placeholder="Cari penampatan siswa/mahasiswa..."
               className="text-gray-600 w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-accent  focus:border-transparent  rounded-2xl transition-all duration-300"
             />
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
@@ -192,7 +194,7 @@ const PerusahaanPage: React.FC = () => {
           <div className="text-center py-12 col-span-2 ">
             <XCircle className="w-12 h-12 text-red-500/50 mx-auto mb-4" />
             <p className="text-gray-500">
-              Tidak ada daftar penempatan siswa yang ditemukan
+              Tidak ada daftar penempatan siswa/mahasiswa yang ditemukan
             </p>
           </div>
         )}

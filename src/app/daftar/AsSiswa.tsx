@@ -171,7 +171,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
             className="lg:w-50 mb-4 mx-auto"
           />
           <h2 className="text-2xl font-semibold text-gray-700">
-            Daftar Siswa Magang
+            Daftar Siswa/Mahasiswa Magang
           </h2>
         </div>
 
@@ -222,7 +222,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     value={formData.username}
                     onChange={handleInputChange}
                     placeholder="Masukan Username anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                       errors.username ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -242,7 +242,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Masukan Nama anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                       errors.name ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -264,11 +264,11 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       name="school_id"
                       value={formData.school_id}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors appearance-none bg-white ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors appearance-none bg-white ${
                         errors.school_id ? "border-red-500" : "border-gray-300"
                       }`}
                     >
-                      <option value="">Pilih Sekolah/Univ anda</option>
+                      <option value="">Pilih Sekolah/Universitas anda</option>
                       {schools.map((school, key) => (
                         <option key={key} value={school.id}>
                           {school.name}
@@ -308,7 +308,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="Masukan Email anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                       errors.email ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -331,7 +331,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
                         errors.password ? "border-red-500" : "border-gray-300"
                       }`}
                     />
@@ -364,7 +364,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       value={formData.password_confirmation}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
                         errors.password_confirmation
                           ? "border-red-500"
                           : "border-gray-300"

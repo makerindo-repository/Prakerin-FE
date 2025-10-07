@@ -128,6 +128,9 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         }
       );
 
+      console.log(response.data);
+      
+
       setFormData({ curriculum_vitae_id: "", cover_letter: "" });
       await alertSuccess("Lamaran berhasil dikirim!");
 

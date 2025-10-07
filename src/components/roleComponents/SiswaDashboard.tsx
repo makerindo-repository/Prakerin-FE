@@ -1,5 +1,5 @@
 import { BriefcaseBusiness, Building, MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
@@ -30,8 +30,6 @@ interface InternshipApplication {
   id: string;
   job_opening: {
     title: string;
-    // company: string;
-    // location: string;
   };
   company: {
     name: string;
@@ -42,6 +40,8 @@ interface InternshipApplication {
   province: {
     name: string;
   };
+  status: string;
+  test: Test[];
 }
 
 interface Profile {
@@ -50,42 +50,159 @@ interface Profile {
   };
 }
 
+interface Test {
+  title: string;
+  type: string;
+  pivot: {
+    is_passed: boolean;
+    test_id: string;
+    internship_application_id: string;
+  };
+}
+
 type Status = "not_started" | "ongoing" | "completed" | "";
 
+// Sample static data kept outside the component so it's not recreated on every render
+const jobApplicationsSample: JobApplication[] = [
+  {
+    id: "1",
+    title: "Frontend Web Developer",
+    company: "PT Makerindo Prima Solusi",
+    location: "Kabupaten Bandung, Jawa Barat",
+    currentStep: 3,
+    steps: [
+      { name: "Apply", date: "02-06-2025", completed: true },
+      { name: "Pending", date: "03-06-2025", completed: true },
+      { name: "Test", date: "05-06-2025", completed: true },
+      { name: "Ditolak", date: "06-06-2025", completed: false },
+    ],
+  },
+];
+
+// Pure helper: compute color class for a step
+function getStepColor(
+  stepIndex: number,
+  currentStep: number,
+  isCompleted: boolean,
+  status: string,
+) {
+  if (stepIndex < currentStep) return "bg-accent";
+  if (stepIndex === currentStep && isCompleted) return "bg-accent";
+  if (stepIndex === currentStep && !isCompleted) return "bg-teal-500";
+  if(stepIndex === currentStep && status === "accepted") return "bg-green-500";
+  if(stepIndex === currentStep && status === "rejected") return "bg-red-500";
+  return "bg-gray-300";
+}
+
+// Pure helper: render status badge
+function StatusBadge({ status }: { status: Status }) {
+  switch (status) {
+    case "completed":
+      return (
+        <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
+          Selesai Magang
+        </span>
+      );
+    case "not_started":
+      return (
+        <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
+          Mencari Magang
+        </span>
+      );
+    case "ongoing":
+      return (
+        <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
+          Sedang Magang
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
+// Small memoized component to render vertical progress steps
+const StepTimeline = React.memo(function StepTimeline({
+  steps,
+  status,
+}: {
+  steps: Test[];
+  status: string;
+}) {
+  // compute currentStep as number of passed tests + base step (Submitted)
+  const currentStep = useMemo(() => {
+    const passed = steps.reduce(
+      (acc, s) => acc + (s.pivot?.is_passed ? 1 : 0),
+      0
+    );
+    // base 1 for 'Submitted', plus passed tests
+    let cs = 1 + passed;
+    // if not in progress, move to final/result step
+    if (status !== "in_progress") cs += 1;
+    return cs;
+  }, [steps, status]);
+
+  // build a unified steps array: Submitted -> tests... -> Result
+  const allSteps = useMemo(() => {
+    const arr: { title: string; isPassed?: boolean }[] = [];
+    arr.push({ title: "Submitted", isPassed: true });
+    steps.forEach((s) =>
+      arr.push({ title: s.title, isPassed: s.pivot?.is_passed })
+    );
+    arr.push({ title: "Result", isPassed: status === "completed" || status === "rejected" });
+    return arr;
+  }, [steps, status]);
+
+  return (
+    <div className="relative">
+      <div className="flex flex-col space-y-6">
+        {allSteps.map((step, idx) => {
+          // stepIndex here mirrors original indexing: 0..n
+          const stepIndex = idx; // 0-based
+          const circleColorClass = getStepColor(
+            stepIndex,
+            currentStep,
+            !!step.isPassed,
+            status
+          );
+
+          // connector between this step and the next: active when (idx + 1) < currentStep
+          const connectorActive = idx + 1 < currentStep;
+
+          return (
+            <div key={idx} className="flex items-start space-x-4">
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium ${circleColorClass}`}
+                >
+                  {idx + 1}
+                </div>
+                {idx !== allSteps.length - 1 && (
+                  <div
+                    style={{
+                      backgroundColor: connectorActive ? "#14b8a6" : "#e5e7eb",
+                    }}
+                    className="w-px h-6 mt-2"
+                  />
+                )}
+              </div>
+
+              <div className="pt-1">
+                <div className="text-sm font-medium text-gray-800">
+                  {step.title}
+                </div>
+                {/* optional small meta/date can go here */}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+
 export default function SiswaDashboard() {
-  const [profile, setProfile] = useState<Profile>({
-    student: {
-      status: "",
-    },
-  });
-
+  const [profile, setProfile] = useState<Profile>({ student: { status: "" } });
   const [loading, setLoading] = useState<boolean>(false);
-
-  const jobApplications: JobApplication[] = [
-    {
-      id: "1",
-      title: "Frontend Web Developer",
-      company: "PT Makerindo Prima Solusi",
-      location: "Kabupaten Bandung, Jawa Barat",
-      currentStep: 3,
-      steps: [
-        { name: "Apply", date: "02-06-2025", completed: true },
-        { name: "Pending", date: "03-06-2025", completed: true },
-        { name: "Test", date: "05-06-2025", completed: true },
-        { name: "Ditolak", date: "06-06-2025", completed: false },
-      ],
-    },
-  ];
-  const getStepColor = (
-    stepIndex: number,
-    currentStep: number,
-    isCompleted: boolean
-  ) => {
-    if (stepIndex < currentStep) return "bg-teal-500";
-    if (stepIndex === currentStep && isCompleted) return "bg-teal-500";
-    if (stepIndex === currentStep && !isCompleted) return "bg-red-500";
-    return "bg-gray-300";
-  };
   const [internshipApplication, setInternshipApplication] = useState<
     InternshipApplication[]
   >([]);
@@ -97,79 +214,75 @@ export default function SiswaDashboard() {
       in_progress: 0,
     });
 
-  const fetchData = async () => {
-    if (loading) {
-      return;
-    }
-    setLoading(true);
-    try {
-      const profile = API.get(`${ENDPOINTS.USERS}/profile`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-      const internshipApplicationCount = API.get(
-        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/count`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-        }
-      );
-      const internshipApplication = API.get(ENDPOINTS.INTERNSHIP_APPLICATIONS, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-
-      const response = await Promise.all([
-        profile,
-        internshipApplicationCount,
-        internshipApplication,
-      ]);
-
-      setProfile(response[0].data.data);
-      setInternshipApplicationCount(response[1].data.data);
-      setInternshipApplication(response[2].data.data);
-
-      console.log(response);
-    } catch (error: AxiosError | unknown) {
-      if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        await alertError(responseError);
-      }
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatus = (status: Status) => {
-    switch (status) {
-      case "completed":
-        return (
-          <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
-            Selesai Magang
-          </span>
-        );
-      case "not_started":
-        return (
-          <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
-            Mencari Magang
-          </span>
-        );
-      case "ongoing":
-        return (
-          <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
-            Sedang Magang
-          </span>
-        );
-    }
-  };
-
   useEffect(() => {
+    let mounted = true;
+    const fetchData = async () => {
+      if (loading) return;
+
+      setLoading(true);
+      const token = Cookies.get("userToken") || "";
+
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+      const pProfile = API.get(`${ENDPOINTS.USERS}/profile`, { headers });
+      const pCount = API.get(`${ENDPOINTS.INTERNSHIP_APPLICATIONS}/count`, {
+        headers,
+      });
+      const pApps = API.get(ENDPOINTS.INTERNSHIP_APPLICATIONS, { headers });
+
+      try {
+        const results = await Promise.allSettled([pProfile, pCount, pApps]);
+        console.log(results);
+
+        // profile
+        if (results[0].status === "fulfilled" && mounted) {
+          setProfile(results[0].value.data.data);
+        } else if (results[0].status === "rejected") {
+          const err = results[0].reason;
+          if (err instanceof AxiosError)
+            await alertError(err.response?.data.errors);
+        }
+
+        // count
+        if (results[1].status === "fulfilled" && mounted) {
+          setInternshipApplicationCount(results[1].value.data.data);
+        } else if (results[1].status === "rejected") {
+          const err = results[1].reason;
+          if (err instanceof AxiosError)
+            await alertError(err.response?.data.errors);
+        }
+
+        // applications
+        if (results[2].status === "fulfilled" && mounted) {
+          setInternshipApplication(results[2].value.data.data);
+        } else if (results[2].status === "rejected") {
+          const err = results[2].reason;
+          if (err instanceof AxiosError)
+            await alertError(err.response?.data.errors);
+        }
+      } catch (err) {
+        // Fallback catch (shouldn't normally happen since we used allSettled)
+        if (err instanceof AxiosError) {
+          await alertError(err.response?.data.errors);
+        } else {
+          console.error(err);
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
     fetchData();
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const statusBadge = useMemo(
+    () => <StatusBadge status={profile.student.status} />,
+    [profile.student.status]
+  );
 
   return (
     <>
@@ -185,15 +298,16 @@ export default function SiswaDashboard() {
           </p>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600">Status:</span>
-            {getStatus(profile.student.status)}
+            {statusBadge}
           </div>
         </div>
       </div>
 
-      {/* Internship Applications Grid */}
-      {loading !== true && internshipApplication ? (
+      {loading ? (
+        <Loader />
+      ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* {internshipApplication.map((application) => (
+          {internshipApplication.map((application) => (
             <div
               key={application.id}
               className="bg-white rounded-lg shadow-sm p-6"
@@ -212,120 +326,19 @@ export default function SiswaDashboard() {
                     {application.city_regency.name}, {application.province.name}
                   </span>
                 </div>
-              </div> */}
-
-          {/* Progress Steps */}
-          {/* <div className="relative">
-                <div className="flex justify-between items-center">
-                  {application.steps.map((step, stepIndex) => (
-                    <div
-                      key={stepIndex}
-                      className="flex flex-col items-center relative z-10"
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium ${getStepColor(
-                          stepIndex,
-                          application.currentStep,
-                          step.completed
-                        )}`}
-                      >
-                        {stepIndex + 1}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-2 text-center max-w-16">
-                        {step.name}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {step.date}
-                      </div>
-                    </div>
-                  ))}
-                </div> */}
-
-          {/* Progress Line */}
-          {/* <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-300 z-1">
-                  <div
-                    className="h-full bg-teal-500 transition-all duration-300"
-                    style={{
-                      width: `${
-                        (application.currentStep /
-                          (application.steps.length - 1)) *
-                        100
-                      }%`,
-                    }}
-                  ></div>
-                </div> */}
-
-          {/* </div> */}
-          {/* </div>
-          ))} */}
-
-          {jobApplications.map((application) => (
-            <div
-              key={application.id}
-              className="bg-white rounded-lg shadow-sm p-6"
-            >
-              <div className="mb-4">
-                <h3 className="font-semibold text-gray-800 mb-2">
-                  {application.title}
-                </h3>
-                <div className="flex items-center space-x-2 text-sm text-gray-600 mb-1">
-                  <Building className="w-4 h-4" />
-                  <span>{application.company}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <MapPin className="w-4 h-4" />
-                  <span>{application.location}</span>
-                </div>
               </div>
 
-              {/* Progress Steps */}
-              <div className="relative">
-                <div className="flex justify-between items-center">
-                  {application.steps.map((step, stepIndex) => (
-                    <div
-                      key={stepIndex}
-                      className="flex flex-col items-center relative z-10"
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium ${getStepColor(
-                          stepIndex,
-                          application.currentStep,
-                          step.completed
-                        )}`}
-                      >
-                        {stepIndex + 1}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-2 text-center max-w-16">
-                        {step.name}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {step.date}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Progress Line */}
-                <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-300 z-1">
-                  <div
-                    className="h-full bg-teal-500 transition-all duration-300"
-                    style={{
-                      width: `${
-                        (application.currentStep /
-                          (application.steps.length - 1)) *
-                        100
-                      }%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
+              {/* If the backend returns steps/currentStep in the future use StepTimeline. For now show sample steps timeline for demo */}
+              <StepTimeline
+                steps={application.test}
+                status={application.status}
+              />
             </div>
           ))}
         </div>
-      ) : (
-        <Loader />
       )}
-      {internshipApplication.length === 0 && (
+
+      {!loading && internshipApplication.length === 0 && (
         <p className="text-gray-500 p-6 text-center ">
           Kamu belum melamar magang di perusahaan manapun.
         </p>

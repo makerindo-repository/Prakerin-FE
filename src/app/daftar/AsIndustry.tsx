@@ -204,7 +204,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
                     value={formData.username}
                     onChange={handleInputChange}
                     placeholder="Masukan Username anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                       errors.username ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -224,7 +224,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Masukan nama anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                       errors.name ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -247,7 +247,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
                       placeholder="Masukan alamat perusahaan anda disini"
                       value={formData.address}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors appearance-none bg-white ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors appearance-none bg-white ${
                         errors.address ? "border-red-500" : "border-gray-300"
                       }`}
                     />
@@ -268,7 +268,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="Masukan Email anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                       errors.email ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -291,7 +291,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
                         errors.password ? "border-red-500" : "border-gray-300"
                       }`}
                     />
@@ -324,7 +324,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
                       value={formData.password_confirmation}
                       onChange={handleInputChange}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors pr-12 ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
                         errors.confirm_password
                           ? "border-red-500"
                           : "border-gray-300"

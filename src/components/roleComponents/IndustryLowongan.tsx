@@ -1,4 +1,3 @@
-
 import {
   Bookmark,
   Building,
@@ -8,79 +7,56 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
-import Image from "next/image";
 import NotFoundComponent from "../NotFoundComponent";
-
-interface Lowongan {
-  title: string;
-  icon: File | null;
-  name: string;
-  kota: string;
-  provinsi: string;
-  time: Timestamp | null | number;
-}
+import Loader from "../loader";
 
 interface JobOpening {
   id: string;
   title: string;
-  company: {
-    name: string;
-  };
-  city_regency: {
-    name: string;
-  };
-  province: {
-    name: string;
-  };
+  company: { name: string };
+  city_regency: { name: string };
+  province: { name: string };
   is_paid: boolean;
   updated_at: string;
   save_job_opening: boolean;
-  user: {
-    photo_profile: string;
-  };
+  user: { photo_profile: string | null };
 }
 
 export function IndustryLowongan() {
   const route = useRouter();
   const [jobOpenings, setJobOpenings] = useState<JobOpening[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fetchJobOpenings = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     try {
-      // let params = {
-      //   search: inputSearch,
-      // };
-
-      // if (showFilter) {
-      //   params = { ...params, ...filterData };
-      // }
-
       const response = await API.get(ENDPOINTS.JOB_OPENINGS, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-        // params: {
-        //   ...params,
-        // },
       });
       if (response.status === 200) {
-        console.log(response.data.data);
-        setJobOpenings(response.data.data);
+        setJobOpenings(response.data.data || []);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchJobOpenings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return (
     <>
       <div className="flex justify-end mb-6">
@@ -94,6 +70,7 @@ export function IndustryLowongan() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
         {jobOpenings &&
+          !isLoading &&
           jobOpenings.map((data) => (
             <Link
               href={`/dashboard/lowongan/${data.id}`}
@@ -106,13 +83,11 @@ export function IndustryLowongan() {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-3">
                   {data.user.photo_profile ? (
-                    <div className="w-15 h-15 relative rounded-full border-white border">
-                      <Image
+                    <div className="w-15 h-15 rounded-full border-white border overflow-hidden">
+                      <img
                         src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${data.user.photo_profile}`}
                         alt="Logo Perusahaan"
-                        fill
-                        sizes="100%"
-                        className="object-cover rounded-full"
+                        className="object-cover rounded-full w-full h-full"
                       />
                     </div>
                   ) : (
@@ -132,7 +107,7 @@ export function IndustryLowongan() {
                 </div>
                 {data.is_paid && (
                   <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                    Paid
+                    Dibayar
                   </span>
                 )}
               </div>
@@ -144,7 +119,14 @@ export function IndustryLowongan() {
               </div>
             </Link>
           ))}
-        {jobOpenings.length === 0 && (
+
+        {isLoading && (
+          <div className="text-center py-12 col-span-2 ">
+            <Loader width={64} height={64} />
+          </div>
+        )}
+
+        {jobOpenings.length === 0 && !isLoading && (
           <div className="text-center py-12 col-span-2 ">
             <NotFoundComponent text="Tidak ada lowongan magang yang ditemukan." />
           </div>

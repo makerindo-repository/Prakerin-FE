@@ -215,7 +215,7 @@ const ProvinsiPage: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [pages.activePages, isReload]);
-  
+
   return (
     <main className="p-6 ">
       {/* Page Header */}

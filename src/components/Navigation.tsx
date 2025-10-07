@@ -1,7 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import Link from "next/link";
 import { Menu } from "lucide-react";
@@ -13,10 +13,9 @@ interface NavigationProps {
 
 export default function Navigation({ setSection }: NavigationProps) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [currentHash, setCurrentHash] = useState("");
   const pathName = usePathname();
-
-  const [hash, setHash] = useState("");
-  const [isHash, setIsHash] = useState<boolean>(false);
+  const router = useRouter();
 
   useEffect(() => {
     const token = Cookies.get("userToken");
@@ -24,25 +23,40 @@ export default function Navigation({ setSection }: NavigationProps) {
   }, []);
 
   useEffect(() => {
-    // Mendapatkan hash saat komponen mount
-    setHash(window.location.hash);
-
-    // Listener untuk perubahan hash
-    const handleHashChange = () => {
-      setHash(window.location.hash);
+    // Set initial hash dan listen untuk perubahan
+    const updateHash = () => {
+      if (typeof window !== "undefined") {
+        setCurrentHash(window.location.hash);
+      }
     };
 
-    window.addEventListener("hashchange", handleHashChange);
+    updateHash();
 
-    // console.log(router.asPath);
-    return () => {
-      window.removeEventListener("hashchange", handleHashChange);
-    };
-  }, [isHash]);
+    if (typeof window !== "undefined") {
+      window.addEventListener("hashchange", updateHash);
+      return () => window.removeEventListener("hashchange", updateHash);
+    }
+  }, []);
 
-  const resetMitra = () => {
-    setIsHash(!hash);
-    setHash("");
+  // Helper function untuk menentukan apakah item navigation aktif
+  const isBerandaActive = pathName === "/" && currentHash === "";
+  const isMitraActive = pathName === "/" && currentHash === "#mitra";
+
+  // Handler untuk navigasi
+  const handleBerandaClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push("/");
+    setCurrentHash("");
+  };
+
+  const handleMitraClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push("/#mitra");
+    setCurrentHash("#mitra");
+  };
+
+  const handleOtherNavClick = () => {
+    setCurrentHash("");
   };
 
   return (
@@ -56,18 +70,16 @@ export default function Navigation({ setSection }: NavigationProps) {
           <div className="hidden md:flex space-x-8">
             <Link
               href="/"
-              onClick={resetMitra}
+              onClick={handleBerandaClick}
               className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                pathName === "/" && hash !== "#mitra"
-                  ? "text-accent"
-                  : "text-gray-700"
+                isBerandaActive ? "text-accent" : "text-gray-700"
               }`}
             >
               Beranda
             </Link>
             <Link
               href="/tentang-kami"
-              onClick={resetMitra}
+              onClick={handleOtherNavClick}
               className={`font-semibold hover:text-accent transition-colors duration-300 ${
                 pathName === "/tentang-kami" ? "text-accent" : "text-gray-700"
               }`}
@@ -76,7 +88,7 @@ export default function Navigation({ setSection }: NavigationProps) {
             </Link>
             <Link
               href="/lowongan"
-              onClick={resetMitra}
+              onClick={handleOtherNavClick}
               className={`font-semibold hover:text-accent transition-colors duration-300 ${
                 pathName === "/lowongan" || pathName.startsWith("/lowongan/")
                   ? "text-accent"
@@ -87,9 +99,9 @@ export default function Navigation({ setSection }: NavigationProps) {
             </Link>
             <Link
               href="/#mitra"
-              onClick={resetMitra}
+              onClick={handleMitraClick}
               className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                hash === "#mitra" ? "text-accent" : "text-gray-700"
+                isMitraActive ? "text-accent" : "text-gray-700"
               }`}
             >
               Mitra
@@ -140,18 +152,16 @@ export default function Navigation({ setSection }: NavigationProps) {
         <div id="mobile-menu" className="md:hidden hidden mt-4 space-y-2">
           <Link
             href="/"
-            onClick={resetMitra}
+            onClick={handleBerandaClick}
             className={`block py-2 hover:text-prakerin transition-colors duration-300 ${
-              pathName === "/" && hash !== "#mitra"
-                ? "text-accent"
-                : "text-gray-700"
+              isBerandaActive ? "text-accent" : "text-gray-700"
             }`}
           >
             Beranda
           </Link>
           <Link
             href="/tentang-kami"
-            onClick={resetMitra}
+            onClick={handleOtherNavClick}
             className={`block py-2  hover:text-prakerin transition-colors duration-300 ${
               pathName === "/tentang-kami" ? "text-accent" : "text-gray-700"
             }`}
@@ -160,7 +170,7 @@ export default function Navigation({ setSection }: NavigationProps) {
           </Link>
           <Link
             href="/lowongan"
-            onClick={resetMitra}
+            onClick={handleOtherNavClick}
             className={`block py-2  hover:text-prakerin transition-colors duration-300 ${
               pathName === "/lowongan" || pathName.startsWith("/lowongan/")
                 ? "text-accent"
@@ -171,9 +181,9 @@ export default function Navigation({ setSection }: NavigationProps) {
           </Link>
           <Link
             href="/#mitra"
-            onClick={resetMitra}
+            onClick={handleMitraClick}
             className={`block py-2  hover:text-prakerin transition-colors duration-300 ${
-              hash === "#mitra" ? "text-accent" : "text-gray-700"
+              isMitraActive ? "text-accent" : "text-gray-700"
             }`}
           >
             Mitra

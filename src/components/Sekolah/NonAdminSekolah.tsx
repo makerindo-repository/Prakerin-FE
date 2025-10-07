@@ -171,7 +171,7 @@ const NonAdminSekolah: React.FC = () => {
               type="text"
               onChange={(e) => setInputSearch(e.target.value)}
               value={inputSearch}
-              placeholder="Cari sekolah..."
+              placeholder="Cari sekolah/universitas..."
               className="text-gray-600 w-full px-4 py-3 pl-12 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300"
             />
 

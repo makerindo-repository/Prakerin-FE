@@ -1,5 +1,5 @@
 "use client";
-import { Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -21,7 +21,7 @@ interface FormErrors {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
+  const route = useRouter();
 
   const [data, setData] = useState<FormData>({
     email: "",
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
       localStorage.setItem("login-success", "OK");
 
-      router.push("/dashboard");
+      route.push("/dashboard");
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -88,6 +88,12 @@ export default function LoginPage() {
 
   return (
     <>
+      <button
+        onClick={() => route.back()}
+        className="absolute top-4 left-4 p-3 rounded-full hover:bg-accent-hover transition bg-accent cursor-pointer shadow-md"
+      >
+        <ArrowLeft className="text-white" />
+      </button>
       <section className="flex items-center justify-center min-h-screen bg-background px-4">
         <div className="w-full max-w-md space-y-6 bg-white shadow-2xl p-6 md:p-10 rounded-xl">
           <div className="flex justify-center">

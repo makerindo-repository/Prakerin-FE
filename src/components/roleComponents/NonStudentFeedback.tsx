@@ -49,8 +49,8 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
             </h3>
             <p className="text-sm text-gray-600">
               {authorization === "company"
-                ? "Penilaian didapat dari siswa yang melakukan magang di perusahaan ini"
-                : "Penilaian didapat dari siswa dan perusahaan yang terdaftar sebagai pengguna Prakerin"}
+                ? "Penilaian didapat dari siswa/mahasiswa yang melakukan magang di perusahaan ini"
+                : "Penilaian didapat dari siswa/mahasiswa dan perusahaan yang terdaftar sebagai pengguna Prakerin"}
             </p>
           </div>
         </div>

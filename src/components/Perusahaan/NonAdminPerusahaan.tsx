@@ -114,6 +114,13 @@ const NonadminPerusahaan: React.FC = () => {
     }
   };
 
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePages: selectedPage,
+    }));
+  };
+
   useEffect(() => {
     if (inputSearch.trim() !== "") {
       if (!debouncedQuery) {
@@ -129,13 +136,6 @@ const NonadminPerusahaan: React.FC = () => {
   useEffect(() => {
     fetchCompany();
   }, [pages.activePages, isReload]);
-
-  const handleChangePage = (selectedPage: number) => {
-    setPages((prev) => ({
-      ...prev,
-      activePages: selectedPage,
-    }));
-  };
 
   useEffect(() => {
     fetchCompanyCount();

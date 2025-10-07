@@ -1,5 +1,6 @@
 "use client";
 import emailJs from "emailjs-com";
+import { Facebook, Instagram, Mail, MapPin, Share } from "lucide-react";
 import { useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { FaInstagram } from "react-icons/fa";
@@ -10,7 +11,7 @@ interface contactFormData {
   message: string;
 }
 
-export default function ContactPage() {
+export default function ContactPage({ homepages }: { homepages?: any }) {
   const formRef = useRef<HTMLFormElement>(null);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
@@ -49,11 +50,10 @@ export default function ContactPage() {
       <div className="container mx-auto px-4">
         <div className="mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-            Hubungi Kami
+            {homepages?.["title-landing-7"] ?? "-"}
           </h2>
           <p className="text-gray-600 mb-5">
-            Punya ide, pertanyaan, atau sekadar ingin menyapa seputar magang?
-            Kami senang mendengarnya! Silakan hubungi kami kapan saja.
+            {homepages?.["subtitle-landing-7"] ?? "-"}
           </p>
           <div className="w-[170px] h-0 border-2 border-accent"></div>
         </div>
@@ -63,25 +63,7 @@ export default function ContactPage() {
           <div className="space-y-9">
             <div className="bg-white rounded-2xl p-6 shadow-lg hover-lift">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2 text-prakerin"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  ></path>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  ></path>
-                </svg>
+                <MapPin className="w-5 h-5 mr-2 text-prakerin" />
                 Lokasi
               </h3>
               <p className="text-gray-600 text-sm">
@@ -95,19 +77,7 @@ export default function ContactPage() {
 
             <div className="bg-white rounded-2xl p-6 shadow-lg hover-lift">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2 text-prakerin"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  ></path>
-                </svg>
+                <Mail className="w-5 h-5 mr-2 text-prakerin" />
                 Kontak Kami
               </h3>
               <p className="text-gray-600 text-sm">
@@ -119,19 +89,7 @@ export default function ContactPage() {
 
             <div className="bg-white rounded-2xl p-6 shadow-lg hover-lift">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2 text-prakerin"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2m-9 0V4"
-                  ></path>
-                </svg>
+                <Share className="w-5 h-5 mr-2 text-prakerin" />
                 Media Sosial
               </h3>
               <div className="flex space-x-4">
@@ -139,19 +97,13 @@ export default function ContactPage() {
                   href="#"
                   className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
-                  </svg>
+                  <Facebook className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
                   className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center text-white hover:bg-pink-700 transition-colors"
                 >
-                  <FaInstagram size={24} color="#fff" />
+                  <Instagram className="w-5 h-5" />
                 </a>
               </div>
             </div>

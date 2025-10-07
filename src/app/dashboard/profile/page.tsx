@@ -132,7 +132,7 @@ export default function ProfilePage() {
   const [isSubmittingDesc, setIsSubmittingDesc] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
@@ -216,11 +216,11 @@ export default function ProfilePage() {
           request = companyForm;
           break;
         case "school":
-          text = "Informasi sekolah berhasil di simpan!";
+          text = "Informasi sekolah/universitas berhasil di simpan!";
           request = schoolForm;
           break;
         case "student":
-          text = "Informasi siswa berhasil di simpan!";
+          text = "Informasi siswa/mahasiswa berhasil di simpan!";
           request = studentForm;
           break;
         case "description":
@@ -302,7 +302,6 @@ export default function ProfilePage() {
   };
 
   const fetchData = async () => {
-    if (isLoading) return;
     setIsLoading(true);
     try {
       const provinces = API.get(`${ENDPOINTS.PROVINCES}`);
@@ -882,7 +881,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3 mb-6">
               <BookOpen size={20} className="text-cyan-600" />
               <h3 className="text-lg font-semibold text-gray-800">
-                Informasi Sekolah/Kampus
+                Informasi Sekolah/Universitas
               </h3>
             </div>
             <form
@@ -896,7 +895,7 @@ export default function ProfilePage() {
                     htmlFor="school-name"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Nama Sekolah/Kampus
+                    Nama Sekolah/Universitas
                   </label>
                   <input
                     id="school-name"
@@ -1028,7 +1027,7 @@ export default function ProfilePage() {
                     htmlFor="school-address"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Alamat Sekolah/Kampus
+                    Alamat Sekolah/Universitas
                   </label>
                   <input
                     id="school-address"
@@ -1195,7 +1194,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3 mb-6">
               <UserSquare size={20} className="text-cyan-600" />
               <h3 className="text-lg font-semibold text-gray-800">
-                Informasi Siswa
+                Informasi Siswa/Mahasiswa
               </h3>
             </div>
             <form
@@ -1266,7 +1265,7 @@ export default function ProfilePage() {
                     htmlFor="school"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Asal Sekolah
+                    Asal Sekolah/Universitas
                   </label>
                   <input
                     disabled={true}
