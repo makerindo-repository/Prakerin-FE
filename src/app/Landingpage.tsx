@@ -179,14 +179,7 @@ export default function LandingPage({
                     playsInline
                     className="w-full h-full object-cover"
                   >
-                    <source
-                      src="/video/Iklan Indihome Paket Phoenix Dj Ubur Ubur.mp4"
-                      type="video/mp4"
-                    />
-                    <source
-                      src="/video/rick-roll-video-meme-template-video-1da252ec.mp4"
-                      type="video/mp4"
-                    />
+                    <source src="/video/video1.mp4" type="video/mp4" />
                     {/* Fallback untuk browser yang tidak support video */}
                     Browser Anda tidak mendukung video HTML5.
                   </video>
