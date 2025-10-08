@@ -254,7 +254,7 @@ export default function LandingPage({
                           alt={item.name}
                           fill
                           sizes="100%"
-                          className="object-cover rounded-full transition-transform duration-500 group-hover:scale-110"
+                          className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
                         />
                       </div>
 
