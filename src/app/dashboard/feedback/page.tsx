@@ -12,6 +12,7 @@ import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import StudentFeedback from "@/components/roleComponents/StudentFeedback";
 import NonStudentFeedback from "@/components/roleComponents/NonStudentFeedback";
+import UnderConstruction from "@/components/UnderConstruction";
 
 const FeedbackPage: React.FC = () => {
   const [authorization, setAuthorization] = useState<string>();
@@ -19,6 +20,8 @@ const FeedbackPage: React.FC = () => {
   useEffect(() => {
     setAuthorization(Cookies.get("authorization"));
   }, []);
+
+  return <UnderConstruction />;
 
   return (
     <main className="p-6 min-h-screen relative">

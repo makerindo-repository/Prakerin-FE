@@ -20,8 +20,6 @@ import Loader from "@/components/loader";
 interface Profile {
   photo_profile?: string | null;
   name: string;
-  // email: string;
-  // role: "Siswa" | "Perusahaan" | "Sekolah" | "Super Admin" | "";
 }
 
 const Dashboard: React.FC = () => {
@@ -80,32 +78,37 @@ const Dashboard: React.FC = () => {
   return (
     <main className="p-6 relative">
       {/* Welcome Section */}
-      <h1 className="text-accent-dark mb-5 font-medium">Dashboard</h1>
+      {!isLoading && (
+        <>
+          <h1 className="text-accent-dark mb-5 font-medium">Dashboard</h1>
 
-      <div className="bg-gradient-to-r from-accent-light to-accent rounded-lg p-6 text-white mb-8">
-        <div className="flex items-center space-x-4">
-          {profile.photo_profile ? (
-            <div className="w-16 h-16 relative rounded-full border-white border">
-              <Image
-                src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${profile.photo_profile}`}
-                alt="Photo Profile"
-                fill
-                sizes="100%"
-                className="object-cover rounded-full"
-              />
+          <div className="bg-gradient-to-r from-accent-light to-accent rounded-lg p-6 text-white mb-8">
+            <div className="flex items-center space-x-4">
+              {profile.photo_profile ? (
+                <div className="w-16 h-16 relative rounded-full border-white border">
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${profile.photo_profile}`}
+                    alt="Photo Profile"
+                    fill
+                    sizes="100%"
+                    className="object-cover rounded-full"
+                  />
+                </div>
+              ) : (
+                <UserCircle className="w-16 h-16 text-white" />
+              )}
+              <div>
+                <p className="text-sm opacity-90">{getGreeting()}</p>
+                <h1 className="text-xl font-semibold">{profile.name}</h1>
+              </div>
             </div>
-          ) : (
-            <UserCircle className="w-16 h-16 text-white" />
-          )}
-          <div>
-            <p className="text-sm opacity-90">{getGreeting()}</p>
-            <h1 className="text-xl font-semibold">{profile.name}</h1>
           </div>
-        </div>
-      </div>
-      {/* <RolePage /> */}
+        </>
+      )}
 
-      {role && role === "student" && <SiswaDashboard />}
+      {role && role === "student" && (
+        <SiswaDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+      )}
       {role && role === "company" && (
         <IndustryDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
       )}

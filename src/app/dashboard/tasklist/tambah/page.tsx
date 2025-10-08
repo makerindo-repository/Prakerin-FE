@@ -1,11 +1,12 @@
 "use client";
 import { ClipboardCheck, FileText, FileTextIcon } from "lucide-react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, use, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import Link from "next/link";
 import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 
 interface FormData {
   internship_id: string;
@@ -40,6 +41,8 @@ const TambahTugas: React.FC = () => {
     due_date: "",
     link: "",
   });
+
+  const route = useRouter();
 
   const [internships, setInternships] = useState<Internship[]>([]);
   const [error, setError] = useState<FormError>({});
@@ -84,6 +87,9 @@ const TambahTugas: React.FC = () => {
     const confirm = await alertConfirm(
       "Apakah anda yakin ingin membatalkan menambahkan tugas"
     );
+    if (!confirm) return;
+
+    route.back();
     // setFormData({ name: "", file: null });
     // setPreviewUrl(null);
   };

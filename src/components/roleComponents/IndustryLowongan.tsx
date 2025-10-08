@@ -26,6 +26,7 @@ interface JobOpening {
   updated_at: string;
   save_job_opening: boolean;
   user: { photo_profile: string | null };
+  is_available: boolean;
 }
 
 export function IndustryLowongan() {
@@ -54,7 +55,6 @@ export function IndustryLowongan() {
 
   useEffect(() => {
     fetchJobOpenings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -106,16 +106,21 @@ export function IndustryLowongan() {
                   </div>
                 </div>
                 {data.is_paid && (
-                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                  <p className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
                     Dibayar
-                  </span>
+                  </p>
                 )}
               </div>
 
               <div className="flex justify-between items-center border-t-2 border-gray-200 pt-3">
-                <span className="text-gray-500 text-sm">
+                <p className="text-gray-500 text-sm">
                   {timeAgo(data.updated_at)}
-                </span>
+                </p>
+                {data.is_available && (
+                  <p className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                    Masih tersedia
+                  </p>
+                )}
               </div>
             </Link>
           ))}

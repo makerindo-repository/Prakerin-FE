@@ -84,13 +84,13 @@ function getStepColor(
   stepIndex: number,
   currentStep: number,
   isCompleted: boolean,
-  status: string,
+  status: string
 ) {
   if (stepIndex < currentStep) return "bg-accent";
   if (stepIndex === currentStep && isCompleted) return "bg-accent";
   if (stepIndex === currentStep && !isCompleted) return "bg-teal-500";
-  if(stepIndex === currentStep && status === "accepted") return "bg-green-500";
-  if(stepIndex === currentStep && status === "rejected") return "bg-red-500";
+  if (stepIndex === currentStep && status === "accepted") return "bg-green-500";
+  if (stepIndex === currentStep && status === "rejected") return "bg-red-500";
   return "bg-gray-300";
 }
 
@@ -148,7 +148,10 @@ const StepTimeline = React.memo(function StepTimeline({
     steps.forEach((s) =>
       arr.push({ title: s.title, isPassed: s.pivot?.is_passed })
     );
-    arr.push({ title: "Result", isPassed: status === "completed" || status === "rejected" });
+    arr.push({
+      title: "Result",
+      isPassed: status === "completed" || status === "rejected",
+    });
     return arr;
   }, [steps, status]);
 
@@ -200,9 +203,14 @@ const StepTimeline = React.memo(function StepTimeline({
   );
 });
 
-export default function SiswaDashboard() {
+export default function SiswaDashboard({
+  isLoading,
+  setIsLoading,
+}: {
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [profile, setProfile] = useState<Profile>({ student: { status: "" } });
-  const [loading, setLoading] = useState<boolean>(false);
   const [internshipApplication, setInternshipApplication] = useState<
     InternshipApplication[]
   >([]);
@@ -214,12 +222,14 @@ export default function SiswaDashboard() {
       in_progress: 0,
     });
 
+  const fetchData = async () => {
+    setIsLoading(true);
+  };
+
   useEffect(() => {
     let mounted = true;
     const fetchData = async () => {
-      if (loading) return;
-
-      setLoading(true);
+      setIsLoading(true);
       const token = Cookies.get("userToken") || "";
 
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
@@ -268,7 +278,7 @@ export default function SiswaDashboard() {
           console.error(err);
         }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
 
@@ -276,13 +286,20 @@ export default function SiswaDashboard() {
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const statusBadge = useMemo(
     () => <StatusBadge status={profile.student.status} />,
     [profile.student.status]
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen absolute inset-0 z-10 bg-blue-50">
+        <Loader width={64} height={64} />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -303,42 +320,38 @@ export default function SiswaDashboard() {
         </div>
       </div>
 
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {internshipApplication.map((application) => (
-            <div
-              key={application.id}
-              className="bg-white rounded-lg shadow-sm p-6"
-            >
-              <div className="mb-4">
-                <h3 className="font-semibold text-gray-800 mb-2">
-                  {application.job_opening.title}
-                </h3>
-                <div className="flex items-center space-x-2 text-sm text-gray-600 mb-1">
-                  <Building className="w-4 h-4" />
-                  <span>{application.company.name}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <MapPin className="w-4 h-4" />
-                  <span>
-                    {application.city_regency.name}, {application.province.name}
-                  </span>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {internshipApplication.map((application) => (
+          <div
+            key={application.id}
+            className="bg-white rounded-lg shadow-sm p-6"
+          >
+            <div className="mb-4">
+              <h3 className="font-semibold text-gray-800 mb-2">
+                {application.job_opening.title}
+              </h3>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 mb-1">
+                <Building className="w-4 h-4" />
+                <span>{application.company.name}</span>
               </div>
-
-              {/* If the backend returns steps/currentStep in the future use StepTimeline. For now show sample steps timeline for demo */}
-              <StepTimeline
-                steps={application.test}
-                status={application.status}
-              />
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <MapPin className="w-4 h-4" />
+                <span>
+                  {application.city_regency.name}, {application.province.name}
+                </span>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
 
-      {!loading && internshipApplication.length === 0 && (
+            {/* If the backend returns steps/currentStep in the future use StepTimeline. For now show sample steps timeline for demo */}
+            <StepTimeline
+              steps={application.test}
+              status={application.status}
+            />
+          </div>
+        ))}
+      </div>
+
+      {internshipApplication.length === 0 && (
         <p className="text-gray-500 p-6 text-center ">
           Kamu belum melamar magang di perusahaan manapun.
         </p>

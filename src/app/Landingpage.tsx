@@ -333,7 +333,7 @@ export default function LandingPage({
                     </div>
                   ))
                 ) : (
-                  <div className="flex justify-center items-center w-full h-[320px]">
+                  <div className="flex flex-col justify-center items-center w-full h-[320px]">
                     <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
                   </div>
                 )}

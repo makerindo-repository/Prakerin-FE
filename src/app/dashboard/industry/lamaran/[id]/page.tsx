@@ -17,6 +17,7 @@ import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
 import Loader from "@/components/loader";
 import { AxiosError } from "axios";
+import { alertSuccess } from "@/libs/alert";
 
 interface Application {
   user: {
@@ -41,6 +42,7 @@ interface Application {
   test: {
     pivot: {
       test_id: string;
+      is_passed: boolean;
     };
     title: string;
   }[];
@@ -57,11 +59,16 @@ interface FormData {
 type Status = "in_progress" | "accepted" | "rejected" | "";
 
 const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
-  const [isShowModalAccept, setIsShowModalAccept] = useState(false);
-  const [isShowModalReject, setIsShowModalReject] = useState(false);
-  const [previewFormPdf, setPreviewFormPdf] = useState<string | null>(null);
+  const { id } = use(params);
+
+  const [isShowModal, setIsShowModal] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const [previewFormPdf, setPreviewFormPdf] = useState<string | null>(null);
 
   const [application, setApplication] = useState<Application>({
     user: {
@@ -88,11 +95,8 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     cv_id: "",
     status: "",
   });
-  const { id } = use(params);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const fetchData = async () => {
-    if (isLoading) return;
     setIsLoading(true);
     try {
       const response = await API.get(
@@ -157,7 +161,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     }
   };
 
-  const handleSubmitAccept = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setIsSubmitting(true);
@@ -175,13 +179,17 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           },
         }
       );
+      await fetchData(); // refresh data setelah submit
+      await alertSuccess("Berhasil memperbarui status lamaran");
+      setIsShowModal(false);
+      setErrors({});
+      setFormData({ ...formData, file: null });
+      setPreviewFormPdf(null);
       console.log(response);
-      console.log(formData);
     } catch (error: AxiosError | unknown) {
       console.error(error);
     } finally {
       setIsSubmitting(false);
-      // setIsShowModalAccept(false);
     }
   };
 
@@ -191,17 +199,39 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [errors, setErrors] = useState<any>({});
 
-  const handleStatusChange = async (idTest: string) => {
-    try{
-      const response = await API.patch(`${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}/${idTest}`,{},{
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
+  const handleTestChange = async (idTest: string) => {
+    try {
+      // Update state lokal biar langsung kelihatan
+      setApplication((prev) => ({
+        ...prev,
+        test: prev.test.map((t) =>
+          t.pivot.test_id === idTest
+            ? {
+                ...t,
+                pivot: {
+                  ...t.pivot,
+                  is_passed: !t.pivot.is_passed, // toggle di frontend juga
+                },
+              }
+            : t
+        ),
+      }));
+      
+      const response = await API.patch(
+        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}/${idTest}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
         }
-      })
-    }catch (err) {
+      );
 
+      console.log(response);
+    } catch (error) {
+      console.error(error);
     }
-  }
+  };
 
   const handleCancel = () => {
     setFormData({ ...formData, file: null });
@@ -270,7 +300,17 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
 
               {/* Status Lamaran */}
-              <div className="bg-accent/10 text-accent font-semibold px-4 py-2 rounded-xl text-sm">
+              <div
+                className={`bg-accent/10  font-semibold px-4 py-2 rounded-xl text-sm ${
+                  application.status === "in_progress"
+                    ? "text-accent"
+                    : application.status === "accepted"
+                    ? "text-green-600"
+                    : application.status === "rejected"
+                    ? "text-red-600"
+                    : "text-gray-600"
+                }`}
+              >
                 Status:{" "}
                 {application.status === "in_progress"
                   ? "Sedang Diproses"
@@ -318,13 +358,22 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                         } hover:bg-gray-100 transition`}
                       >
                         <td className="py-3 px-4 font-medium">{test.title}</td>
+
                         {["belum_lulus", "lulus"].map((val) => (
                           <td key={val} className="py-2 px-4 text-center">
                             <input
                               type="radio"
                               name={`test-${test.pivot.test_id}`}
+                              checked={
+                                test.pivot.is_passed
+                                  ? val === "lulus"
+                                  : val === "belum_lulus"
+                              }
                               value={val}
                               className="accent-accent scale-110 cursor-pointer"
+                              onChange={() =>
+                                handleTestChange(test.pivot.test_id)
+                              }
                             />
                           </td>
                         ))}
@@ -374,7 +423,8 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                 <>
                   <button
                     onClick={() => {
-                      setIsShowModalReject(true);
+                      setIsShowModal(true);
+                      setFormData({ ...formData, status: "rejected" });
                     }}
                     className="p-3 px-5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition cursor-pointer"
                   >
@@ -382,7 +432,8 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                   </button>
                   <button
                     onClick={() => {
-                      setIsShowModalAccept(true);
+                      setIsShowModal(true);
+                      setFormData({ ...formData, status: "accepted" });
                     }}
                     className="p-3 px-5 bg-accent text-white rounded-xl hover:bg-accent-hover transition cursor-pointer"
                   >
@@ -395,23 +446,32 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
         )}
       </div>
 
-      {isShowModalAccept && (
+      {isShowModal && (
         <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50">
           <div className="bg-white text-black p-6 rounded-lg flex flex-col gap-2 min-w-sm lg:min-w-xl">
             <div className=" rounded-lg justify-between flex">
-              <h3 className="text-lg font-semibold">Terima Lamaran</h3>
+              <h3 className="text-lg font-semibold">
+                {formData.status === "accepted" ? "Terima " : "Tolak"} Lamaran
+              </h3>
               <X
                 onClick={() => {
-                  setIsShowModalAccept(false);
+                  setIsShowModal(false);
+                  setErrors({});
+                  setFormData({ ...formData, file: null });
+                  setPreviewFormPdf(null);
                 }}
                 className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600"
               />
             </div>
-            <form className="flex flex-col gap-6" onSubmit={handleSubmitAccept}>
+            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
               <div className="flex flex-col gap-2 ">
-                <label htmlFor="loa">Pilih LOA</label>
+                <label htmlFor="letter">
+                  Pilih Surat{" "}
+                  {formData.status === "accepted" ? "Penerimaan" : "Penolakan"}
+                </label>
 
                 <input
+                  id="letter"
                   ref={fileInputRef}
                   type="file"
                   accept="application/pdf"
@@ -453,7 +513,11 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                         <div className="p-4 text-center bg-gray-50">
                           <FileText className="w-16 h-16 mx-auto text-accent mb-2" />
                           <p className="text-sm text-gray-600 mb-2">
-                            File LOA berhasil dipilih: <br />
+                            Surat{" "}
+                            {formData.status === "accepted"
+                              ? "penerimaan"
+                              : "penolakan"}{" "}
+                            berhasil dipilih: <br />
                             <span className="font-medium">
                               {/* {formData.file?.name} */}
                             </span>
@@ -464,7 +528,10 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                             rel="noopener noreferrer"
                             className="inline-block bg-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-accent-hover"
                           >
-                            Buka LOA
+                            Buka
+                            {formData.status === "accepted"
+                              ? "Surat Penerimaan"
+                              : "Surat Penolakan"}
                           </a>
                         </div>
                       ) : (
@@ -479,7 +546,10 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500">
-                      Tekan di sini untuk unggah LOA
+                      Tekan di sini untuk unggah surat{" "}
+                      {formData.status === "accepted"
+                        ? "penerimaan"
+                        : "penolakan"}
                     </p>
                   )}
                 </div>
