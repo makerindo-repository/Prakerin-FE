@@ -25,6 +25,8 @@ import { getDurationUnit } from "@/utils/getDurationUnit";
 import { getTypeJobOpening } from "@/utils/getTypeJobOpening";
 import Image from "next/image";
 import Loader from "@/components/loader";
+import { AxiosError } from "axios";
+import { notFound, useRouter } from "next/navigation";
 
 interface Lowongan {
   id: string;
@@ -106,6 +108,7 @@ const DetailLowonganPage = ({
     test: [], // ubah menjadi array kosong agar bisa menerima data array
   }); // Replace 'any' with your actual data type
   const { id } = use(params);
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClickFavorite = async (
@@ -191,8 +194,14 @@ const DetailLowonganPage = ({
       const response = await API.get(`${ENDPOINTS.JOB_OPENINGS}/${id}`);
       setData(response.data.data);
       console.log("Data fetched successfully:", response.data.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 404) {
+          await router.replace("/not-found");
+        }
+      }
+
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

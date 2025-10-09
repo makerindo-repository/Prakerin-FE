@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { API, ENDPOINTS } from "../../utils/config";
 import Loading from "./masuk/loading";
 import Image from "next/image";
@@ -55,6 +55,16 @@ export default function LandingPage({
   const commentRefs = useState<Map<string, HTMLParagraphElement>>(new Map())[0];
   const observers = useState<Map<string, ResizeObserver>>(new Map())[0];
 
+  // Refs untuk scroll sections
+  const schoolScrollRef = useRef<HTMLDivElement>(null);
+  const companyScrollRef = useRef<HTMLDivElement>(null);
+  const commentScrollRef = useRef<HTMLDivElement>(null);
+
+  // State untuk kontrol scroll
+  const [schoolAutoScroll, setSchoolAutoScroll] = useState(false);
+  const [companyAutoScroll, setCompanyAutoScroll] = useState(false);
+  const [commentAutoScroll, setCommentAutoScroll] = useState(false);
+
   const registerCommentRef = (el: HTMLParagraphElement | null, id: string) => {
     // Cleanup when element unmounts or re-renders
     const cleanup = () => {
@@ -88,6 +98,34 @@ export default function LandingPage({
     ro.observe(el);
     observers.set(id, ro);
   };
+
+  // Check apakah perlu auto scroll
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (schoolScrollRef.current) {
+        const isOverflowing =
+          schoolScrollRef.current.scrollWidth >
+          schoolScrollRef.current.parentElement!.clientWidth;
+        setSchoolAutoScroll(isOverflowing);
+      }
+      if (companyScrollRef.current) {
+        const isOverflowing =
+          companyScrollRef.current.scrollWidth >
+          companyScrollRef.current.parentElement!.clientWidth;
+        setCompanyAutoScroll(isOverflowing);
+      }
+      if (commentScrollRef.current) {
+        const isOverflowing =
+          commentScrollRef.current.scrollWidth >
+          commentScrollRef.current.parentElement!.clientWidth;
+        setCommentAutoScroll(isOverflowing);
+      }
+    };
+
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [partners, comments]);
 
   useEffect(() => {
     if (!scrollRef || partners.length === 0) return;
@@ -299,10 +337,21 @@ export default function LandingPage({
             <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-blue-50 to-transparent pointer-events-none z-10"></div>
             <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-indigo-50 to-transparent pointer-events-none z-10"></div>
 
-            <div className="overflow-hidden relative min-h-[260px]">
+            <div className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[260px]">
               {schoolPartners && schoolPartners.length > 0 ? (
                 <>
                   <style suppressHydrationWarning>{`
+                    .scrollbar-hide::-webkit-scrollbar {
+                      display: none;
+                    }
+                    .scrollbar-hide {
+                      -ms-overflow-style: none;
+                      scrollbar-width: none;
+                    }
+
+                    ${
+                      schoolAutoScroll
+                        ? `
                     @keyframes scrollSchool {
                       0% {
                         transform: translateX(0);
@@ -323,36 +372,52 @@ export default function LandingPage({
                     .scroll-container-school:hover {
                       animation-play-state: paused;
                     }
+                    `
+                        : `
+                    .scroll-container-school {
+                      display: flex;
+                      gap: 1.5rem;
+                      padding: 0 3rem;
+                    }
+                    `
+                    }
                   `}</style>
 
-                  <div className="scroll-container-school">
-                    {schoolScrollList.map((item, index) => (
-                      <div
-                        key={`school-${item.id}-${index}`}
-                        className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
+                  <div
+                    ref={schoolScrollRef}
+                    className="scroll-container-school"
+                  >
+                    {(schoolAutoScroll ? schoolScrollList : schoolPartners).map(
+                      (item, index) => (
+                        <div
+                          key={`school-${item.id}-${index}`}
+                          className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
                          transition-all duration-300 transform hover:scale-105 
                          bg-white border border-blue-100 shadow-md hover:shadow-lg 
                          rounded-2xl p-6 cursor-pointer"
-                      >
-                        <div
-                          className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 
+                        >
+                          <div
+                            className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 
                             rounded-full mx-auto mb-4 flex items-center justify-center 
                             relative overflow-hidden shadow-inner"
-                        >
-                          <Image
-                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                            alt={item.name}
-                            fill
-                            sizes="100%"
-                            className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
-                          />
+                          >
+                            <Image
+                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                              alt={item.name}
+                              fill
+                              sizes="100%"
+                              className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
+                            />
+                          </div>
+                          <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                            {item.name}
+                          </h3>
+                          <p className="text-gray-500 text-sm">
+                            {item.address}
+                          </p>
                         </div>
-                        <h3 className="font-semibold text-gray-800 text-lg mb-1">
-                          {item.name}
-                        </h3>
-                        <p className="text-gray-500 text-sm">{item.address}</p>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </>
               ) : (
@@ -370,7 +435,6 @@ export default function LandingPage({
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              {/* {homepages?.["title-landing-3"] ?? "Mitra Perusahaan Kami"} */}
               Mitra Perusahaan Kami
             </h2>
             <p className="text-gray-600 mb-5">
@@ -384,10 +448,13 @@ export default function LandingPage({
             <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
             <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
 
-            <div className="overflow-hidden relative min-h-[260px]">
+            <div className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[260px]">
               {companyPartners && companyPartners.length > 0 ? (
                 <>
                   <style suppressHydrationWarning>{`
+                    ${
+                      companyAutoScroll
+                        ? `
                     @keyframes scrollCompany {
                       0% {
                         transform: translateX(0);
@@ -408,10 +475,25 @@ export default function LandingPage({
                     .scroll-container-company:hover {
                       animation-play-state: paused;
                     }
+                    `
+                        : `
+                    .scroll-container-company {
+                      display: flex;
+                      gap: 1.5rem;
+                      padding: 0 3rem;
+                    }
+                    `
+                    }
                   `}</style>
 
-                  <div className="scroll-container-company">
-                    {companyScrollList.map((item, index) => (
+                  <div
+                    ref={companyScrollRef}
+                    className="scroll-container-company"
+                  >
+                    {(companyAutoScroll
+                      ? companyScrollList
+                      : companyPartners
+                    ).map((item, index) => (
                       <div
                         key={`company-${item.id}-${index}`}
                         className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
@@ -467,10 +549,13 @@ export default function LandingPage({
             <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
             <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
 
-            <div className="overflow-hidden relative min-h-[340px]">
+            <div className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[340px]">
               {comments.length !== 0 ? (
                 <>
                   <style suppressHydrationWarning>{`
+                    ${
+                      commentAutoScroll
+                        ? `
                     @keyframes scrollComments {
                       0% {
                         transform: translateX(0);
@@ -491,6 +576,15 @@ export default function LandingPage({
                     .scroll-container-comments:hover {
                       animation-play-state: paused;
                     }
+                    `
+                        : `
+                    .scroll-container-comments {
+                      display: flex;
+                      gap: 1.5rem;
+                      padding: 0 3rem;
+                    }
+                    `
+                    }
                     
                     .line-clamp-3 {
                       display: -webkit-box;
@@ -500,8 +594,14 @@ export default function LandingPage({
                     }
                   `}</style>
 
-                  <div className="scroll-container-comments">
-                    {[...comments, ...comments].map((item, index) => {
+                  <div
+                    ref={commentScrollRef}
+                    className="scroll-container-comments"
+                  >
+                    {(commentAutoScroll
+                      ? [...comments, ...comments]
+                      : comments
+                    ).map((item, index) => {
                       const isLong = !!truncatedComments[item.id];
                       return (
                         <div

@@ -61,6 +61,8 @@ export function middleware(req: NextRequest) {
   if (!token) {
     if (path === "/masuk" || path === "/daftar") {
       return NextResponse.next();
+    } else {
+      return NextResponse.redirect(new URL("/masuk", req.url));
     }
   }
   if (path === "/masuk" || path === "/daftar") {

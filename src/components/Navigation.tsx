@@ -16,33 +16,30 @@ export default function Navigation({ setSection }: NavigationProps) {
   const [currentHash, setCurrentHash] = useState("");
   const pathName = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Jalankan hanya di client setelah mount
+    setMounted(true);
     const token = Cookies.get("userToken");
     setIsLoggedIn(!!token);
   }, []);
 
+
   useEffect(() => {
-    // Set initial hash dan listen untuk perubahan
     const updateHash = () => {
       if (typeof window !== "undefined") {
         setCurrentHash(window.location.hash);
       }
     };
-
     updateHash();
-
-    if (typeof window !== "undefined") {
-      window.addEventListener("hashchange", updateHash);
-      return () => window.removeEventListener("hashchange", updateHash);
-    }
+    window.addEventListener("hashchange", updateHash);
+    return () => window.removeEventListener("hashchange", updateHash);
   }, []);
 
-  // Helper function untuk menentukan apakah item navigation aktif
   const isBerandaActive = pathName === "/" && currentHash === "";
-  const isMitraActive = pathName === "/" && currentHash === "#mitra";
+  const isMitraActive = pathName === "/" && currentHash === "#mitra-sekolah";
 
-  // Handler untuk navigasi
   const handleBerandaClick = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push("/");
@@ -51,13 +48,11 @@ export default function Navigation({ setSection }: NavigationProps) {
 
   const handleMitraClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    router.push("/#mitra");
-    setCurrentHash("#mitra");
+    router.push("/#mitra-sekolah");
+    setCurrentHash("#mitra-sekolah");
   };
 
-  const handleOtherNavClick = () => {
-    setCurrentHash("");
-  };
+  const handleOtherNavClick = () => setCurrentHash("");
 
   return (
     <nav className="bg-white/80 backdrop-blur-lg shadow-lg sticky top-0 z-50 transition-all duration-300">
@@ -104,7 +99,7 @@ export default function Navigation({ setSection }: NavigationProps) {
               Lowongan
             </Link>
             <Link
-              href="/#mitra"
+              href="/#mitra-sekolah"
               onClick={handleMitraClick}
               className={`font-semibold hover:text-accent transition-colors duration-300 ${
                 isMitraActive ? "text-accent" : "text-gray-700"
@@ -115,7 +110,7 @@ export default function Navigation({ setSection }: NavigationProps) {
           </div>
 
           <div className="hidden md:flex space-x-4">
-            {isLoggedIn ? (
+            {!mounted ? null : isLoggedIn ? (
               <Link
                 href="/dashboard"
                 className="px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
@@ -186,7 +181,7 @@ export default function Navigation({ setSection }: NavigationProps) {
             Lowongan
           </Link>
           <Link
-            href="/#mitra"
+            href="/#mitra-sekolah"
             onClick={handleMitraClick}
             className={`block py-2  hover:text-prakerin transition-colors duration-300 ${
               isMitraActive ? "text-accent" : "text-gray-700"
@@ -195,7 +190,7 @@ export default function Navigation({ setSection }: NavigationProps) {
             Mitra
           </Link>
           <div className="flex flex-col gap-2 mt-2">
-            {isLoggedIn ? (
+            {!mounted ? null : isLoggedIn ? (
               <Link
                 href="/dashboard"
                 className="w-full px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all text-center"

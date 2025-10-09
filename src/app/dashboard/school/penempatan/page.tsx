@@ -41,7 +41,6 @@ interface Student {
 }
 
 const PerusahaanPage: React.FC = () => {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedQuery = useDebounce(searchTerm, 1000);
 

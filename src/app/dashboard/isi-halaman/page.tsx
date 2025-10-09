@@ -377,7 +377,7 @@ const PerusahaanPage: React.FC = () => {
 
       <section id="mitra-sekolah" className="mt-10">
         <h2 className="text-2xl font-semibold text-accent mb-6 flex items-center gap-2">
-          <span>Mitra Sekolah</span>
+          <span>Mitra Sekolah / Perguruan Tinggi</span>
           <div className="h-[2px] bg-accent/30 flex-1"></div>
         </h2>
 
@@ -438,7 +438,7 @@ const PerusahaanPage: React.FC = () => {
 
       <section id="mitra-perusahaan" className="mt-10">
         <h2 className="text-2xl font-semibold text-accent mb-6 flex items-center gap-2">
-          <span>Mitra Perusahaan</span>
+          <span>Mitra Dunia Usaha / Dunia Industri</span>
           <div className="h-[2px] bg-accent/30 flex-1"></div>
         </h2>
 
@@ -719,10 +719,15 @@ const PerusahaanPage: React.FC = () => {
                       <option value="company">Perusahaan</option>
                       <option value="school">Sekolah</option>
                     </select>
+                    {formError.type && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {formError.type}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="province">Alamat </label>
+                    <label htmlFor="province">Alamat</label>
                     <input
                       value={formPartner.address}
                       onChange={(e) =>
