@@ -49,6 +49,45 @@ export default function LandingPage({
   const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(
     null
   );
+  const [truncatedComments, setTruncatedComments] = useState<
+    Record<string, boolean>
+  >({});
+  const commentRefs = useState<Map<string, HTMLParagraphElement>>(new Map())[0];
+  const observers = useState<Map<string, ResizeObserver>>(new Map())[0];
+
+  const registerCommentRef = (el: HTMLParagraphElement | null, id: string) => {
+    // Cleanup when element unmounts or re-renders
+    const cleanup = () => {
+      const existing = observers.get(id);
+      if (existing) existing.disconnect();
+      observers.delete(id);
+      commentRefs.delete(id);
+    };
+
+    if (!el) {
+      cleanup();
+      return;
+    }
+
+    // Reattach observer to the new element instance
+    cleanup();
+    commentRefs.set(id, el);
+
+    const checkTruncate = () => {
+      try {
+        const truncated = el.scrollHeight > el.clientHeight + 1; // tolerance 1px
+        setTruncatedComments((prev) =>
+          prev[id] === truncated ? prev : { ...prev, [id]: truncated }
+        );
+      } catch {}
+    };
+
+    // Initial check and observe size changes
+    checkTruncate();
+    const ro = new ResizeObserver(() => checkTruncate());
+    ro.observe(el);
+    observers.set(id, ro);
+  };
 
   useEffect(() => {
     if (!scrollRef || partners.length === 0) return;
@@ -463,8 +502,7 @@ export default function LandingPage({
 
                   <div className="scroll-container-comments">
                     {[...comments, ...comments].map((item, index) => {
-                      const MAX_PREVIEW = 160; // heuristik untuk memunculkan tombol
-                      const isLong = (item.comment || "").length > MAX_PREVIEW;
+                      const isLong = !!truncatedComments[item.id];
                       return (
                         <div
                           key={`comment-${item.id}-${index}`}
@@ -487,7 +525,10 @@ export default function LandingPage({
                             />
                           </div>
 
-                          <p className="text-gray-700 mb-2 italic leading-relaxed break-words whitespace-pre-wrap overflow-hidden line-clamp-3">
+                          <p
+                            ref={(el) => registerCommentRef(el, item.id)}
+                            className="text-gray-700 mb-2 italic leading-relaxed break-words whitespace-pre-wrap overflow-hidden line-clamp-3"
+                          >
                             "{item.comment}"
                           </p>
 
