@@ -21,6 +21,7 @@ interface Partner {
   name: string;
   address: string;
   logo: string;
+  type: string;
 }
 interface CommentPrakerin {
   id: string;
@@ -53,12 +54,12 @@ export default function LandingPage({
 
     const scroll = () => {
       if (!isPaused && scrollRef) {
-        scrollPosition += 0.5; // Kecepatan scroll (ubah nilai ini untuk mengatur kecepatan)
+        scrollPosition += 0.5;
 
-        const scrollWidth = scrollRef.scrollWidth / 2; // Karena kita duplikasi 2x
+        const scrollWidth = scrollRef.scrollWidth / 2;
 
         if (scrollPosition >= scrollWidth) {
-          scrollPosition = 0; // Reset tanpa jump karena konten identik
+          scrollPosition = 0;
         }
 
         scrollRef.style.transform = `translateX(-${scrollPosition}px)`;
@@ -80,6 +81,19 @@ export default function LandingPage({
       router.push(`/lowongan?search=${encodeURIComponent(inputSearch)}`);
     }
   };
+
+  // Filtered lists by type for sections
+  const schoolPartners = (partners || []).filter((p) => p.type === "school");
+  const companyPartners = (partners || []).filter((p) => p.type === "company");
+  // For smooth marquee effect: only duplicate when enough items to avoid obvious repetition
+  const schoolScrollList =
+    schoolPartners.length >= 6
+      ? [...schoolPartners, ...schoolPartners]
+      : schoolPartners;
+  const companyScrollList =
+    companyPartners.length >= 6
+      ? [...companyPartners, ...companyPartners]
+      : companyPartners;
 
   return (
     <>
@@ -212,101 +226,73 @@ export default function LandingPage({
                     className="w-full h-full object-cover"
                   >
                     <source src="/video/video1.mp4" type="video/mp4" />
-                    {/* Fallback untuk browser yang tidak support video */}
                     Browser Anda tidak mendukung video HTML5.
                   </video>
                 </div>
               </div>
             </div>
-
-            {/* <div className="relative animate-slide-in-right mt-8 md:mt-0">
-              <div className="bg-white rounded-2xl p-4 md:p-6 shadow-2xl">
-                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 bg-prakerin rounded-full flex items-center justify-center mx-auto mb-4">
-                      <video width={100} height={100} autoPlay loop muted>
-                        <source
-                          src="/rick-roll-video-meme-template-video-1da252ec.mp4"
-                          type="video/mp4"
-                        />
-                      </video>
-                    </div>
-                    <p className="text-gray-600 text-xs md:text-base">
-                      Video Preview
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 md:w-8 md:h-8 bg-green-500 rounded-full"></div>
-                    <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-500 rounded-full"></div>
-                    <div className="w-6 h-6 md:w-8 md:h-8 bg-purple-500 rounded-full"></div>
-                  </div>
-                  <div className="text-xs md:text-sm text-gray-500">
-                    3 mentors online
-                  </div>
-                </div>
-              </div>
-            </div> */}
           </div>
         </div>
       </section>
 
-      <section id="mitra" className="py-16 ">
+      {/* Mitra Sekolah - Section Terpisah */}
+      <section
+        id="mitra-sekolah"
+        className="py-16 bg-gradient-to-br from-blue-50 to-indigo-50"
+      >
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              {homepages?.["title-landing-3"] ?? "-"}
+              Mitra Sekolah
             </h2>
             <p className="text-gray-600 mb-5">
-              {homepages?.["subtitle-landing-3"] ?? "-"}
+              Bergabunglah dengan sekolah-sekolah terbaik yang telah mempercayai
+              kami dalam program magang siswa
             </p>
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>
 
-          {/* Ini Card */}
           <div className="relative">
-            {/* Efek gradasi di sisi kiri & kanan */}
-            <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
-            <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
-            {/* Wrapper scroll */}
+            <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-blue-50 to-transparent pointer-events-none z-10"></div>
+            <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-indigo-50 to-transparent pointer-events-none z-10"></div>
+
             <div className="overflow-hidden relative min-h-[260px]">
-              {partners && partners.length > 0 ? (
+              {schoolPartners && schoolPartners.length > 0 ? (
                 <>
                   <style suppressHydrationWarning>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
+                    @keyframes scrollSchool {
+                      0% {
+                        transform: translateX(0);
+                      }
+                      100% {
+                        transform: translateX(-50%);
+                      }
+                    }
 
-        .scroll-container {
-          display: flex;
-          gap: 1.5rem; /* tambahkan jarak antar item */
-          padding: 0 3rem; /* padding kiri kanan */
-          width: max-content;
-          animation: scroll 20s linear infinite;
-        }
+                    .scroll-container-school {
+                      display: flex;
+                      gap: 1.5rem;
+                      padding: 0 3rem;
+                      width: max-content;
+                      animation: scrollSchool 25s linear infinite;
+                    }
 
-        .scroll-container:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
+                    .scroll-container-school:hover {
+                      animation-play-state: paused;
+                    }
+                  `}</style>
 
-                  <div className="scroll-container">
-                    {[...partners, ...partners].map((item, index) => (
+                  <div className="scroll-container-school">
+                    {schoolScrollList.map((item, index) => (
                       <div
-                        key={`${item.id}-${index}`}
+                        key={`school-${item.id}-${index}`}
                         className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
-                       transition-all duration-300 transform hover:scale-105 
-                       bg-white border border-gray-100 shadow-md hover:shadow-lg 
-                       rounded-2xl p-6 cursor-pointer"
+                         transition-all duration-300 transform hover:scale-105 
+                         bg-white border border-blue-100 shadow-md hover:shadow-lg 
+                         rounded-2xl p-6 cursor-pointer"
                       >
                         <div
-                          className="w-32 h-32 bg-gradient-to-br from-accent/10 to-blue-100 
+                          className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 
                             rounded-full mx-auto mb-4 flex items-center justify-center 
                             relative overflow-hidden shadow-inner"
                         >
@@ -328,17 +314,101 @@ export default function LandingPage({
                 </>
               ) : (
                 <div className="absolute inset-0 flex flex-col justify-center items-center text-center">
-                  <NotFoundComponent text="Tidak ada mitra yang ditemukan." />
+                  <NotFoundComponent text="Tidak ada mitra sekolah yang ditemukan." />
                 </div>
               )}
             </div>
-            s
           </div>
         </div>
       </section>
+
+      {/* Mitra Perusahaan - Section Terpisah */}
+      <section id="mitra-perusahaan" className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
+              {/* {homepages?.["title-landing-3"] ?? "Mitra Perusahaan Kami"} */}
+              Mitra Perusahaan Kami
+            </h2>
+            <p className="text-gray-600 mb-5">
+              {homepages?.["subtitle-landing-3"] ??
+                "Wujudkan magang di perusahaan impian anda!"}
+            </p>
+            <div className="w-[170px] h-0 border-2 border-accent"></div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
+            <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
+
+            <div className="overflow-hidden relative min-h-[260px]">
+              {companyPartners && companyPartners.length > 0 ? (
+                <>
+                  <style suppressHydrationWarning>{`
+                    @keyframes scrollCompany {
+                      0% {
+                        transform: translateX(0);
+                      }
+                      100% {
+                        transform: translateX(-50%);
+                      }
+                    }
+
+                    .scroll-container-company {
+                      display: flex;
+                      gap: 1.5rem;
+                      padding: 0 3rem;
+                      width: max-content;
+                      animation: scrollCompany 30s linear infinite;
+                    }
+
+                    .scroll-container-company:hover {
+                      animation-play-state: paused;
+                    }
+                  `}</style>
+
+                  <div className="scroll-container-company">
+                    {companyScrollList.map((item, index) => (
+                      <div
+                        key={`company-${item.id}-${index}`}
+                        className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
+                         transition-all duration-300 transform hover:scale-105 
+                         bg-white border border-gray-100 shadow-md hover:shadow-lg 
+                         rounded-2xl p-6 cursor-pointer"
+                      >
+                        <div
+                          className="w-32 h-32 bg-gradient-to-br from-accent/10 to-cyan-100 
+                            rounded-full mx-auto mb-4 flex items-center justify-center 
+                            relative overflow-hidden shadow-inner"
+                        >
+                          <Image
+                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                            alt={item.name}
+                            fill
+                            sizes="100%"
+                            className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
+                          />
+                        </div>
+                        <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                          {item.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm">{item.address}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex flex-col justify-center items-center text-center">
+                  <NotFoundComponent text="Tidak ada mitra perusahaan yang ditemukan." />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          {/* Judul Section */}
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
               {homepages?.["title-landing-4"] ?? "-"}
@@ -349,56 +419,76 @@ export default function LandingPage({
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>
 
-          {/* Testimoni */}
+          {/* Testimoni dengan animasi auto-scroll */}
           <div className="relative">
-            {/* Gradasi sisi kiri & kanan (opsional, biar lebih estetik) */}
             <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
             <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
 
-            {/* Scroll Wrapper */}
-            <div className="overflow-x-auto scrollbar-hide scroll-smooth">
-              <div className="flex gap-6 md:gap-8 pb-6 px-4 snap-x snap-mandatory">
-                {comments.length !== 0 ? (
-                  comments.map((item) => (
-                    <div
-                      key={item.id}
-                      className="min-w-[300px] max-w-[320px] h-[320px] bg-white rounded-2xl shadow-lg 
-                           p-8 flex flex-col items-center text-center 
-                           flex-shrink-0 snap-center transition-all duration-300 
-                           hover:shadow-xl hover:-translate-y-1"
-                    >
-                      {/* Foto Profil */}
+            <div className="overflow-hidden relative min-h-[340px]">
+              {comments.length !== 0 ? (
+                <>
+                  <style suppressHydrationWarning>{`
+                    @keyframes scrollComments {
+                      0% {
+                        transform: translateX(0);
+                      }
+                      100% {
+                        transform: translateX(-50%);
+                      }
+                    }
+
+                    .scroll-container-comments {
+                      display: flex;
+                      gap: 1.5rem;
+                      padding: 0 3rem;
+                      width: max-content;
+                      animation: scrollComments 35s linear infinite;
+                    }
+
+                    .scroll-container-comments:hover {
+                      animation-play-state: paused;
+                    }
+                  `}</style>
+
+                  <div className="scroll-container-comments">
+                    {[...comments, ...comments].map((item, index) => (
                       <div
-                        className="w-24 h-24 bg-gradient-to-br from-accent/10 to-blue-100 
-                                rounded-full mx-auto mb-4 flex items-center justify-center 
-                                relative overflow-hidden shadow-inner"
+                        key={`comment-${item.id}-${index}`}
+                        className="min-w-[300px] max-w-[320px] h-[320px] bg-white rounded-2xl shadow-lg 
+                             p-8 flex flex-col items-center text-center 
+                             flex-shrink-0 transition-all duration-300 
+                             hover:shadow-xl hover:-translate-y-1"
                       >
-                        <Image
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.photo_profile}`}
-                          alt={item.name}
-                          fill
-                          sizes="100%"
-                          className="object-cover rounded-full transition-transform duration-500 group-hover:scale-110"
-                        />
+                        <div
+                          className="w-24 h-24 bg-gradient-to-br from-accent/10 to-blue-100 
+                                  rounded-full mx-auto mb-4 flex items-center justify-center 
+                                  relative overflow-hidden shadow-inner"
+                        >
+                          <Image
+                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.photo_profile}`}
+                            alt={item.name}
+                            fill
+                            sizes="100%"
+                            className="object-cover rounded-full transition-transform duration-500 group-hover:scale-110"
+                          />
+                        </div>
+
+                        <p className="text-gray-700 mb-4 italic leading-relaxed">
+                          "{item.comment}"
+                        </p>
+
+                        <span className="font-semibold text-prakerin">
+                          {item.name} – {item.position}
+                        </span>
                       </div>
-
-                      {/* Komentar */}
-                      <p className="text-gray-700 mb-4 italic leading-relaxed">
-                        "{item.comment}"
-                      </p>
-
-                      {/* Nama dan Posisi */}
-                      <span className="font-semibold text-prakerin">
-                        {item.name} – {item.position}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col justify-center items-center w-full h-[320px]">
-                    <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
+                    ))}
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <div className="flex flex-col justify-center items-center w-full h-[320px]">
+                  <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
+                </div>
+              )}
             </div>
           </div>
         </div>

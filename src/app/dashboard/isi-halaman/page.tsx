@@ -31,6 +31,7 @@ interface Partner {
   name: string;
   address: string;
   logo: string;
+  type: string;
 }
 
 interface CommentPrakerin {
@@ -45,6 +46,7 @@ interface FormPartner {
   logo: File | null;
   name: string;
   address: string;
+  type: string;
 }
 
 interface FormCommentPrakerin {
@@ -82,6 +84,7 @@ const PerusahaanPage: React.FC = () => {
     logo: null as File | null,
     name: "",
     address: "",
+    type: "",
   });
 
   const [FormCommentPrakerin, setFormCommentPrakerin] =
@@ -218,6 +221,7 @@ const PerusahaanPage: React.FC = () => {
         logo: null,
         name: "",
         address: "",
+        type: "",
       });
 
       setEditingCommentId(null);
@@ -277,6 +281,7 @@ const PerusahaanPage: React.FC = () => {
       logo: null,
       name: partner.name,
       address: partner.address,
+      type: partner.type,
     });
     setImage(
       `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${partner.logo}`
@@ -370,60 +375,123 @@ const PerusahaanPage: React.FC = () => {
         </div>
       </div>
 
-      <section id="mitra" className="mt-10">
+      <section id="mitra-sekolah" className="mt-10">
         <h2 className="text-2xl font-semibold text-accent mb-6 flex items-center gap-2">
-          <span>Mitra</span>
+          <span>Mitra Sekolah</span>
           <div className="h-[2px] bg-accent/30 flex-1"></div>
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative min-h-[200px]">
-          {partners.length > 0 ? (
-            partners.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col gap-3 group relative"
-              >
-                {/* Tombol Aksi (Edit + Hapus) */}
-                <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <button
-                    onClick={() => handleUpdatePartner(item)}
-                    className="p-2 rounded-full hover:bg-blue-50 text-blue-500 cursor-pointer"
-                    title="Edit Mitra"
-                  >
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDeletePartner(item)}
-                    className="p-2 rounded-full hover:bg-red-50 text-red-500 cursor-pointer"
-                    title="Hapus Mitra"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
+          {partners.filter((p) => p.type === "school").length > 0 ? (
+            partners
+              .filter((p) => p.type === "school")
+              .map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col gap-3 group relative"
+                >
+                  {/* Tombol Aksi (Edit + Hapus) */}
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => handleUpdatePartner(item)}
+                      className="p-2 rounded-full hover:bg-blue-50 text-blue-500 cursor-pointer"
+                      title="Edit Mitra"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeletePartner(item)}
+                      className="p-2 rounded-full hover:bg-red-50 text-red-500 cursor-pointer"
+                      title="Hapus Mitra"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
 
-                {/* Logo Mitra */}
-                <div className="w-32 h-32 mx-auto relative">
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                    alt={item.name}
-                    fill
-                    sizes="100%"
-                    className="object-cover rounded-md border border-gray-100 shadow-sm"
-                  />
-                </div>
+                  {/* Logo Mitra */}
+                  <div className="w-32 h-32 mx-auto relative">
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                      alt={item.name}
+                      fill
+                      sizes="100%"
+                      className="object-cover rounded-md border border-gray-100 shadow-sm"
+                    />
+                  </div>
 
-                {/* Detail Mitra */}
-                <div className="text-center mt-2">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {item.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">{item.address}</p>
+                  {/* Detail Mitra */}
+                  <div className="text-center mt-2">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {item.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">{item.address}</p>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
           ) : (
             <div className="absolute inset-0 flex flex-col justify-center items-center">
-              <NotFoundComponent text="Tidak ada mitra yang ditemukan." />
+              <NotFoundComponent text="Tidak ada mitra sekolah yang ditemukan." />
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section id="mitra-perusahaan" className="mt-10">
+        <h2 className="text-2xl font-semibold text-accent mb-6 flex items-center gap-2">
+          <span>Mitra Perusahaan</span>
+          <div className="h-[2px] bg-accent/30 flex-1"></div>
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative min-h-[200px]">
+          {partners.filter((p) => p.type === "company").length > 0 ? (
+            partners
+              .filter((p) => p.type === "company")
+              .map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col gap-3 group relative"
+                >
+                  {/* Tombol Aksi (Edit + Hapus) */}
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => handleUpdatePartner(item)}
+                      className="p-2 rounded-full hover:bg-blue-50 text-blue-500 cursor-pointer"
+                      title="Edit Mitra"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeletePartner(item)}
+                      className="p-2 rounded-full hover:bg-red-50 text-red-500 cursor-pointer"
+                      title="Hapus Mitra"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+
+                  {/* Logo Mitra */}
+                  <div className="w-32 h-32 mx-auto relative">
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                      alt={item.name}
+                      fill
+                      sizes="100%"
+                      className="object-cover rounded-md border border-gray-100 shadow-sm"
+                    />
+                  </div>
+
+                  {/* Detail Mitra */}
+                  <div className="text-center mt-2">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {item.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">{item.address}</p>
+                  </div>
+                </div>
+              ))
+          ) : (
+            <div className="absolute inset-0 flex flex-col justify-center items-center">
+              <NotFoundComponent text="Tidak ada mitra perusahaan yang ditemukan." />
             </div>
           )}
         </div>
@@ -547,6 +615,7 @@ const PerusahaanPage: React.FC = () => {
                     logo: null,
                     name: "",
                     address: "",
+                    type: "",
                   });
                   setFormCommentPrakerin({
                     photo_profile: null,
@@ -630,6 +699,28 @@ const PerusahaanPage: React.FC = () => {
                       </p>
                     )}
                   </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="type">Tipe Mitra </label>
+                    <select
+                      value={formPartner.type}
+                      onChange={(e) =>
+                        setFormPartner({
+                          ...formPartner,
+                          type: e.target.value,
+                        })
+                      }
+                      id="type"
+                      className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                        formError.type ? "border-red-500" : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Pilih tipe mitra</option>
+                      <option value="company">Perusahaan</option>
+                      <option value="school">Sekolah</option>
+                    </select>
+                  </div>
+
                   <div className="flex flex-col gap-2">
                     <label htmlFor="province">Alamat </label>
                     <input

@@ -13,6 +13,7 @@ interface Partner {
   name: string;
   address: string;
   logo: string;
+  type: string;
 }
 
 interface CommentPrakerin {
