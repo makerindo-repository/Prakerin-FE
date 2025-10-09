@@ -1,7 +1,7 @@
 export default function ServiceButton() {
   const handleClick = () => {
     window.open(
-      "https://api.whatsapp.com/send?phone=628564885888&text=Halo%20PrakerinID%2C%20saya%20ingin%20bertanya%20tentang%20layanan%20yang%20tersedia.",
+      "https://api.whatsapp.com/send?phone=6281546865286&text=Halo%20PrakerinID%2C%20saya%20ingin%20bertanya%20tentang%20layanan%20yang%20tersedia.",
       "_blank"
     );
   };

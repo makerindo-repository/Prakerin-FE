@@ -17,6 +17,7 @@ import Link from "next/link";
 import Image from "next/image";
 import RenderBlocks from "@/components/RenderBlocks";
 import { API, ENDPOINTS } from "../../../../../../utils/config";
+import UnderConstruction from "@/components/UnderConstruction";
 
 interface Company {
   photo_profile?: string | null;
@@ -87,6 +88,8 @@ const DetailPerusahaanPage = ({
     console.log("Id:", id);
     fetchCompanyDetail();
   }, []);
+
+  return <UnderConstruction />;
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">
@@ -142,14 +145,14 @@ const DetailPerusahaanPage = ({
           <div className="flex items-center space-x-3">
             <input
               type="text"
-            //   value={newMessage}
-            //   onChange={(e) => setNewMessage(e.target.value)}
-            //   onKeyDown={handleKeyDown}
+              //   value={newMessage}
+              //   onChange={(e) => setNewMessage(e.target.value)}
+              //   onKeyDown={handleKeyDown}
               placeholder="Ketik pesan..."
               className="w-full rounded-full text-gray-700 border-gray-300 bg-gray-100 px-4 py-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/50"
             />
             <button
-            //   onClick={handleSendMessage}
+              //   onClick={handleSendMessage}
               className="flex-shrink-0 rounded-full bg-accent p-2 text-white transition-colors hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
             >
               <Send className="h-5 w-5" />

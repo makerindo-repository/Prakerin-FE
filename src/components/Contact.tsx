@@ -1,6 +1,13 @@
 "use client";
 import emailJs from "emailjs-com";
-import { Facebook, Instagram, Mail, MapPin, Share } from "lucide-react";
+import {
+  Facebook,
+  Instagram,
+  Mail,
+  MapPin,
+  Share,
+  Linkedin,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { FaInstagram } from "react-icons/fa";
@@ -67,11 +74,11 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
                 Lokasi
               </h3>
               <p className="text-gray-600 text-sm">
-                Jl. Dago Giri No. 4, Jababeka
+                Komplek Pesona Ciganitri Blok A39
                 <br />
-                Kp. Benteng, Padaleunyi, Kabupaten Bandung Barat
+                Cipagalo, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat
                 <br />
-                Jawa Barat 40552
+                Jawa Barat 40287
               </p>
             </div>
 
@@ -81,9 +88,9 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
                 Kontak Kami
               </h3>
               <p className="text-gray-600 text-sm">
-                cs@prakerin.id
+                idprakerin@gmail.com
                 <br />
-                +62 8564885888
+                +62 815-4686-5286
               </p>
             </div>
 
@@ -94,13 +101,15 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
               </h3>
               <div className="flex space-x-4">
                 <a
-                  href="#"
+                  href="www.linkedin.com/in/prakerin-id-933549389"
+                  target="_blank"
                   className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
                 >
-                  <Facebook className="w-5 h-5" />
+                  <Linkedin className="w-5 h-5" />
                 </a>
                 <a
-                  href="#"
+                  href="https://www.instagram.com/officialprakerin.id?igsh=Z3d3eTF3cWQ0MDBz"
+                  target="_blank"
                   className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center text-white hover:bg-pink-700 transition-colors"
                 >
                   <Instagram className="w-5 h-5" />

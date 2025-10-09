@@ -117,6 +117,10 @@ export default function InternshipPage() {
     duration_id: [],
   });
   const [loading, setLoading] = useState<boolean>(false);
+  // Track which items have expanded descriptions
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const router = useRouter();
 
@@ -245,7 +249,7 @@ export default function InternshipPage() {
           Temukan peluang magang dari berbagai perusahaan ternama. Daftar,
           lamar, dan mulai perjalanan kariermu bersama kami.
         </p>
-        <div className="relative items-center rounded-full shadow-md w-xl border border-gray-200 bg-gray-200/50 flex mt-8">
+        <div className="w-3/4 relative items-center rounded-full shadow-md border border-gray-200 bg-gray-200/50 flex mt-8">
           <input
             type="text"
             onChange={(e) => setInputSearch(e.target.value)}
@@ -284,7 +288,16 @@ export default function InternshipPage() {
               data.map((item, index) => (
                 <div
                   key={index}
-                  className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push(`/lowongan/${item.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      router.push(`/lowongan/${item.id}`);
+                    }
+                  }}
+                  className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                  aria-label={`Lihat detail lowongan ${item.title}`}
                 >
                   <div className="flex items-start gap-4 col-span-6">
                     {item.user.photo_profile ? (
@@ -304,8 +317,34 @@ export default function InternshipPage() {
                       <h2 className="text-xl font-bold text-cyan-700">
                         {item.title}
                       </h2>
-                      <div className="mt-6 text-gray-600">
-                        <DescriptionRendererLite data={item.description} />
+                      {/* Collapsible description - shows a short preview on mobile and can be expanded */}
+                      <div className="mt-3 text-gray-600">
+                        <div
+                          className={`break-all whitespace-pre-wrap overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+                            expandedItems[item.id]
+                              ? "max-h-[2000px]"
+                              : "max-h-20"
+                          }`}
+                        >
+                          <DescriptionRendererLite data={item.description} />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedItems((prev) => ({
+                              ...prev,
+                              [item.id]: !prev[item.id],
+                            }));
+                          }}
+                          className="mt-2 text-sm text-cyan-700 hover:underline"
+                          aria-expanded={!!expandedItems[item.id]}
+                          aria-controls={`desc-${item.id}`}
+                        >
+                          {expandedItems[item.id]
+                            ? "Tutup"
+                            : "Baca Selengkapnya"}
+                        </button>
                       </div>
                     </div>
                   </div>

@@ -42,6 +42,38 @@ export default function LandingPage({
   const router = useRouter();
 
   const [inputSearch, setInputSearch] = useState<string>("");
+  const scrollRef = useState<HTMLDivElement | null>(null)[0];
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (!scrollRef || partners.length === 0) return;
+
+    let scrollPosition = 0;
+    let animationId: number;
+
+    const scroll = () => {
+      if (!isPaused && scrollRef) {
+        scrollPosition += 0.5; // Kecepatan scroll (ubah nilai ini untuk mengatur kecepatan)
+
+        const scrollWidth = scrollRef.scrollWidth / 2; // Karena kita duplikasi 2x
+
+        if (scrollPosition >= scrollWidth) {
+          scrollPosition = 0; // Reset tanpa jump karena konten identik
+        }
+
+        scrollRef.style.transform = `translateX(-${scrollPosition}px)`;
+      }
+      animationId = requestAnimationFrame(scroll);
+    };
+
+    animationId = requestAnimationFrame(scroll);
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, [scrollRef, partners, isPaused]);
 
   const handleSearch = () => {
     if (inputSearch.trim() !== "") {
@@ -237,41 +269,70 @@ export default function LandingPage({
             {/* Efek gradasi di sisi kiri & kanan */}
             <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
             <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
-
             {/* Wrapper scroll */}
-            <div className="overflow-x-auto scrollbar-hide scroll-smooth relative min-h-[260px]">
+            <div className="overflow-hidden relative min-h-[260px]">
               {partners && partners.length > 0 ? (
-                <div className="flex gap-6 md:gap-8 pb-4 snap-x snap-mandatory">
-                  {partners.map((item) => (
-                    <div
-                      key={item.id}
-                      className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center transition-all duration-300 transform hover:scale-105 bg-white border border-gray-100 shadow-md hover:shadow-lg rounded-2xl p-6 snap-center cursor-pointer"
-                    >
-                      {/* Logo Mitra */}
-                      <div className="w-32 h-32 bg-gradient-to-br from-accent/10 to-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center relative overflow-hidden shadow-inner">
-                        <Image
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                          alt={item.name}
-                          fill
-                          sizes="100%"
-                          className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
-                        />
-                      </div>
+                <>
+                  <style suppressHydrationWarning>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
 
-                      {/* Detail Mitra */}
-                      <h3 className="font-semibold text-gray-800 text-lg mb-1">
-                        {item.name}
-                      </h3>
-                      <p className="text-gray-500 text-sm">{item.address}</p>
-                    </div>
-                  ))}
-                </div>
+        .scroll-container {
+          display: flex;
+          gap: 1.5rem; /* tambahkan jarak antar item */
+          padding: 0 3rem; /* padding kiri kanan */
+          width: max-content;
+          animation: scroll 20s linear infinite;
+        }
+
+        .scroll-container:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+                  <div className="scroll-container">
+                    {[...partners, ...partners].map((item, index) => (
+                      <div
+                        key={`${item.id}-${index}`}
+                        className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
+                       transition-all duration-300 transform hover:scale-105 
+                       bg-white border border-gray-100 shadow-md hover:shadow-lg 
+                       rounded-2xl p-6 cursor-pointer"
+                      >
+                        <div
+                          className="w-32 h-32 bg-gradient-to-br from-accent/10 to-blue-100 
+                            rounded-full mx-auto mb-4 flex items-center justify-center 
+                            relative overflow-hidden shadow-inner"
+                        >
+                          <Image
+                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                            alt={item.name}
+                            fill
+                            sizes="100%"
+                            className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
+                          />
+                        </div>
+                        <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                          {item.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm">{item.address}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div className="absolute inset-0 flex flex-col justify-center items-center text-center">
                   <NotFoundComponent text="Tidak ada mitra yang ditemukan." />
                 </div>
               )}
             </div>
+            s
           </div>
         </div>
       </section>
@@ -323,7 +384,7 @@ export default function LandingPage({
 
                       {/* Komentar */}
                       <p className="text-gray-700 mb-4 italic leading-relaxed">
-                        “{item.comment}”
+                        "{item.comment}"
                       </p>
 
                       {/* Nama dan Posisi */}

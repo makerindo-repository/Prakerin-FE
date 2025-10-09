@@ -1,63 +1,88 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authMiddleware } from "./middlewares/authMiddleware";
+
+// Escape karakter regex selain '*'
+const escapeRegex = (str: string) =>
+  str.replace(/[-/\\^$+?.()|[\]{}]/g, "\\$&");
+
+// Cocokkan path dengan pola wildcard (*)
+const matchPath = (path: string, patterns: string[]) => {
+  return patterns.some((pattern) => {
+    const regex = new RegExp(
+      "^" + pattern.split("*").map(escapeRegex).join(".*") + "$"
+    );
+    return regex.test(path);
+  });
+};
+
+// Allow-list per role (gunakan '*' untuk wildcard)
+const accessMap: Record<string, string[]> = {
+  super_admin: [
+    "/dashboard*",
+    "/dashboard/isi-halaman",
+    "/dashboard/perusahaan",
+    "/dashboard/sekolah",
+    "/dashboard/penghargaan",
+    "/dashboard/penghargaan/*",
+    "/dashboard/profile",
+    "/dashboard/master-data/*",
+  ],
+  company: [
+    "/dashboard*",
+    "/dashboard/siswa-magang*",
+    "/dashboard/tasklist*",
+    "/dashboard/industry/*",
+    "/dashboard/lowongan/*", // company bisa akses fitur lowongan (buat, edit, dll)
+    "/dashboard/profile",
+  ],
+  school: ["/dashboard*", "/dashboard/profile"],
+  student: [
+    "/dashboard",
+    "/dashboard/lowongan*", // student bisa lihat lowongan
+    "/dashboard/cv*",
+    "/dashboard/perusahaan*",
+    "/dashboard/tasklist*",
+    "/dashboard/feedback",
+    "/dashboard/sertifikat",
+    "/dashboard/pembimbing",
+    "/dashboard/profile",
+  ],
+};
+
+// Deny-list per role (cek terlebih dahulu)
+const denyMap: Record<string, string[]> = {
+  student: ["/dashboard/lowongan/*/ubah", "/dashboard/tasklist/tambah"],
+};
 
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  const authResult = authMiddleware(req, path);
-  if (authResult !== true) return authResult;
+  // Guest: hanya boleh masuk/daftar
+  const token = req.cookies.get("userToken")?.value;
+  if (!token) {
+    if (path === "/masuk" || path === "/daftar") {
+      return NextResponse.next();
+    }
+  }
+  if (path === "/masuk" || path === "/daftar") {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
 
-  const authorization = req.cookies.get("authorization")?.value;
+  const role = req.cookies.get("authorization")?.value || "";
 
-  if (
-    authorization === "super_admin" &&
-    (adminAccess.includes(path) || path.startsWith("/dashboard/master-data"))
-  ) {
+  // Cek deny-list dulu
+  if (role in denyMap && matchPath(path, denyMap[role])) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // Lalu cek allow-list
+  if (role in accessMap && matchPath(path, accessMap[role])) {
     return NextResponse.next();
   }
 
-  if (
-    authorization === "company" &&
-    (companyAccess.includes(path) || path.startsWith("/dashboard/industry"))
-  ) {
-    return NextResponse.next();
-  }
-
-  if (authorization === "school" && schoolAccess.includes(path)) {
-    return NextResponse.next();
-  }
-
-  if (authorization === "student" && studentAccess.includes(path)) {
-    return NextResponse.next();
-  }
-
-  return NextResponse.next();
-  // return NextResponse.redirect(new URL("/dashboard", req.url));
+  // Default: tolak ke dashboard
+  return NextResponse.redirect(new URL("/dashboard", req.url));
 }
 
 export const config = {
   matcher: ["/dashboard", "/dashboard/:path*", "/masuk", "/daftar"],
 };
-
-const adminAccess = [
-  "/dashboard",
-  "/dashboard/isi-halaman",
-  "/dashboard/perusahaan",
-  "/dashboard/sekolah",
-  "/dashboard/penghargaan",
-  "/dashboard/penghargaan/tambah",
-  "/dashboard/penghargaan/berikan",
-  "/dashboard/profile",
-];
-
-const companyAccess = ["/dashboard", "/dashboard/profile"];
-
-const schoolAccess = ["/dashboard", "/dashboard/profile"];
-
-const studentAccess = [
-  "/dashboard",
-  "/dashboard/profile",
-  "/dashboard/lowwongan",
-  "/dashboard/lowwongan/archive",
-  "/dashboard/cv",
-];

@@ -177,10 +177,13 @@ const CvPage: React.FC = () => {
       {/* Pages Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end mb-6">
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <button className="bg-vip hover:bg-orange-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center cursor-pointer">
+          <Link
+            href="/dashboard/cv/buat-pintar"
+            className="bg-vip hover:bg-orange-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center "
+          >
             <Plus size={16} className="mr-1" />
             Buat CV Pintar
-          </button>
+          </Link>
           <button
             onClick={() => router.push("cv/create")}
             className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center cursor-pointer"

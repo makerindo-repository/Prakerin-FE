@@ -351,13 +351,13 @@ export default function DashboardLayout({
       >
         {/* ... Konten sidebar Anda tetap sama ... */}
         <div className="flex items-center justify-between h-16 px-6">
-          <div className="flex items-center space-x-2">
+          <Link href={"/"} className="flex items-center space-x-2">
             <img
               src="/PrakerinID_ico.svg"
               alt="Prakerin.ID Logo"
               className="lg:w-50"
             />
-          </div>
+          </Link>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-gray-600"

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { alertConfirm } from "@/libs/alert";
 import { API, ENDPOINTS } from "../../../../../../utils/config";
 import Cookies from "js-cookie";
+import UnderConstruction from "@/components/UnderConstruction";
 
 // --- Hapus Interface & Data dari sini ---
 // Pindahkan ke dalam komponen atau ke file terpisah jika diperlukan
@@ -24,6 +25,7 @@ interface Message {
 }
 
 const ReportPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  return <UnderConstruction />;
   const { id } = use(params);
 
   const task: Task = {

@@ -6,6 +6,7 @@ import Navigation from "@/components/Navigation";
 import { useEffect, useState } from "react";
 import Loader from "@/components/loader";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { API, ENDPOINTS } from "../../../utils/config";
 
 const cards = [
   {
@@ -30,7 +31,7 @@ const cards = [
 
 export default function AboutPage() {
   const [active, setActive] = useState(0);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isPaused, setIsPaused] = useState(false);
 
   const prev = () => {
@@ -52,17 +53,27 @@ export default function AboutPage() {
     }
   }, [isPaused]);
 
+  const [homepages, setHomepages] = useState<any>();
+
+  const fetchData = async () => {
+    try {
+      const response = await API.get(ENDPOINTS.HOMEPAGES);
+      setHomepages(response.data.data.homepages);
+    } catch (error) {
+      console.error("Error fetching homepage data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
+    fetchData();
   }, []);
 
   return (
     <>
       <Navigation section={""} setSection={() => {}} />
-      {loading && (
+      {isLoading && (
         <div className="fixed w-full inset-0 flex justify-center items-center h-screen z-10 bg-white">
           <Loader width={64} height={64} />
         </div>
@@ -70,7 +81,6 @@ export default function AboutPage() {
 
       {/* Section 1: Tentang Kami */}
 
-      {/* <UnderConstruction /> */}
       <section className="grid grid-cols-1 md:grid-cols-10 gap-6 mx-4 md:mx-20 mt-10">
         <div className="md:col-span-4">
           <h5 className="text-accent mb-3 md:mb-5">Tentang kami</h5>
@@ -98,6 +108,7 @@ export default function AboutPage() {
           onMouseLeave={() => setIsPaused(false)}
         >
           {/* Carousel container - ShadCN style */}
+
           <div className="relative w-full h-80 md:h-full">
             {/* All slides container */}
             <div
@@ -116,32 +127,6 @@ export default function AboutPage() {
 
                   {/* Content overlay */}
                   <div className="relative z-10 flex flex-col h-full text-white">
-                    {/* Navigation buttons */}
-                    <div className="absolute inset-0 flex items-center justify-between p-5 z-10">
-                      <button
-                        onClick={() => {
-                          setIsPaused(true);
-                          prev();
-                          setTimeout(() => setIsPaused(false), 5000); // Resume after 5 seconds
-                        }}
-                        className="p-2 rounded-full w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/40 text-xl transition-colors duration-200 backdrop-blur-sm"
-                        aria-label="Sebelumnya"
-                      >
-                        <ArrowLeft />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsPaused(true);
-                          next();
-                          setTimeout(() => setIsPaused(false), 5000); // Resume after 5 seconds
-                        }}
-                        className="p-2 rounded-full w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/40 text-xl transition-colors duration-200 backdrop-blur-sm"
-                        aria-label="Berikutnya"
-                      >
-                        <ArrowRight />
-                      </button>
-                    </div>
-
                     {/* Content area */}
                     <div className={`${card.gradient} p-5 pb-12 mt-auto`}>
                       <h1 className="text-xl md:text-2xl font-bold mb-3">
@@ -154,6 +139,31 @@ export default function AboutPage() {
                   </div>
                 </div>
               ))}
+            </div>
+            {/* Fixed arrows (di luar track agar tidak ikut geser) */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-5 z-2">
+              <button
+                onClick={() => {
+                  setIsPaused(true);
+                  prev();
+                  setTimeout(() => setIsPaused(false), 5000);
+                }}
+                className="pointer-events-auto p-2 rounded-full w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/50 text-white transition-colors duration-200 backdrop-blur-sm cursor-pointer"
+                aria-label="Sebelumnya"
+              >
+                <ArrowLeft />
+              </button>
+              <button
+                onClick={() => {
+                  setIsPaused(true);
+                  next();
+                  setTimeout(() => setIsPaused(false), 5000);
+                }}
+                className="pointer-events-auto p-2 rounded-full w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/50 text-white transition-colors duration-200 backdrop-blur-sm cursor-pointer"
+                aria-label="Berikutnya"
+              >
+                <ArrowRight />
+              </button>
             </div>
           </div>
 
@@ -207,7 +217,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-      <ContactPage />
+      <ContactPage homepages={homepages} />
       <FooterPage />
     </>
   );
