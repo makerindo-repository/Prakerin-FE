@@ -34,7 +34,7 @@ interface UserForm {
   username: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  password_confirmation: string;
 }
 
 interface CompanyForm {
@@ -88,7 +88,7 @@ export default function ProfilePage() {
     username: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    password_confirmation: "",
   });
   const [companyForm, setCompanyForm] = useState<CompanyForm>({
     name: "",
@@ -156,7 +156,7 @@ export default function ProfilePage() {
           username: response.data.data.username,
           email: response.data.data.email,
           password: "",
-          confirmPassword: "",
+          password_confirmation: "",
         });
 
         console.log(response.data.data);
@@ -564,11 +564,11 @@ export default function ProfilePage() {
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      value={userForm.confirmPassword}
+                      value={userForm.password_confirmation}
                       onChange={(e) =>
                         setUserForm({
                           ...userForm,
-                          confirmPassword: e.target.value,
+                          password_confirmation: e.target.value,
                         })
                       }
                       className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
