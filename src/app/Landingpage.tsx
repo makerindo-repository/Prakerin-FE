@@ -243,7 +243,7 @@ export default function LandingPage({
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              Mitra Sekolah
+              Mitra Sekolah dan Perguruan Tinggi Kami
             </h2>
             <p className="text-gray-600 mb-5">
               Bergabunglah dengan sekolah-sekolah terbaik yang telah mempercayai
