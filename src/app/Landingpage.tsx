@@ -45,6 +45,10 @@ export default function LandingPage({
   const [inputSearch, setInputSearch] = useState<string>("");
   const scrollRef = useState<HTMLDivElement | null>(null)[0];
   const [isPaused, setIsPaused] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(
+    null
+  );
 
   useEffect(() => {
     if (!scrollRef || partners.length === 0) return;
@@ -407,7 +411,7 @@ export default function LandingPage({
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50">
+      <section id="ulasan" className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
@@ -448,40 +452,64 @@ export default function LandingPage({
                     .scroll-container-comments:hover {
                       animation-play-state: paused;
                     }
+                    
+                    .line-clamp-3 {
+                      display: -webkit-box;
+                      -webkit-line-clamp: 3;
+                      -webkit-box-orient: vertical;
+                      overflow: hidden;
+                    }
                   `}</style>
 
                   <div className="scroll-container-comments">
-                    {[...comments, ...comments].map((item, index) => (
-                      <div
-                        key={`comment-${item.id}-${index}`}
-                        className="min-w-[300px] max-w-[320px] h-[320px] bg-white rounded-2xl shadow-lg 
-                             p-8 flex flex-col items-center text-center 
-                             flex-shrink-0 transition-all duration-300 
-                             hover:shadow-xl hover:-translate-y-1"
-                      >
+                    {[...comments, ...comments].map((item, index) => {
+                      const MAX_PREVIEW = 160; // heuristik untuk memunculkan tombol
+                      const isLong = (item.comment || "").length > MAX_PREVIEW;
+                      return (
                         <div
-                          className="w-24 h-24 bg-gradient-to-br from-accent/10 to-blue-100 
-                                  rounded-full mx-auto mb-4 flex items-center justify-center 
-                                  relative overflow-hidden shadow-inner"
+                          key={`comment-${item.id}-${index}`}
+                          className="min-w-[300px] max-w-[320px] h-[320px] bg-white rounded-2xl shadow-lg 
+                               p-8 flex flex-col items-center text-center 
+                               flex-shrink-0 transition-all duration-300 
+                               hover:shadow-xl hover:-translate-y-1 overflow-hidden"
                         >
-                          <Image
-                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.photo_profile}`}
-                            alt={item.name}
-                            fill
-                            sizes="100%"
-                            className="object-cover rounded-full transition-transform duration-500 group-hover:scale-110"
-                          />
+                          <div
+                            className="w-24 h-24 bg-gradient-to-br from-accent/10 to-blue-100 
+                                    rounded-full mx-auto mb-4 flex items-center justify-center 
+                                    relative overflow-hidden shadow-inner shrink-0"
+                          >
+                            <Image
+                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.photo_profile}`}
+                              alt={item.name}
+                              fill
+                              sizes="100%"
+                              className="object-cover rounded-full transition-transform duration-500 group-hover:scale-110 bg-white"
+                            />
+                          </div>
+
+                          <p className="text-gray-700 mb-2 italic leading-relaxed break-words whitespace-pre-wrap overflow-hidden line-clamp-3">
+                            "{item.comment}"
+                          </p>
+
+                          {isLong && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveComment(item);
+                                setShowCommentModal(true);
+                              }}
+                              className="text-accent font-semibold text-sm hover:underline cursor-pointer"
+                            >
+                              Lihat selengkapnya
+                            </button>
+                          )}
+
+                          <span className="font-semibold text-prakerin break-words">
+                            {item.name} – {item.position}
+                          </span>
                         </div>
-
-                        <p className="text-gray-700 mb-4 italic leading-relaxed">
-                          "{item.comment}"
-                        </p>
-
-                        <span className="font-semibold text-prakerin">
-                          {item.name} – {item.position}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </>
               ) : (
@@ -572,6 +600,44 @@ export default function LandingPage({
           </div>
         </div>
       </section>
+
+      {/* Modal Ulasan Penuh */}
+      {showCommentModal && activeComment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+            <button
+              aria-label="Tutup"
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700"
+              onClick={() => setShowCommentModal(false)}
+            >
+              ×
+            </button>
+
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-100 shadow bg-white">
+                <Image
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${activeComment.photo_profile}`}
+                  alt={activeComment.name}
+                  width={96}
+                  height={96}
+                  className="object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {activeComment.name}
+                </h3>
+                <p className="text-sm text-accent mb-2">
+                  {activeComment.position}
+                </p>
+              </div>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                "{activeComment.comment}"
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

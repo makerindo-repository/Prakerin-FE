@@ -64,7 +64,13 @@ export default function Navigation({ setSection }: NavigationProps) {
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <img src="/PrakerinID_ico.svg" alt="" />
+            <Link href="/">
+              <img
+                src="/PrakerinID_ico.svg"
+                className="cursor-pointer"
+                alt=""
+              />
+            </Link>
           </div>
 
           <div className="hidden md:flex space-x-8">
