@@ -71,7 +71,7 @@ const SertifikatPage: React.FC = () => {
     fetchCertificates();
   }, []);
 
-  return <UnderConstruction />;
+  // return <UnderConstruction />;
 
   return (
     <main className="p-6 min-h-screen">

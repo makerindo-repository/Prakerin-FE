@@ -2,7 +2,6 @@
 
 import {
   ArrowRight,
-  CheckCircle,
   CheckCircle2,
   Inbox,
   Search,
@@ -11,10 +10,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { API, ENDPOINTS } from "../../utils/config";
-import Loading from "./masuk/loading";
 import Image from "next/image";
-import NotFoundComponent from "@/components/NotFoundComponent";
 
 interface Partner {
   id: string;
@@ -23,6 +19,7 @@ interface Partner {
   logo: string;
   type: string;
 }
+
 interface CommentPrakerin {
   id: string;
   photo_profile: string;
@@ -43,15 +40,9 @@ export default function LandingPage({
   const router = useRouter();
 
   const [inputSearch, setInputSearch] = useState<string>("");
-  const scrollRef = useState<HTMLDivElement | null>(null)[0];
-  const [isPaused, setIsPaused] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
-  const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(
-    null
-  );
-  const [truncatedComments, setTruncatedComments] = useState<
-    Record<string, boolean>
-  >({});
+  const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(null);
+  const [truncatedComments, setTruncatedComments] = useState<Record<string, boolean>>({});
   const commentRefs = useState<Map<string, HTMLParagraphElement>>(new Map())[0];
   const observers = useState<Map<string, ResizeObserver>>(new Map())[0];
 
@@ -60,13 +51,12 @@ export default function LandingPage({
   const companyScrollRef = useRef<HTMLDivElement>(null);
   const commentScrollRef = useRef<HTMLDivElement>(null);
 
-  // State untuk kontrol scroll
-  const [schoolAutoScroll, setSchoolAutoScroll] = useState(false);
-  const [companyAutoScroll, setCompanyAutoScroll] = useState(false);
-  const [commentAutoScroll, setCommentAutoScroll] = useState(false);
+  // State untuk pause scroll
+  const [schoolPaused, setSchoolPaused] = useState(false);
+  const [companyPaused, setCompanyPaused] = useState(false);
+  const [commentPaused, setCommentPaused] = useState(false);
 
   const registerCommentRef = (el: HTMLParagraphElement | null, id: string) => {
-    // Cleanup when element unmounts or re-renders
     const cleanup = () => {
       const existing = observers.get(id);
       if (existing) existing.disconnect();
@@ -79,83 +69,134 @@ export default function LandingPage({
       return;
     }
 
-    // Reattach observer to the new element instance
     cleanup();
     commentRefs.set(id, el);
 
     const checkTruncate = () => {
       try {
-        const truncated = el.scrollHeight > el.clientHeight + 1; // tolerance 1px
+        const truncated = el.scrollHeight > el.clientHeight + 1;
         setTruncatedComments((prev) =>
           prev[id] === truncated ? prev : { ...prev, [id]: truncated }
         );
       } catch {}
     };
 
-    // Initial check and observe size changes
     checkTruncate();
     const ro = new ResizeObserver(() => checkTruncate());
     ro.observe(el);
     observers.set(id, ro);
   };
 
-  // Check apakah perlu auto scroll
+  // Infinite scroll logic untuk auto scroll dan drag scroll
   useEffect(() => {
-    const checkOverflow = () => {
-      if (schoolScrollRef.current) {
-        const isOverflowing =
-          schoolScrollRef.current.scrollWidth >
-          schoolScrollRef.current.parentElement!.clientWidth;
-        setSchoolAutoScroll(isOverflowing);
-      }
-      if (companyScrollRef.current) {
-        const isOverflowing =
-          companyScrollRef.current.scrollWidth >
-          companyScrollRef.current.parentElement!.clientWidth;
-        setCompanyAutoScroll(isOverflowing);
-      }
-      if (commentScrollRef.current) {
-        const isOverflowing =
-          commentScrollRef.current.scrollWidth >
-          commentScrollRef.current.parentElement!.clientWidth;
-        setCommentAutoScroll(isOverflowing);
-      }
-    };
+    const setupInfiniteScroll = (
+      ref: React.RefObject<HTMLDivElement>,
+      isPaused: boolean,
+      speed: number = 1
+    ) => {
+      const container = ref.current;
+      if (!container) return;
 
-    checkOverflow();
-    window.addEventListener("resize", checkOverflow);
-    return () => window.removeEventListener("resize", checkOverflow);
-  }, [partners, comments]);
+      let animationId: number;
+      let isDragging = false;
+      let startX: number;
+      let scrollLeftStart: number;
 
-  useEffect(() => {
-    if (!scrollRef || partners.length === 0) return;
+      // Auto scroll
+      const autoScroll = () => {
+        if (container && !isPaused && !isDragging) {
+          container.scrollLeft += speed;
 
-    let scrollPosition = 0;
-    let animationId: number;
-
-    const scroll = () => {
-      if (!isPaused && scrollRef) {
-        scrollPosition += 0.5;
-
-        const scrollWidth = scrollRef.scrollWidth / 2;
-
-        if (scrollPosition >= scrollWidth) {
-          scrollPosition = 0;
+          // Reset infinite scroll - saat mencapai setengah, reset ke awal
+          const halfWidth = container.scrollWidth / 2;
+          if (container.scrollLeft >= halfWidth - 10) {
+            container.scrollLeft = 1;
+          }
         }
 
-        scrollRef.style.transform = `translateX(-${scrollPosition}px)`;
-      }
-      animationId = requestAnimationFrame(scroll);
+        animationId = requestAnimationFrame(autoScroll);
+      };
+
+      // Handle scroll event untuk infinite loop
+      const handleScrollEvent = () => {
+        const halfWidth = container.scrollWidth / 2;
+        
+        // Jika scroll melewati setengah, reset ke awal
+        if (container.scrollLeft >= halfWidth - 10) {
+          container.scrollLeft = 1;
+        }
+        // Jika scroll ke kiri sampai mentok, lompat ke ujung kanan
+        else if (container.scrollLeft <= 1) {
+          container.scrollLeft = halfWidth - container.clientWidth - 10;
+        }
+      };
+
+      // Mouse drag handlers
+      const handleMouseDown = (e: MouseEvent) => {
+        isDragging = true;
+        startX = e.pageX - container.offsetLeft;
+        scrollLeftStart = container.scrollLeft;
+        container.style.cursor = 'grabbing';
+        container.style.userSelect = 'none';
+      };
+
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - container.offsetLeft;
+        const walk = (x - startX) * 2; // Scroll speed multiplier
+        container.scrollLeft = scrollLeftStart - walk;
+      };
+
+      const handleMouseUp = () => {
+        isDragging = false;
+        container.style.cursor = 'grab';
+        container.style.userSelect = 'auto';
+      };
+
+      const handleMouseLeave = () => {
+        if (isDragging) {
+          isDragging = false;
+          container.style.cursor = 'grab';
+          container.style.userSelect = 'auto';
+        }
+      };
+
+      // Set initial cursor
+      container.style.cursor = 'grab';
+
+      // Start auto scroll immediately
+      animationId = requestAnimationFrame(autoScroll);
+      
+      // Add event listeners
+      container.addEventListener('scroll', handleScrollEvent, { passive: true });
+      container.addEventListener('mousedown', handleMouseDown);
+      container.addEventListener('mousemove', handleMouseMove);
+      container.addEventListener('mouseup', handleMouseUp);
+      container.addEventListener('mouseleave', handleMouseLeave);
+
+      return () => {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        container.removeEventListener('scroll', handleScrollEvent);
+        container.removeEventListener('mousedown', handleMouseDown);
+        container.removeEventListener('mousemove', handleMouseMove);
+        container.removeEventListener('mouseup', handleMouseUp);
+        container.removeEventListener('mouseleave', handleMouseLeave);
+      };
     };
 
-    animationId = requestAnimationFrame(scroll);
+    const cleanupSchool = setupInfiniteScroll(schoolScrollRef, schoolPaused, 1.5);
+    const cleanupCompany = setupInfiniteScroll(companyScrollRef, companyPaused, 1.8);
+    const cleanupComment = setupInfiniteScroll(commentScrollRef, commentPaused, 1.2);
 
     return () => {
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-      }
+      cleanupSchool?.();
+      cleanupCompany?.();
+      cleanupComment?.();
     };
-  }, [scrollRef, partners, isPaused]);
+  }, [schoolPaused, companyPaused, commentPaused]);
 
   const handleSearch = () => {
     if (inputSearch.trim() !== "") {
@@ -163,24 +204,19 @@ export default function LandingPage({
     }
   };
 
-  // Filtered lists by type for sections
   const schoolPartners = (partners || []).filter((p) => p.type === "school");
   const companyPartners = (partners || []).filter((p) => p.type === "company");
-  // For smooth marquee effect: only duplicate when enough items to avoid obvious repetition
-  const schoolScrollList =
-    schoolPartners.length >= 6
-      ? [...schoolPartners, ...schoolPartners]
-      : schoolPartners;
-  const companyScrollList =
-    companyPartners.length >= 6
-      ? [...companyPartners, ...companyPartners]
-      : companyPartners;
+
+  // Selalu duplicate untuk infinite effect yang seamless
+  const schoolScrollList = [...schoolPartners, ...schoolPartners];
+  const companyScrollList = [...companyPartners, ...companyPartners];
+  const commentScrollList = [...comments, ...comments];
 
   return (
     <>
       <section id="beranda" className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6  animate-slide-in-left">
+          <div className="space-y-6 animate-slide-in-left">
             <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent leading-tight">
               {homepages?.["title-landing-1"] ?? "-"}
             </h1>
@@ -200,9 +236,9 @@ export default function LandingPage({
               <Search className="absolute left-4 w-5 h-5 text-gray-400" />
               <button
                 onClick={handleSearch}
-                className="absolute right-4 bg-accent-dark w-8 h-8  rounded-full text-white hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="absolute right-4 bg-accent-dark w-8 h-8 rounded-full text-white hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
-                <ArrowRight className=" w-6 h-6 m-auto" />
+                <ArrowRight className="w-6 h-6 m-auto" />
               </button>
             </div>
 
@@ -296,8 +332,8 @@ export default function LandingPage({
               </div>
             </div>
 
-            <div className="relative animate-slide-in-right mt-8 md:mt-0 ">
-              <div className="bg-white rounded-2xl  shadow-2xl">
+            <div className="relative animate-slide-in-right mt-8 md:mt-0">
+              <div className="bg-white rounded-2xl shadow-2xl">
                 <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 overflow-hidden">
                   <video
                     autoPlay
@@ -316,7 +352,7 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* Mitra Sekolah - Section Terpisah */}
+      {/* Mitra Sekolah */}
       <section
         id="mitra-sekolah"
         className="py-16 bg-gradient-to-br from-blue-50 to-indigo-50"
@@ -337,7 +373,13 @@ export default function LandingPage({
             <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-blue-50 to-transparent pointer-events-none z-10"></div>
             <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-indigo-50 to-transparent pointer-events-none z-10"></div>
 
-            <div className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[260px]">
+            <div
+              ref={schoolScrollRef}
+              onMouseEnter={() => setSchoolPaused(true)}
+              onMouseLeave={() => setSchoolPaused(false)}
+              className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[260px]"
+              style={{ scrollBehavior: "auto" }}
+            >
               {schoolPartners && schoolPartners.length > 0 ? (
                 <>
                   <style suppressHydrationWarning>{`
@@ -348,81 +390,43 @@ export default function LandingPage({
                       -ms-overflow-style: none;
                       scrollbar-width: none;
                     }
-
-                    ${
-                      schoolAutoScroll
-                        ? `
-                    @keyframes scrollSchool {
-                      0% {
-                        transform: translateX(0);
-                      }
-                      100% {
-                        transform: translateX(-50%);
-                      }
-                    }
-
-                    .scroll-container-school {
-                      display: flex;
-                      gap: 1.5rem;
-                      padding: 0 3rem;
-                      width: max-content;
-                      animation: scrollSchool 25s linear infinite;
-                    }
-
-                    .scroll-container-school:hover {
-                      animation-play-state: paused;
-                    }
-                    `
-                        : `
-                    .scroll-container-school {
-                      display: flex;
-                      gap: 1.5rem;
-                      padding: 0 3rem;
-                    }
-                    `
-                    }
                   `}</style>
 
-                  <div
-                    ref={schoolScrollRef}
-                    className="scroll-container-school"
-                  >
-                    {(schoolAutoScroll ? schoolScrollList : schoolPartners).map(
-                      (item, index) => (
+                  <div className="flex gap-6 px-12 w-max">
+                    {schoolScrollList.map((item, index) => (
+                      <div
+                        key={`school-${item.id}-${index}`}
+                        className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
+                       transition-all duration-300 transform hover:scale-105 
+                       bg-white border border-blue-100 shadow-md hover:shadow-lg 
+                       rounded-2xl p-6 cursor-pointer"
+                      >
                         <div
-                          key={`school-${item.id}-${index}`}
-                          className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
-                         transition-all duration-300 transform hover:scale-105 
-                         bg-white border border-blue-100 shadow-md hover:shadow-lg 
-                         rounded-2xl p-6 cursor-pointer"
+                          className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 
+                          rounded-full mx-auto mb-4 flex items-center justify-center 
+                          relative overflow-hidden shadow-inner"
                         >
-                          <div
-                            className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 
-                            rounded-full mx-auto mb-4 flex items-center justify-center 
-                            relative overflow-hidden shadow-inner"
-                          >
-                            <Image
-                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                              alt={item.name}
-                              fill
-                              sizes="100%"
-                              className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
-                            />
-                          </div>
-                          <h3 className="font-semibold text-gray-800 text-lg mb-1">
-                            {item.name}
-                          </h3>
-                          <p className="text-gray-500 text-sm">
-                            {item.address}
-                          </p>
+                          <Image
+                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                            alt={item.name}
+                            fill
+                            sizes="128px"
+                            className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
+                          />
                         </div>
-                      )
-                    )}
+                        <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                          {item.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm">{item.address}</p>
+                      </div>
+                    ))}
                   </div>
                 </>
               ) : (
                 <div className="absolute inset-0 flex flex-col justify-center items-center text-center">
-                  <NotFoundComponent text="Tidak ada mitra sekolah yang ditemukan." />
+                  <p className="text-gray-500">
+                    Tidak ada mitra sekolah yang ditemukan.
+                  </p>
                 </div>
               )}
             </div>
@@ -430,7 +434,7 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* Mitra Perusahaan - Section Terpisah */}
+      {/* Mitra Perusahaan */}
       <section id="mitra-perusahaan" className="py-16">
         <div className="container mx-auto px-4">
           <div className="mb-12">
@@ -448,83 +452,48 @@ export default function LandingPage({
             <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
             <div className="absolute top-0 bottom-0 right-0 w-10 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
 
-            <div className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[260px]">
+            <div
+              ref={companyScrollRef}
+              onMouseEnter={() => setCompanyPaused(true)}
+              onMouseLeave={() => setCompanyPaused(false)}
+              className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[260px]"
+              style={{ scrollBehavior: "auto" }}
+            >
               {companyPartners && companyPartners.length > 0 ? (
-                <>
-                  <style suppressHydrationWarning>{`
-                    ${
-                      companyAutoScroll
-                        ? `
-                    @keyframes scrollCompany {
-                      0% {
-                        transform: translateX(0);
-                      }
-                      100% {
-                        transform: translateX(-50%);
-                      }
-                    }
-
-                    .scroll-container-company {
-                      display: flex;
-                      gap: 1.5rem;
-                      padding: 0 3rem;
-                      width: max-content;
-                      animation: scrollCompany 30s linear infinite;
-                    }
-
-                    .scroll-container-company:hover {
-                      animation-play-state: paused;
-                    }
-                    `
-                        : `
-                    .scroll-container-company {
-                      display: flex;
-                      gap: 1.5rem;
-                      padding: 0 3rem;
-                    }
-                    `
-                    }
-                  `}</style>
-
-                  <div
-                    ref={companyScrollRef}
-                    className="scroll-container-company"
-                  >
-                    {(companyAutoScroll
-                      ? companyScrollList
-                      : companyPartners
-                    ).map((item, index) => (
+                <div className="flex gap-6 px-12 w-max">
+                  {companyScrollList.map((item, index) => (
+                    <div
+                      key={`company-${item.id}-${index}`}
+                      className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
+                       transition-all duration-300 transform hover:scale-105 
+                       bg-white border border-gray-100 shadow-md hover:shadow-lg 
+                       rounded-2xl p-6 cursor-pointer"
+                    >
                       <div
-                        key={`company-${item.id}-${index}`}
-                        className="min-w-[240px] md:min-w-[280px] flex-shrink-0 text-center 
-                         transition-all duration-300 transform hover:scale-105 
-                         bg-white border border-gray-100 shadow-md hover:shadow-lg 
-                         rounded-2xl p-6 cursor-pointer"
+                        className="w-32 h-32 bg-gradient-to-br from-accent/10 to-cyan-100 
+                          rounded-full mx-auto mb-4 flex items-center justify-center 
+                          relative overflow-hidden shadow-inner"
                       >
-                        <div
-                          className="w-32 h-32 bg-gradient-to-br from-accent/10 to-cyan-100 
-                            rounded-full mx-auto mb-4 flex items-center justify-center 
-                            relative overflow-hidden shadow-inner"
-                        >
-                          <Image
-                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                            alt={item.name}
-                            fill
-                            sizes="100%"
-                            className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
-                          />
-                        </div>
-                        <h3 className="font-semibold text-gray-800 text-lg mb-1">
-                          {item.name}
-                        </h3>
-                        <p className="text-gray-500 text-sm">{item.address}</p>
+                        <Image
+                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                          alt={item.name}
+                          fill
+                          sizes="128px"
+                          className="object-fill rounded-full transition-transform duration-500 group-hover:scale-110"
+                        />
                       </div>
-                    ))}
-                  </div>
-                </>
+                      <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                        {item.name}
+                      </h3>
+                      <p className="text-gray-500 text-sm">{item.address}</p>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <div className="absolute inset-0 flex flex-col justify-center items-center text-center">
-                  <NotFoundComponent text="Tidak ada mitra perusahaan yang ditemukan." />
+                  <p className="text-gray-500">
+                    Tidak ada mitra perusahaan yang ditemukan.
+                  </p>
                 </div>
               )}
             </div>
@@ -532,6 +501,7 @@ export default function LandingPage({
         </div>
       </section>
 
+      {/* Ulasan */}
       <section id="ulasan" className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="mb-12">
@@ -544,48 +514,20 @@ export default function LandingPage({
             <div className="w-[170px] h-0 border-2 border-accent"></div>
           </div>
 
-          {/* Testimoni dengan animasi auto-scroll */}
           <div className="relative">
             <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
             <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
 
-            <div className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[340px]">
+            <div
+              ref={commentScrollRef}
+              onMouseEnter={() => setCommentPaused(true)}
+              onMouseLeave={() => setCommentPaused(false)}
+              className="overflow-x-auto overflow-y-hidden scrollbar-hide relative min-h-[340px]"
+              style={{ scrollBehavior: "auto" }}
+            >
               {comments.length !== 0 ? (
                 <>
                   <style suppressHydrationWarning>{`
-                    ${
-                      commentAutoScroll
-                        ? `
-                    @keyframes scrollComments {
-                      0% {
-                        transform: translateX(0);
-                      }
-                      100% {
-                        transform: translateX(-50%);
-                      }
-                    }
-
-                    .scroll-container-comments {
-                      display: flex;
-                      gap: 1.5rem;
-                      padding: 0 3rem;
-                      width: max-content;
-                      animation: scrollComments 35s linear infinite;
-                    }
-
-                    .scroll-container-comments:hover {
-                      animation-play-state: paused;
-                    }
-                    `
-                        : `
-                    .scroll-container-comments {
-                      display: flex;
-                      gap: 1.5rem;
-                      padding: 0 3rem;
-                    }
-                    `
-                    }
-                    
                     .line-clamp-3 {
                       display: -webkit-box;
                       -webkit-line-clamp: 3;
@@ -594,33 +536,27 @@ export default function LandingPage({
                     }
                   `}</style>
 
-                  <div
-                    ref={commentScrollRef}
-                    className="scroll-container-comments"
-                  >
-                    {(commentAutoScroll
-                      ? [...comments, ...comments]
-                      : comments
-                    ).map((item, index) => {
+                  <div className="flex gap-6 px-12 w-max">
+                    {commentScrollList.map((item, index) => {
                       const isLong = !!truncatedComments[item.id];
                       return (
                         <div
                           key={`comment-${item.id}-${index}`}
                           className="min-w-[300px] max-w-[320px] h-[320px] bg-white rounded-2xl shadow-lg 
-                               p-8 flex flex-col items-center text-center 
-                               flex-shrink-0 transition-all duration-300 
-                               hover:shadow-xl hover:-translate-y-1 overflow-hidden"
+                             p-8 flex flex-col items-center text-center 
+                             flex-shrink-0 transition-all duration-300 
+                             hover:shadow-xl hover:-translate-y-1 overflow-hidden"
                         >
                           <div
                             className="w-24 h-24 bg-gradient-to-br from-accent/10 to-blue-100 
-                                    rounded-full mx-auto mb-4 flex items-center justify-center 
-                                    relative overflow-hidden shadow-inner shrink-0"
+                                  rounded-full mx-auto mb-4 flex items-center justify-center 
+                                  relative overflow-hidden shadow-inner shrink-0"
                           >
                             <Image
                               src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.photo_profile}`}
                               alt={item.name}
                               fill
-                              sizes="100%"
+                              sizes="96px"
                               className="object-cover rounded-full transition-transform duration-500 group-hover:scale-110 bg-white"
                             />
                           </div>
@@ -655,7 +591,9 @@ export default function LandingPage({
                 </>
               ) : (
                 <div className="flex flex-col justify-center items-center w-full h-[320px]">
-                  <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
+                  <p className="text-gray-500">
+                    Tidak ada ulasan yang ditemukan.
+                  </p>
                 </div>
               )}
             </div>

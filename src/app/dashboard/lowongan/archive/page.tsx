@@ -1,16 +1,12 @@
 "use client";
-import {
-  ArrowLeft,
-  Bookmark,
-  BriefcaseBusiness,
-  Funnel,
-  MapPin,
-} from "lucide-react";
+import { Bookmark, BriefcaseBusiness, Building, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
+import Image from "next/image";
+import Loader from "@/components/loader";
 
 interface SaveJobOpening {
   id: string;
@@ -27,10 +23,14 @@ interface SaveJobOpening {
   is_paid: boolean;
   updated_at: string;
   save_job_opening: boolean;
+  user: {
+    photo_profile: string | null;
+  };
 }
 
 const LowonganArchivePage: React.FC = () => {
   const [saveJobOpenings, setSaveJobOpenings] = useState<SaveJobOpening[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchSaveJobOpenings = async () => {
     try {
@@ -57,6 +57,7 @@ const LowonganArchivePage: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     try {
+      setIsLoading(true);
       const response = await API.post(
         `${ENDPOINTS.SAVE_JOB_OPENINGS}`,
         {
@@ -73,6 +74,8 @@ const LowonganArchivePage: React.FC = () => {
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,23 +99,31 @@ const LowonganArchivePage: React.FC = () => {
         <h2 className="text-2xl mt-2">Lowongan Tersimpan</h2>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-        {saveJobOpenings.length !== 0 ? (
+        {saveJobOpenings.length > 0 && isLoading ? (
           saveJobOpenings.map((job) => (
             <Link
               key={job.id}
-              href={`lowongan/${job.id}`}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              href={`/dashboard/lowongan/${job.id}`}
+              className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow flex flex-col"
             >
               <h3 className="font-semibold text-gray-900 text-lg mb-3">
                 {job.title}
               </h3>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <div className="w-8 h-8 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">IG</span>
+                  {job.user.photo_profile ? (
+                    <div className="w-15 h-15 relative rounded-full border-white border">
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
+                        alt="Logo Perusahaan"
+                        fill
+                        sizes="100%"
+                        className="object-cover rounded-full"
+                      />
                     </div>
-                  </div>
+                  ) : (
+                    <Building className="w-15 h-15 text-[var(--color-accent)]" />
+                  )}
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">
                       {job.company.name}
@@ -136,6 +147,7 @@ const LowonganArchivePage: React.FC = () => {
                 <span className="text-gray-500 text-sm">
                   {timeAgo(job.updated_at)}
                 </span>
+
                 <button
                   type="button"
                   onClick={(e) => handleClickFavorite(e, job.id)}
@@ -152,7 +164,9 @@ const LowonganArchivePage: React.FC = () => {
             </Link>
           ))
         ) : (
-          <p className="text-gray-500">Tidak ada lowongan yang disimpan.</p>
+          <div className="lg:col-span-2">
+            <Loader height={64} width={64} />
+          </div>
         )}
       </div>
     </main>

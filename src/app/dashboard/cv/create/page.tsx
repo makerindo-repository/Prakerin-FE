@@ -59,6 +59,7 @@ const CreatePage: React.FC = () => {
   }, []);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (isSubmitting) return;
     const file = e.target.files?.[0] || null;
     setFormData((prev) => ({ ...prev, file }));
 
@@ -79,6 +80,7 @@ const CreatePage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setIsSubmitting(true);
 
     try {
@@ -120,12 +122,13 @@ const CreatePage: React.FC = () => {
       URL.revokeObjectURL(currentPreviewRef.current);
       currentPreviewRef.current = null;
     }
-    setFormData({ name: "", file: null });
+    setFormData({ ...formData, file: null });
     setPreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const openFilePicker = () => {
+    if (isSubmitting) return;
     fileInputRef.current?.click();
   };
 
@@ -155,6 +158,7 @@ const CreatePage: React.FC = () => {
       <form
         className="bg-white rounded-2xl space-y-6 p-6 text-black"
         onSubmit={handleSubmit}
+        aria-busy={isSubmitting}
       >
         <div className="flex space-x-5">
           <div>
@@ -171,9 +175,10 @@ const CreatePage: React.FC = () => {
             type="text"
             name="name"
             placeholder="Masukkan nama CV"
+            disabled={isSubmitting}
             className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-accent border-gray-300 ${
               errors.name ? "border-red-500" : "border-gray-300"
-            }`}
+            } disabled:cursor-not-allowed disabled:opacity-50`}
             value={formData.name}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, name: e.target.value }))
@@ -195,6 +200,7 @@ const CreatePage: React.FC = () => {
             type="file"
             accept="application/pdf"
             onChange={handleFileChange}
+            disabled={isSubmitting} // disable saat submitting
             className="hidden"
           />
 
@@ -202,11 +208,19 @@ const CreatePage: React.FC = () => {
           <div
             // only clickable to open picker if there is no preview
             onClick={() => {
-              if (!previewUrl) openFilePicker();
+              if (!previewUrl && !isSubmitting) openFilePicker();
             }}
             className={`w-full min-h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
-              previewUrl ? "cursor-default" : "cursor-pointer"
-            } ${errors.file ? "border-red-500" : "border-gray-300"}`}
+              previewUrl
+                ? isSubmitting
+                  ? "cursor-not-allowed"
+                  : "cursor-default"
+                : isSubmitting
+                ? "cursor-not-allowed"
+                : "cursor-pointer"
+            } 
+            ${isSubmitting ? "opacity-60" : ""} 
+            ${errors.file ? "border-red-500" : "border-gray-300"}`}
           >
             {previewUrl ? (
               <div className="w-full rounded-md border">
@@ -215,14 +229,16 @@ const CreatePage: React.FC = () => {
                   <button
                     type="button"
                     onClick={openFilePicker}
-                    className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm"
+                    disabled={isSubmitting} // disable saat submit
+                    className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Ubah
                   </button>
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm"
+                    disabled={isSubmitting} // disable saat submit
+                    className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Hapus
                   </button>
@@ -270,15 +286,15 @@ const CreatePage: React.FC = () => {
         <div className="flex gap-4 justify-end  items-stretch">
           <Link
             href="/dashboard/cv"
-            className="bg-gray-200 rounded-lg py-2 px-4 text-gray-600 min-w-24 text-center hover:bg-gray-300"
+            className={`bg-gray-200 rounded-lg py-2 px-4 text-gray-600 min-w-24 text-center hover:bg-gray-300
+        ${isSubmitting ? "cursor-not-allowed opacity-60" : ""}`}
             onClick={async (e) => {
               e.preventDefault();
+              if (isSubmitting) return;
               const isConfirm = await alertConfirm(
                 "Apakah anda yakin ingin membatalkan!"
               );
-              if (isConfirm) {
-                route.push("/dashboard/cv");
-              }
+              if (isConfirm) route.push("/dashboard/cv");
             }}
           >
             Batal

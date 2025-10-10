@@ -21,7 +21,7 @@ const FeedbackPage: React.FC = () => {
     setAuthorization(Cookies.get("authorization"));
   }, []);
 
-  return <UnderConstruction />;
+  // return <UnderConstruction />;
 
   return (
     <main className="p-6 min-h-screen relative">

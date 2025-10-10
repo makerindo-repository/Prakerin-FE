@@ -7,6 +7,7 @@ import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import Link from "next/link";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import Loader from "@/components/loader";
 
 interface FormData {
   name: string;
@@ -20,6 +21,7 @@ interface FormErrors {
 
 const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const route = useRouter();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -54,6 +56,7 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
   }, []);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (isSubmitting) return;
     const file = e.target.files?.[0] || null;
     setFormData((prev) => ({ ...prev, file }));
 
@@ -77,7 +80,6 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
     setIsSubmitting(true);
 
     try {
-      console.log(formData);
       await API.post(
         `${ENDPOINTS.CURRICULUM_VITAE}/${id}?_method=PATCH`,
         {
@@ -92,7 +94,7 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
         }
       );
 
-      await alertSuccess("Berhasil menambahkan CV");
+      await alertSuccess("Berhasil mengubah CV");
       // cleanup local preview & form
       if (currentPreviewRef.current) {
         URL.revokeObjectURL(currentPreviewRef.current);
@@ -121,12 +123,13 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
       URL.revokeObjectURL(currentPreviewRef.current);
       currentPreviewRef.current = null;
     }
-    setFormData({ name: "", file: null });
+    setFormData({ ...formData, file: null });
     setPreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const openFilePicker = () => {
+    if (isSubmitting) return;
     fileInputRef.current?.click();
   };
 
@@ -150,11 +153,12 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
         type: "application/pdf",
       });
       const fileUrl = URL.createObjectURL(fileBlob);
-      // simpan untuk cleanup dan set sebagai preview
       currentPreviewRef.current = fileUrl;
-      setPreviewUrl(fileUrl); // digunakan untuk preview/link
+      setPreviewUrl(fileUrl);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -184,141 +188,166 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
       <form
         className="bg-white rounded-2xl space-y-6 p-6 text-black"
         onSubmit={handleSubmit}
+        aria-busy={isSubmitting}
       >
-        <div className="flex space-x-5">
-          <div>
-            <h1 className="text-xl text-gray-800 font-extrabold">Ubah CV</h1>
-            <span className="text-sm text-gray-600">
-              Silahkan isi semua informasi yang dibutuhkan
-            </span>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-96">
+            <Loader height={64} width={64} />
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="flex space-x-5">
+              <div>
+                <h1 className="text-xl text-gray-800 font-extrabold">
+                  Ubah CV
+                </h1>
+                <span className="text-sm text-gray-600">
+                  Silahkan isi semua informasi yang dibutuhkan
+                </span>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 gap-2">
-          <label htmlFor="name">Nama CV</label>
-          <input
-            type="text"
-            name="name"
-            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-accent border-gray-300 ${
-              errors.name ? "border-red-500" : "border-gray-300"
-            }`}
-            value={formData.name}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, name: e.target.value }))
-            }
-          />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-          )}
-        </div>
+            <div className="grid grid-cols-1 gap-2">
+              <label htmlFor="name">Nama CV</label>
+              <input
+                type="text"
+                name="name"
+                disabled={isSubmitting}
+                className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-accent border-gray-300 ${
+                  errors.name ? "border-red-500" : "border-gray-300"
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+              )}
+            </div>
 
-        <div className="lg:col-span-1 ">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Upload CV
-          </label>
+            <div className="lg:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload CV
+              </label>
 
-          {/* hidden native file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-            className="hidden"
-          />
+              {/* hidden native file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+                disabled={isSubmitting} // disable saat submitting
+                className="hidden"
+              />
 
-          {/* upload / preview area */}
-          <div
-            // only clickable to open picker if there is no preview
-            onClick={() => {
-              if (!previewUrl) openFilePicker();
-            }}
-            className={`w-full min-h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
-              previewUrl ? "cursor-default" : "cursor-pointer"
-            } ${errors.file ? "border-red-500" : "border-gray-300"}`}
-          >
-            {previewUrl ? (
-              <div className="w-full rounded-md border">
-                {/* custom toolbar di atas embed */}
-                <div className="flex items-center gap-2 p-2 border-b bg-gray-100">
-                  <button
-                    type="button"
-                    onClick={openFilePicker}
-                    className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm"
-                  >
-                    Ubah
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm"
-                  >
-                    Hapus
-                  </button>
-                  <div className="flex-1" />
-                </div>
+              {/* upload / preview area */}
+              <div
+                // only clickable to open picker if there is no preview
+                onClick={() => {
+                  if (!previewUrl && !isSubmitting) openFilePicker();
+                }}
+                className={`w-full min-h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
+                  previewUrl
+                    ? isSubmitting
+                      ? "cursor-not-allowed"
+                      : "cursor-default"
+                    : isSubmitting
+                    ? "cursor-not-allowed"
+                    : "cursor-pointer"
+                } ${isSubmitting ? "opacity-60" : ""} ${
+                  errors.file ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                {previewUrl ? (
+                  <div className="w-full rounded-md border">
+                    {/* custom toolbar di atas embed */}
+                    <div className="flex items-center gap-2 p-2 border-b bg-gray-100">
+                      <button
+                        type="button"
+                        onClick={openFilePicker}
+                        disabled={isSubmitting} // disable saat submit
+                        className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        Ubah
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        disabled={isSubmitting} // disable saat submit
+                        className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        Hapus
+                      </button>
+                      <div className="flex-1" />
+                    </div>
 
-                {/* PDF preview - responsive: link on mobile, embed on desktop */}
-                {isMobile ? (
-                  <div className="p-4 text-center bg-gray-50">
-                    <FileText className="w-16 h-16 mx-auto text-accent mb-2" />
-                    <p className="text-sm text-gray-600 mb-2">
-                      File PDF berhasil dipilih: <br />
-                      <span className="font-medium">{formData.file?.name}</span>
-                    </p>
-                    <a
-                      href={previewUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block bg-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-accent-hover"
-                    >
-                      Buka PDF
-                    </a>
+                    {/* PDF preview - responsive: link on mobile, embed on desktop */}
+                    {isMobile ? (
+                      <div className="p-4 text-center bg-gray-50">
+                        <FileText className="w-16 h-16 mx-auto text-accent mb-2" />
+                        <p className="text-sm text-gray-600 mb-2">
+                          File PDF berhasil dipilih: <br />
+                          <span className="font-medium">
+                            {formData.file?.name}
+                          </span>
+                        </p>
+                        <a
+                          href={previewUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block bg-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-accent-hover"
+                        >
+                          Buka PDF
+                        </a>
+                      </div>
+                    ) : (
+                      <embed
+                        src={previewUrl}
+                        type="application/pdf"
+                        width="100%"
+                        height="600px"
+                        className="w-full"
+                      />
+                    )}
                   </div>
                 ) : (
-                  <embed
-                    src={previewUrl}
-                    type="application/pdf"
-                    width="100%"
-                    height="600px"
-                    className="w-full"
-                  />
+                  <p className="text-sm text-gray-500">
+                    Klik di sini untuk upload PDF
+                  </p>
                 )}
               </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                Klik di sini untuk upload PDF
-              </p>
-            )}
-          </div>
-          {errors.file && (
-            <p className="mt-2 text-sm text-red-500">{errors.file}</p>
-          )}
-        </div>
+              {errors.file && (
+                <p className="mt-2 text-sm text-red-500">{errors.file}</p>
+              )}
+            </div>
 
-        <div className="flex gap-4 justify-end  items-stretch">
-          <Link
-            href="/dashboard/cv"
-            className="bg-gray-200 rounded-lg py-2 px-4 text-gray-600 min-w-24 text-center hover:bg-gray-300"
-            onClick={async (e) => {
-              e.preventDefault();
-              const isConfirm = await alertConfirm(
-                "Apakah anda yakin ingin membatalkan!"
-              );
-              if (isConfirm) {
-                route.push("/dashboard/cv");
-              }
-            }}
-          >
-            Batal
-          </Link>
-          <button
-            disabled={isSubmitting}
-            className="bg-accent rounded-lg py-2 px-4 text-white min-w-24 cursor-pointer hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
-            type="submit"
-          >
-            {isSubmitting ? "Menyimpan..." : "Simpan"}
-          </button>
-        </div>
+            <div className="flex gap-4 justify-end  items-stretch">
+              <Link
+                href="/dashboard/cv"
+                className={`bg-gray-200 rounded-lg py-2 px-4 text-gray-600 min-w-24 text-center hover:bg-gray-300
+                  ${isSubmitting ? "cursor-not-allowed opacity-60" : ""}`}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (isSubmitting) return;
+                  const isConfirm = await alertConfirm(
+                    "Apakah anda yakin ingin membatalkan!"
+                  );
+                  if (isConfirm) route.push("/dashboard/cv");
+                }}
+              >
+                Batal
+              </Link>
+              <button
+                disabled={isSubmitting}
+                className="bg-accent rounded-lg py-2 px-4 text-white min-w-24 cursor-pointer hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                type="submit"
+              >
+                {isSubmitting ? "Menyimpan..." : "Simpan"}
+              </button>
+            </div>
+          </>
+        )}
       </form>
     </main>
   );

@@ -10,6 +10,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../utils/config";
 import Cookies from "js-cookie";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import PaginationComponent from "../PaginationComponent"; // sesuaikan path jika perlu
 import { Pages } from "@/models/pagination";
 import LoaderData from "@/components/loader";
@@ -43,7 +44,7 @@ const StudentFeedback = () => {
         params: {
           role: "company",
           page: selectedPage,
-          limit: 1,
+          limit: 10,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -73,9 +74,14 @@ const StudentFeedback = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log("Feedback:", feedback);
     console.log("Rating:", rating);
+
+    try {
+      const response = API.post(ENDPOINTS.FEEDBACKS, JSON.stringify({}));
+    } catch (err) {}
+    await alertSuccess("");
     setClose(true); // tutup modal setelah submit
   };
 

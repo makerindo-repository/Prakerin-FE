@@ -11,6 +11,7 @@ import {
   Clock,
   Calendar,
   GraduationCap,
+  Building,
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
@@ -237,7 +238,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                         />
                       </div>
                     ) : (
-                      <UserCircle className="w-16 h-16 text-[var(--color-accent)]" />
+                      <Building className="w-16 h-16 text-[var(--color-accent)]" />
                     )}
                   </div>
 
@@ -272,24 +273,23 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                       </button>
 
                       <button
+                        type="button"
+                        className={`flex items-center justify-center gap-2 hover:text-blue-600 hover:bg-white px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors cursor-pointer ${
+                          jobOpening.save_job_opening
+                            ? "text-white border-blue-500 bg-blue-500"
+                            : "text-gray-400"
+                        }`}
                         onClick={() => handleClickFavorite(id)}
-                        className="flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors cursor-pointer"
                       >
                         <Bookmark
-                          className={`w-4 h-4 ${
-                            jobOpening.save_job_opening
-                              ? "text-blue-500"
-                              : "text-gray-400"
-                          }`}
+                          className={`w-4 h-4 `}
                           fill={
                             jobOpening.save_job_opening
                               ? "currentColor"
                               : "none"
                           }
                         />
-                        <span>
-                          {jobOpening.save_job_opening ? "Tersimpan" : "Simpan"}
-                        </span>
+                        <span>Simpan</span>
                       </button>
 
                       <Link
@@ -318,7 +318,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   {/* Tingkat Pendidikan */}
-                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm transition">
                     <GraduationCap className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
                       <p className="text-gray-500">Tingkat Pendidikan</p>
@@ -331,7 +331,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
 
                   {/* Lokasi Magang */}
-                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm transition">
                     <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
                       <p className="text-gray-500">Lokasi Magang</p>
@@ -348,7 +348,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
 
                   {/* Kuota Magang */}
-                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm transition">
                     <Users className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
                       <p className="text-gray-500">Kuota Magang</p>
@@ -359,7 +359,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
 
                   {/* Jenis Magang */}
-                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm transition">
                     <Clock className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
                       <p className="text-gray-500">Jenis Magang</p>
@@ -370,7 +370,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
 
                   {/* Bidang Magang */}
-                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm transition">
                     <BriefcaseBusiness className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
                       <p className="text-gray-500">Bidang Magang</p>
@@ -381,7 +381,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
 
                   {/* Durasi Magang */}
-                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm transition">
                     <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
                       <p className="text-gray-500">Durasi Magang</p>
@@ -391,7 +391,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm transition">
                     <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
                       <p className="text-gray-500">Waktu Mulai Magang</p>
@@ -400,7 +400,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm transition">
                     <Calendar className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
                       <p className="text-gray-500">Batas Pendaftaran</p>

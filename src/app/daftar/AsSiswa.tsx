@@ -30,11 +30,12 @@ interface FormErrors {
 
 interface PrakerinRegistrationFormProps {
   setShowForm: (value: string) => void;
+  typeStudent: string;
 }
 
 const PrakerinRegistrationSiswaForm: React.FC<
   PrakerinRegistrationFormProps
-> = ({ setShowForm }) => {
+> = ({ setShowForm, typeStudent }) => {
   const [formData, setFormData] = useState<FormData>({
     username: "",
     name: "",
@@ -160,6 +161,10 @@ const PrakerinRegistrationSiswaForm: React.FC<
     setShowForm(""); // Kembali ke halaman pilih form
   };
 
+  const label = () => {
+    return typeStudent[0].toUpperCase() + typeStudent.slice(1);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl">
@@ -171,7 +176,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
             className="lg:w-50 mb-4 mx-auto"
           />
           <h2 className="text-2xl font-semibold text-gray-700">
-            Daftar Siswa/Mahasiswa Magang
+            Daftar {label()} Magang
           </h2>
         </div>
 
@@ -220,9 +225,10 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     type="text"
                     name="username"
                     value={formData.username}
+                    disabled={isSubmitting}
                     onChange={handleInputChange}
                     placeholder="Masukan Username anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.username ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -241,8 +247,9 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
+                    disabled={isSubmitting}
                     placeholder="Masukan Nama anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.name ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -256,7 +263,8 @@ const PrakerinRegistrationSiswaForm: React.FC<
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Asal Sekolah / Universitas
+                    Asal{" "}
+                    {typeStudent === "siswa" ? "Sekolah" : "Perguruan Tinggi"}
                     <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -264,11 +272,18 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       name="school_id"
                       value={formData.school_id}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors appearance-none bg-white ${
+                      disabled={isSubmitting}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed ${
                         errors.school_id ? "border-red-500" : "border-gray-300"
                       }`}
                     >
-                      <option value="">Pilih Sekolah/Universitas anda</option>
+                      <option value="">
+                        Pilih{" "}
+                        {typeStudent === "siswa"
+                          ? "Sekolah"
+                          : "Perguruan Tinggi"}{" "}
+                        anda
+                      </option>
                       {schools.map((school, key) => (
                         <option key={key} value={school.id}>
                           {school.name}
@@ -306,9 +321,10 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     type="email"
                     name="email"
                     value={formData.email}
+                    disabled={isSubmitting}
                     onChange={handleInputChange}
                     placeholder="Masukan Email anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.email ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -330,15 +346,16 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
+                      disabled={isSubmitting}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 disabled:opacity-50 disabled:cursor-not-allowed ${
                         errors.password ? "border-red-500" : "border-gray-300"
                       }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {showPassword ? (
                         <Eye className="w-5 h-5" />
@@ -363,8 +380,9 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       name="password_confirmation"
                       value={formData.password_confirmation}
                       onChange={handleInputChange}
+                      disabled={isSubmitting}
                       placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 disabled:opacity-50 disabled:cursor-not-allowed ${
                         errors.password_confirmation
                           ? "border-red-500"
                           : "border-gray-300"
@@ -375,7 +393,8 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       onClick={() =>
                         setShowpassword_confirmation(!showpassword_confirmation)
                       }
-                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                      disabled={isSubmitting}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {showpassword_confirmation ? (
                         <Eye className="w-5 h-5" />

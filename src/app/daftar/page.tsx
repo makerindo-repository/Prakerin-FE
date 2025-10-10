@@ -40,7 +40,8 @@ export default function DaftarPage() {
               className="mt-1 block w-full p-2 border border-gray-300 rounded-lg px-5 cursor-pointer"
             >
               <option value="">Pilih daftar sebagai</option>
-              <option value="siswa">Siswa/Mahasiswa</option>
+              <option value="siswa">Siswa</option>
+              <option value="mahasiswa">Mahasiswa</option>
               <option value="sekolah">Sekolah</option>
               <option value="university">Perguruan Tinggi</option>
               <option value="company">Perusahaan</option>
@@ -68,7 +69,9 @@ export default function DaftarPage() {
 
   function renderForm(form: string) {
     if (form === "siswa")
-      return <PrakerinRegistrationSiswaForm setShowForm={setShowForm} />;
+      return <PrakerinRegistrationSiswaForm setShowForm={setShowForm} typeStudent="siswa"/>;
+    if (form === "mahasiswa")
+      return <PrakerinRegistrationSiswaForm setShowForm={setShowForm} typeStudent="mahasiswa"/>;
     if (form === "sekolah")
       return <PrakerinRegistrationSekolahForm setShowForm={setShowForm} typeSchool="school" />;
     if (form === "university")

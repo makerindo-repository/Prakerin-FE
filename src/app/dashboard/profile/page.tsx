@@ -209,23 +209,28 @@ export default function ProfilePage() {
       switch (form) {
         case "user":
           text = "Informasi akun berhasil di simpan!";
-          request = userForm;
+          request = { ...userForm };
+          
+          if (!(userForm.photo_profile instanceof File)) {
+            request = { ...request, photo_profile: null };
+          }
+
           break;
         case "company":
           text = "Informasi perusahaan berhasil di simpan!";
-          request = companyForm;
+          request = { ...companyForm };
           break;
         case "school":
           text = "Informasi sekolah/universitas berhasil di simpan!";
-          request = schoolForm;
+          request = { ...schoolForm };
           break;
         case "student":
           text = "Informasi siswa/mahasiswa berhasil di simpan!";
-          request = studentForm;
+          request = { ...studentForm };
           break;
         case "description":
           text = "Deskripsi berhasil di simpan!";
-          request = descriptionForm;
+          request = { ...descriptionForm };
           setIsSubmittingDesc(true);
           break;
       }
@@ -1417,7 +1422,7 @@ export default function ProfilePage() {
                   <input
                     id="student-phone-number"
                     type="tel"
-                    placeholder="+62 812-3456-7890"
+                    placeholder="+6281234567890"
                     value={studentForm?.phone_number || ""}
                     onChange={(e) =>
                       setStudentForm({

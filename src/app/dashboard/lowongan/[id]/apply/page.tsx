@@ -199,7 +199,7 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                       />
                     </div>
                   ) : (
-                    <UserCircle className="w-16 h-16 text-[var(--color-accent)]" />
+                    <Building className="w-16 h-16 text-[var(--color-accent)]" />
                   )}
                 </div>
                 <div>
@@ -223,13 +223,14 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                 </div>
                 <select
                   value={formData.curriculum_vitae_id}
+                  disabled={isSubmitting}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
                       curriculum_vitae_id: e.target.value,
                     })
                   }
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent bg-gray-50  ${
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent bg-gray-50 disabled:cursor-not-allowed disable:opacity-50 ${
                     errors.curriculum_vitae_id
                       ? "border-red-500"
                       : "border-gray-300"
@@ -254,10 +255,30 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Surat Lamaran
                 </label>
-                <Editor
-                  onChange={handleEditorChange}
-                  error={errors.cover_letter}
-                />
+
+                {/* Wrapper non-interaktif saat submit */}
+                <div className="relative">
+                  {/* Konten editor dengan opacity saat submit */}
+                  <div
+                    className={`${isSubmitting ? "opacity-50" : ""}`}
+                    aria-disabled={isSubmitting}
+                  >
+                    <Editor
+                      onChange={handleEditorChange}
+                      error={errors.cover_letter}
+                    />
+                  </div>
+
+                  {/* Overlay untuk blok interaksi + cursor not-allowed */}
+                  {isSubmitting && (
+                    <div
+                      className="absolute inset-0 z-10 cursor-not-allowed"
+                      style={{ pointerEvents: "auto" }}
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+
                 {errors.cover_letter && (
                   <p className="mt-1 text-sm text-red-500">
                     {errors.cover_letter}
@@ -269,16 +290,16 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
               <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-end">
                 <Link
                   href={`/dashboard/lowongan/${id}`}
+                  className={`bg-gray-200 rounded-lg py-2 px-4 text-gray-600 min-w-24 text-center hover:bg-gray-300
+        ${isSubmitting ? "cursor-not-allowed opacity-60" : ""}`}
                   onClick={async (e) => {
                     e.preventDefault();
+                    if (isSubmitting) return;
                     const isConfirm = await alertConfirm(
                       "Apakah anda yakin ingin membatalkan!"
                     );
-                    if (isConfirm) {
-                      route.push(`/dashboard/lowongan/${id}`);
-                    }
+                    if (isConfirm) route.push(`/dashboard/lowongan/${id}`);
                   }}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Batal
                 </Link>

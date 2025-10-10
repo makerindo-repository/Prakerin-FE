@@ -116,9 +116,10 @@ export default function LoginPage() {
                   onChange={handleChange}
                   type="text"
                   id="email"
+                  disabled={isSubmitting}
                   className={`w-full px-12 py-3 border rounded-lg pr-12 focus:ring-accent focus:border-accent outline-none transition-colors ${
                     errors.password ? "border-red-500" : "border-gray-300"
-                  }`}
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
                 />
                 <UserRound className="text-accent absolute left-4 top-3.5 w-5 h-5" />
               </div>
@@ -136,17 +137,19 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   value={data.password}
+                  disabled={isSubmitting}
                   onChange={handleChange}
                   placeholder="Masukan password kamu"
                   className={`w-full px-12 py-3 border rounded-lg pr-12  focus:ring-accent focus:border-accent  outline-none transition-colors ${
                     errors.password ? "border-red-500" : "border-gray-300"
-                  }`}
+                  }  disabled:cursor-not-allowed disabled:opacity-50`}
                 />
                 <LockKeyhole className="text-accent absolute left-4 top-3.5 w-5 h-5" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center px-3"
+                  disabled={isSubmitting}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {showPassword ? (
                     <Eye className="w-5 h-5 text-accent" />
@@ -165,11 +168,15 @@ export default function LoginPage() {
                 type="checkbox"
                 name="remember"
                 id="remember"
+                disabled={isSubmitting}
                 className="h-4 w-4"
                 checked={isRemember}
                 onChange={(e) => setIsRemember(e.target.checked)}
               />
-              <label htmlFor="remember" className="text-sm">
+              <label
+                htmlFor="remember"
+                className="text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 Ingat saya
               </label>
             </div>

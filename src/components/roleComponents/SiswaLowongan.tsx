@@ -9,6 +9,7 @@ import {
   Scale,
   UserCircle,
   Loader,
+  Building,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -466,7 +467,7 @@ export default function SiswaLowongan() {
                       />
                     </div>
                   ) : (
-                    <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
+                    <Building className="w-15 h-15 text-[var(--color-accent)]" />
                   )}
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">

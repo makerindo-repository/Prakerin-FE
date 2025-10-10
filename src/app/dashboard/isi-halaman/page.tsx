@@ -324,6 +324,26 @@ const PerusahaanPage: React.FC = () => {
     );
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setFormPartner({
+      logo: null,
+      name: "",
+      address: "",
+      type: "",
+    });
+    setFormCommentPrakerin({
+      photo_profile: null,
+      name: "",
+      position: "",
+      comment: "",
+    });
+    setFormError({});
+    setImage(null);
+    setEditingPartnerId(null);
+    setEditingCommentId(null);
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -547,7 +567,7 @@ const PerusahaanPage: React.FC = () => {
                   {item.position}
                 </p>
                 <p className="text-gray-600 text-sm italic leading-relaxed">
-                  “{item.comment}”
+                  "{item.comment}"
                 </p>
               </div>
             ))
@@ -602,288 +622,286 @@ const PerusahaanPage: React.FC = () => {
         </div>
       </section>
 
+      {/* MODAL - FIXED OVERFLOW */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50">
-          <div className="bg-white text-black p-6 rounded-lg flex flex-col gap-2 min-w-sm lg:min-w-xl">
-            <div className=" rounded-lg justify-between flex">
-              <h3 className="text-lg font-semibold">Tambah {addLabel}</h3>
-              <X
-                onClick={() => {
-                  setIsModalOpen(false);
-
-                  setFormPartner({
-                    logo: null,
-                    name: "",
-                    address: "",
-                    type: "",
-                  });
-                  setFormCommentPrakerin({
-                    photo_profile: null,
-                    name: "",
-                    position: "",
-                    comment: "",
-                  });
-
-                  setFormError({});
-                  setImage(null);
-
-                  setEditingPartnerId(null);
-                  setEditingCommentId(null);
-                }}
-                className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600"
-              />
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4 overflow-y-auto">
+          <div className="bg-white text-black rounded-lg w-full max-w-md max-h-[90vh] flex flex-col my-8">
+            {/* Header Modal - Fixed */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 flex-shrink-0">
+              <h3 className="text-lg font-semibold">
+                {editingPartnerId || editingCommentId ? "Edit" : "Tambah"}{" "}
+                {addLabel}
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-red-500 hover:text-red-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
             </div>
-            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-              {addLabel === "Mitra" && (
-                <>
-                  <div className="flex flex-col gap-2 ">
-                    <label htmlFor="province">Pilih Foto Mitra</label>
-                    <div
-                      className={`w-48 h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50  relative cursor-pointer ${
-                        formError.logo ? "border-red-500" : "border-gray-500"
-                      }`}
-                    >
-                      {profileImage ? (
-                        <Image
-                          src={profileImage}
-                          alt="Profile"
-                          className="w-full h-full object-cover rounded-lg"
-                          width={300}
-                          height={300}
-                        />
-                      ) : (
-                        <>
-                          <UploadCloud
-                            size={48}
-                            className="text-gray-400 mb-2"
+
+            {/* Form Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <form
+                className="flex flex-col gap-6"
+                onSubmit={handleSubmit}
+                id="modal-form"
+              >
+                {addLabel === "Mitra" && (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="logo-upload">Pilih Foto Mitra</label>
+                      <div
+                        className={`w-full h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 relative cursor-pointer ${
+                          formError.logo ? "border-red-500" : "border-gray-300"
+                        }`}
+                      >
+                        {profileImage ? (
+                          <Image
+                            src={profileImage}
+                            alt="Profile"
+                            className="w-full h-full object-cover rounded-lg"
+                            width={300}
+                            height={300}
                           />
-                          <span className="text-sm text-gray-500">
-                            Unggah Foto
-                          </span>
-                        </>
-                      )}
+                        ) : (
+                          <>
+                            <UploadCloud
+                              size={48}
+                              className="text-gray-400 mb-2"
+                            />
+                            <span className="text-sm text-gray-500">
+                              Unggah Foto
+                            </span>
+                          </>
+                        )}
 
-                      {/* Input file hidden tapi full area jadi clickable */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        name="profile_picture"
-                        id="profile_picture"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                      />
-                    </div>
-                    {formError.logo && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {formError.logo}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="province">Nama</label>
-                    <input
-                      value={formPartner.name}
-                      onChange={(e) =>
-                        setFormPartner({ ...formPartner, name: e.target.value })
-                      }
-                      id="province"
-                      type="text"
-                      placeholder="Masukkan nama mitra"
-                      className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
-                        formError.name ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {formError.name && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {formError.name}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="type">Tipe Mitra </label>
-                    <select
-                      value={formPartner.type}
-                      onChange={(e) =>
-                        setFormPartner({
-                          ...formPartner,
-                          type: e.target.value,
-                        })
-                      }
-                      id="type"
-                      className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
-                        formError.type ? "border-red-500" : "border-gray-300"
-                      }`}
-                    >
-                      <option value="">Pilih tipe mitra</option>
-                      <option value="company">Perusahaan</option>
-                      <option value="school">Sekolah</option>
-                    </select>
-                    {formError.type && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {formError.type}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="province">Alamat</label>
-                    <input
-                      value={formPartner.address}
-                      onChange={(e) =>
-                        setFormPartner({
-                          ...formPartner,
-                          address: e.target.value,
-                        })
-                      }
-                      id="province"
-                      type="text"
-                      placeholder="Bandung, Jawa Barat"
-                      className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
-                        formError.address ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {formError.address && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {formError.address}
-                      </p>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {addLabel === "Ulasan" && (
-                <>
-                  <div className="flex flex-col gap-2 ">
-                    <label htmlFor="photo-profile">
-                      Pilih Foto Pemberi Ulasan
-                    </label>
-                    <div
-                      className={`w-48 h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50  relative cursor-pointer ${
-                        formError.photo_profile
-                          ? "border-red-500"
-                          : "border-gray-500"
-                      }`}
-                    >
-                      {profileImage ? (
-                        <Image
-                          src={profileImage}
-                          alt="Profile"
-                          className="w-full h-full object-cover rounded-lg"
-                          width={300}
-                          height={300}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          name="logo"
+                          id="logo-upload"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
                         />
-                      ) : (
-                        <>
-                          <UploadCloud
-                            size={48}
-                            className="text-gray-400 mb-2"
-                          />
-                          <span className="text-sm text-gray-500">
-                            Unggah Foto
-                          </span>
-                        </>
+                      </div>
+                      {formError.logo && (
+                        <p className="text-sm text-red-500">{formError.logo}</p>
                       )}
-
-                      {/* Input file hidden tapi full area jadi clickable */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        name="photo-profile"
-                        id="photo-profile"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                      />
                     </div>
-                    {formError.photo_profile && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {formError.photo_profile}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="province">Nama</label>
-                    <input
-                      value={FormCommentPrakerin.name}
-                      onChange={(e) =>
-                        setFormCommentPrakerin({
-                          ...FormCommentPrakerin,
-                          name: e.target.value,
-                        })
-                      }
-                      id="province"
-                      type="text"
-                      placeholder="Masukkan nama pemberi ulasan"
-                      className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
-                        formError.name ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {formError.name && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {formError.name}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="province">Posisi </label>
-                    <input
-                      value={FormCommentPrakerin.position}
-                      onChange={(e) =>
-                        setFormCommentPrakerin({
-                          ...FormCommentPrakerin,
-                          position: e.target.value,
-                        })
-                      }
-                      id="province"
-                      type="text"
-                      placeholder="Masukkan jurusan pemberi ulasan"
-                      className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
-                        formError.position
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    {formError.position && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {formError.position}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="province">Ulasan</label>
-                    <textarea
-                      value={FormCommentPrakerin.comment}
-                      onChange={(e) =>
-                        setFormCommentPrakerin({
-                          ...FormCommentPrakerin,
-                          comment: e.target.value,
-                        })
-                      }
-                      id="province"
-                      placeholder="Masukkan ulasan"
-                      className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
-                        formError.comment ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {formError.comment && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {formError.comment}
-                      </p>
-                    )}
-                  </div>
-                </>
-              )}
 
-              <div className="flex justify-end ">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-accent text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-accent-hover"
-                >
-                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
-                </button>
-              </div>
-            </form>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="partner-name">Nama</label>
+                      <input
+                        value={formPartner.name}
+                        onChange={(e) =>
+                          setFormPartner({
+                            ...formPartner,
+                            name: e.target.value,
+                          })
+                        }
+                        id="partner-name"
+                        type="text"
+                        placeholder="Masukkan nama mitra"
+                        className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                          formError.name ? "border-red-500" : "border-gray-300"
+                        }`}
+                      />
+                      {formError.name && (
+                        <p className="text-sm text-red-500">{formError.name}</p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="partner-type">Tipe Mitra</label>
+                      <select
+                        value={formPartner.type}
+                        onChange={(e) =>
+                          setFormPartner({
+                            ...formPartner,
+                            type: e.target.value,
+                          })
+                        }
+                        id="partner-type"
+                        className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                          formError.type ? "border-red-500" : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">Pilih tipe mitra</option>
+                        <option value="company">Perusahaan</option>
+                        <option value="school">Sekolah</option>
+                      </select>
+                      {formError.type && (
+                        <p className="text-sm text-red-500">{formError.type}</p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="partner-address">Alamat</label>
+                      <input
+                        value={formPartner.address}
+                        onChange={(e) =>
+                          setFormPartner({
+                            ...formPartner,
+                            address: e.target.value,
+                          })
+                        }
+                        id="partner-address"
+                        type="text"
+                        placeholder="Bandung, Jawa Barat"
+                        className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                          formError.address
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formError.address && (
+                        <p className="text-sm text-red-500">
+                          {formError.address}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {addLabel === "Ulasan" && (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="photo-profile">
+                        Pilih Foto Pemberi Ulasan
+                      </label>
+                      <div
+                        className={`w-full h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 relative cursor-pointer ${
+                          formError.photo_profile
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {profileImage ? (
+                          <Image
+                            src={profileImage}
+                            alt="Profile"
+                            className="w-full h-full object-cover rounded-lg"
+                            width={300}
+                            height={300}
+                          />
+                        ) : (
+                          <>
+                            <UploadCloud
+                              size={48}
+                              className="text-gray-400 mb-2"
+                            />
+                            <span className="text-sm text-gray-500">
+                              Unggah Foto
+                            </span>
+                          </>
+                        )}
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          name="photo-profile"
+                          id="photo-profile"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                      </div>
+                      {formError.photo_profile && (
+                        <p className="text-sm text-red-500">
+                          {formError.photo_profile}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="comment-name">Nama</label>
+                      <input
+                        value={FormCommentPrakerin.name}
+                        onChange={(e) =>
+                          setFormCommentPrakerin({
+                            ...FormCommentPrakerin,
+                            name: e.target.value,
+                          })
+                        }
+                        id="comment-name"
+                        type="text"
+                        placeholder="Masukkan nama pemberi ulasan"
+                        className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                          formError.name ? "border-red-500" : "border-gray-300"
+                        }`}
+                      />
+                      {formError.name && (
+                        <p className="text-sm text-red-500">{formError.name}</p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="comment-position">Posisi</label>
+                      <input
+                        value={FormCommentPrakerin.position}
+                        onChange={(e) =>
+                          setFormCommentPrakerin({
+                            ...FormCommentPrakerin,
+                            position: e.target.value,
+                          })
+                        }
+                        id="comment-position"
+                        type="text"
+                        placeholder="Masukkan jurusan pemberi ulasan"
+                        className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                          formError.position
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formError.position && (
+                        <p className="text-sm text-red-500">
+                          {formError.position}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="comment-text">Ulasan</label>
+                      <textarea
+                        value={FormCommentPrakerin.comment}
+                        onChange={(e) =>
+                          setFormCommentPrakerin({
+                            ...FormCommentPrakerin,
+                            comment: e.target.value,
+                          })
+                        }
+                        id="comment-text"
+                        placeholder="Masukkan ulasan"
+                        rows={4}
+                        className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none ${
+                          formError.comment
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formError.comment && (
+                        <p className="text-sm text-red-500">
+                          {formError.comment}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </form>
+            </div>
+
+            {/* Footer Modal - Fixed */}
+            <div className="flex justify-end p-6 border-t border-gray-200 flex-shrink-0">
+              <button
+                type="submit"
+                form="modal-form"
+                disabled={isSubmitting}
+                className="bg-accent text-white px-6 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-accent-hover"
+              >
+                {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
+              </button>
+            </div>
           </div>
         </div>
       )}

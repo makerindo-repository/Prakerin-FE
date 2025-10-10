@@ -94,7 +94,7 @@ const MENU_MAP: Record<string, MenuItem[]> = {
     },
     { icon: MessageSquare, label: "Ulasan", href: "/dashboard/feedback" },
     { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat" },
-    { icon: Medal, label: "Pembimbing", href: "/dashboard/pembimbing" },
+    // { icon: Medal, label: "Pembimbing", href: "/dashboard/pembimbing" },
     { icon: User, label: "Profil", href: "/dashboard/profile" },
   ],
   company: [
