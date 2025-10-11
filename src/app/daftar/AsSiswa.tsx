@@ -188,10 +188,17 @@ const PrakerinRegistrationSiswaForm: React.FC<
                 Tambah Foto
               </label>
               <div className="relative">
-                <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                <div
+                  className={`w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
+                    isSubmitting
+                      ? "cursor-not-allowed opacity-50"
+                      : "cursor-pointer"
+                  }`}
+                >
                   <input
                     type="file"
                     accept="image/*"
+                    disabled={isSubmitting}
                     onChange={handleImageUpload}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />

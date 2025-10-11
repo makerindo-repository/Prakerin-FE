@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  ArrowRight,
-  CheckCircle2,
-  Inbox,
-  Search,
-  Users2,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, Inbox, Search, Users2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -41,8 +35,12 @@ export default function LandingPage({
 
   const [inputSearch, setInputSearch] = useState<string>("");
   const [showCommentModal, setShowCommentModal] = useState(false);
-  const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(null);
-  const [truncatedComments, setTruncatedComments] = useState<Record<string, boolean>>({});
+  const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(
+    null
+  );
+  const [truncatedComments, setTruncatedComments] = useState<
+    Record<string, boolean>
+  >({});
   const commentRefs = useState<Map<string, HTMLParagraphElement>>(new Map())[0];
   const observers = useState<Map<string, ResizeObserver>>(new Map())[0];
 
@@ -120,7 +118,7 @@ export default function LandingPage({
       // Handle scroll event untuk infinite loop
       const handleScrollEvent = () => {
         const halfWidth = container.scrollWidth / 2;
-        
+
         // Jika scroll melewati setengah, reset ke awal
         if (container.scrollLeft >= halfWidth - 10) {
           container.scrollLeft = 1;
@@ -136,8 +134,8 @@ export default function LandingPage({
         isDragging = true;
         startX = e.pageX - container.offsetLeft;
         scrollLeftStart = container.scrollLeft;
-        container.style.cursor = 'grabbing';
-        container.style.userSelect = 'none';
+        container.style.cursor = "grabbing";
+        container.style.userSelect = "none";
       };
 
       const handleMouseMove = (e: MouseEvent) => {
@@ -150,46 +148,60 @@ export default function LandingPage({
 
       const handleMouseUp = () => {
         isDragging = false;
-        container.style.cursor = 'grab';
-        container.style.userSelect = 'auto';
+        container.style.cursor = "grab";
+        container.style.userSelect = "auto";
       };
 
       const handleMouseLeave = () => {
         if (isDragging) {
           isDragging = false;
-          container.style.cursor = 'grab';
-          container.style.userSelect = 'auto';
+          container.style.cursor = "grab";
+          container.style.userSelect = "auto";
         }
       };
 
       // Set initial cursor
-      container.style.cursor = 'grab';
+      container.style.cursor = "grab";
 
       // Start auto scroll immediately
       animationId = requestAnimationFrame(autoScroll);
-      
+
       // Add event listeners
-      container.addEventListener('scroll', handleScrollEvent, { passive: true });
-      container.addEventListener('mousedown', handleMouseDown);
-      container.addEventListener('mousemove', handleMouseMove);
-      container.addEventListener('mouseup', handleMouseUp);
-      container.addEventListener('mouseleave', handleMouseLeave);
+      container.addEventListener("scroll", handleScrollEvent, {
+        passive: true,
+      });
+      container.addEventListener("mousedown", handleMouseDown);
+      container.addEventListener("mousemove", handleMouseMove);
+      container.addEventListener("mouseup", handleMouseUp);
+      container.addEventListener("mouseleave", handleMouseLeave);
 
       return () => {
         if (animationId) {
           cancelAnimationFrame(animationId);
         }
-        container.removeEventListener('scroll', handleScrollEvent);
-        container.removeEventListener('mousedown', handleMouseDown);
-        container.removeEventListener('mousemove', handleMouseMove);
-        container.removeEventListener('mouseup', handleMouseUp);
-        container.removeEventListener('mouseleave', handleMouseLeave);
+        container.removeEventListener("scroll", handleScrollEvent);
+        container.removeEventListener("mousedown", handleMouseDown);
+        container.removeEventListener("mousemove", handleMouseMove);
+        container.removeEventListener("mouseup", handleMouseUp);
+        container.removeEventListener("mouseleave", handleMouseLeave);
       };
     };
 
-    const cleanupSchool = setupInfiniteScroll(schoolScrollRef, schoolPaused, 1.5);
-    const cleanupCompany = setupInfiniteScroll(companyScrollRef, companyPaused, 1.8);
-    const cleanupComment = setupInfiniteScroll(commentScrollRef, commentPaused, 1.2);
+    const cleanupSchool = setupInfiniteScroll(
+      schoolScrollRef as React.RefObject<HTMLDivElement>,
+      schoolPaused,
+      1.5
+    );
+    const cleanupCompany = setupInfiniteScroll(
+      companyScrollRef as React.RefObject<HTMLDivElement>,
+      companyPaused,
+      1.8
+    );
+    const cleanupComment = setupInfiniteScroll(
+      commentScrollRef as React.RefObject<HTMLDivElement>,
+      commentPaused,
+      1.2
+    );
 
     return () => {
       cleanupSchool?.();

@@ -25,31 +25,31 @@ const SertifikatPage: React.FC = () => {
       name: "Makerindo Prima Solusi",
       provinsi: "Jawa Barat",
     },
-    {
-      kota: "Bandung",
-      name: "Makerindo Prima Solusi",
-      provinsi: "Jawa Barat",
-    },
-    {
-      kota: "Bandung",
-      name: "Makerindo Prima Solusi",
-      provinsi: "Jawa Barat",
-    },
-    {
-      kota: "Bandung",
-      name: "Makerindo Prima Solusi",
-      provinsi: "Jawa Barat",
-    },
-    {
-      kota: "Bandung",
-      name: "Makerindo Prima Solusi",
-      provinsi: "Jawa Barat",
-    },
-    {
-      kota: "Bandung",
-      name: "Makerindo Prima Solusi",
-      provinsi: "Jawa Barat",
-    },
+    // {
+    //   kota: "Bandung",
+    //   name: "Makerindo Prima Solusi",
+    //   provinsi: "Jawa Barat",
+    // },
+    // {
+    //   kota: "Bandung",
+    //   name: "Makerindo Prima Solusi",
+    //   provinsi: "Jawa Barat",
+    // },
+    // {
+    //   kota: "Bandung",
+    //   name: "Makerindo Prima Solusi",
+    //   provinsi: "Jawa Barat",
+    // },
+    // {
+    //   kota: "Bandung",
+    //   name: "Makerindo Prima Solusi",
+    //   provinsi: "Jawa Barat",
+    // },
+    // {
+    //   kota: "Bandung",
+    //   name: "Makerindo Prima Solusi",
+    //   provinsi: "Jawa Barat",
+    // },
   ]);
 
   const fetchCertificates = async () => {
@@ -83,20 +83,20 @@ const SertifikatPage: React.FC = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-5 text-black">
-        {certificates.length !== 0 ? (
-          certificates.map((data) => (
+        {perusahaan.length !== 0 ? (
+          perusahaan.map((data, i) => (
             <div
               className="bg-white flex flex-col md:flex-row space-x-5 p-5 px-10 md:px-5 rounded-2xl justify-between items-end md:items-center"
-              key={data.id}
+              key={i}
             >
               <div className="flex w-full md:w-auto">
-                {/* <img src="/Makerindo_PS.png" alt="Icon" className="w-15 h-15" />
+                <img src="/Makerindo_PS.png" alt="Icon" className="w-15 h-15" />
                 <div className="ms-3 ">
                   <h5 className="text-accent font-bold">{data.name}</h5>
                   <span className="flex">
                     <MapPin /> {data.kota}, {data.provinsi}
                   </span>
-                </div> */}
+                </div>
               </div>
               <div className="flex space-x-5">
                 <button className="bg-accent/30 text-accent flex justify-between items-center p-1 px-2 space-x-2 rounded-full">
