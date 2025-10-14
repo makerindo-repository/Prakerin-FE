@@ -112,6 +112,7 @@ const SektorPage: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setFormError({});
+
     try {
       if (editingId) {
         await API.patch(`${ENDPOINTS.SECTORS}/${editingId}`, formData, {
@@ -379,13 +380,16 @@ const SektorPage: React.FC = () => {
               </h3>
               <X
                 onClick={() => {
+                  if (isSubmitting) return;
                   if (editingId) {
                     setEditingId(null);
                     setFormData({ name: "" });
                   }
                   setIsModalOpen(false);
                 }}
-                className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600"
+                className={`w-8 h-8  text-red-500 hover:text-red-600 ${
+                  isSubmitting ? "pointer-events-none opacity-50" : "cursor-pointer"
+                }`}
               />
             </div>
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -398,8 +402,9 @@ const SektorPage: React.FC = () => {
                   }
                   id="province"
                   type="text"
+                  disabled={isSubmitting}
                   placeholder="Masukkan nama sektor"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
                     formError.name ? "border-red-500" : "border-gray-300"
                   }`}
                 />

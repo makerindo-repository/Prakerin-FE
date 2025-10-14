@@ -403,13 +403,17 @@ const JurusanPage: React.FC = () => {
               </h3>
               <X
                 onClick={() => {
+                  if(isSubmitting) return;
                   if (editingId) {
                     setEditingId(null);
                     setFormData({ name: "", level: "" });
                   }
                   setIsModalOpen(false);
+                  setFormError({});
                 }}
-                className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer text-red-500 hover:text-red-600"
+                className={`w-6 h-6 sm:w-8 sm:h-8  text-red-500 hover:text-red-600 ${
+                  isSubmitting ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                }`}
               />
             </div>
             <form className="flex flex-col gap-4 sm:gap-6" onSubmit={handleSubmit}>
@@ -421,7 +425,8 @@ const JurusanPage: React.FC = () => {
                     setFormData({ ...formData, level: e.target.value })
                   }
                   id="level"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm ${
+                  disabled={isSubmitting}
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm  disabled:opacity-50 disabled:cursor-not-allowed${
                     formError.level ? "border-red-500" : "border-gray-300"
                   }`}
                 >
@@ -443,8 +448,9 @@ const JurusanPage: React.FC = () => {
                   }
                   id="major"
                   type="text"
+                  disabled={isSubmitting}
                   placeholder="Masukkan nama jurusan"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm ${
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                     formError.name ? "border-red-500" : "border-gray-300"
                   }`}
                 />

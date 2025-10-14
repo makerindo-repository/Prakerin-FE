@@ -102,10 +102,9 @@
 
     const handleSubmit = async (e: FormEvent) => {
       e.preventDefault();
-      console.log(formData);
-
       try {
         setIsSubmitting(true);
+
         const response = await API.get(`${ENDPOINTS.USERS}/${id}`, {
           params: {
             role: "school",
@@ -207,8 +206,9 @@
                 onChange={(e) =>
                   setFormData({ ...formData, start_date: e.target.value })
                 }
+                disabled={isSubmitting}
                 id="start-date"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
               />
               {errors.start_date && (
                 <p className="mt-2 text-sm text-red-500">{errors.start_date}</p>
@@ -229,7 +229,8 @@
                 onChange={(e) =>
                   setFormData({ ...formData, end_date: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                disabled={isSubmitting}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
               />
               {errors.end_date && (
                 <p className="mt-2 text-sm text-red-500">{errors.end_date}</p>
@@ -243,11 +244,30 @@
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Pesan
               </label>
-              <Editor onChange={handleEditorChange} error={errors.message} />
+
+                  <div className="relative">
+                  {/* Konten editor dengan opacity saat submit */}
+                  <div
+                    className={`${isSubmitting ? "opacity-50" : ""}`}
+                    aria-disabled={isSubmitting}
+                  >
+                    <Editor onChange={handleEditorChange} error={errors.message} />
+                    </div>
+                             {/* Overlay untuk blok interaksi + cursor not-allowed */}
+                  {isSubmitting && (
+                    <div
+                      className="absolute inset-0 z-10 cursor-not-allowed"
+                      style={{ pointerEvents: "auto" }}
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+
 
               {errors.message && (
                 <p className="mt-2 text-sm text-red-500">{errors.message}</p>
               )}
+
             </div>
 
             {/* File */}
@@ -262,6 +282,7 @@
                 type="file"
                 accept="application/pdf"
                 onChange={handleFileChange}
+                disabled={isSubmitting}
                 className="hidden"
               />
 
@@ -269,11 +290,19 @@
               <div
                 // only clickable to open picker if there is no preview
                 onClick={() => {
-                  if (!previewUrl) openFilePicker();
+                  if (!previewUrl && !isSubmitting) openFilePicker();
                 }}
                 className={`w-full min-h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
-                  previewUrl ? "cursor-default" : "cursor-pointer"
-                } ${errors.file ? "border-red-500" : "border-gray-300"}`}
+                  previewUrl
+                ? isSubmitting
+                  ? "cursor-not-allowed"
+                  : "cursor-default"
+                : isSubmitting
+                ? "cursor-not-allowed"
+                : "cursor-pointer"
+                } 
+                ${isSubmitting ? "opacity-60" : ""} 
+                ${errors.file ? "border-red-500" : "border-gray-300"}`}
               >
                 {previewUrl ? (
                   <div className="w-full rounded-md border">
@@ -282,14 +311,16 @@
                       <button
                         type="button"
                         onClick={openFilePicker}
-                        className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm"
+                        disabled={isSubmitting} // disable saat submit
+                        className="bg-accent text-white px-2 py-1 rounded-lg border text-sm shadow-sm disabled:cursor-not-allowed cursor-pointer"
                       >
                         Ubah
                       </button>
                       <button
                         type="button"
                         onClick={handleCancel}
-                        className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm"
+                        disabled={isSubmitting} // disable saat submit
+                        className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm disabled:cursor-not-allowed cursor-pointer"
                       >
                         Hapus
                       </button>
@@ -322,6 +353,7 @@
               href={`/dashboard/sekolah/${id}`}
               onClick={async (e) => {
                 e.preventDefault();
+                if (isSubmitting) return;
                 const isConfirm = await alertConfirm(
                   "Apakah anda yakin ingin membatalkan!"
                 );
@@ -329,7 +361,9 @@
                   route.push(`/dashboard/sekolah/${id}`);
                 }
               }}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+              className={`px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors  ${
+                isSubmitting ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+              }`}
             >
               Batal
             </Link>

@@ -106,6 +106,7 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
     try {
       setIsSubmitting(true);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       const response = await API.get(`${ENDPOINTS.USERS}/${id}`, {
         params: {
           role: "company",
@@ -156,7 +157,7 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
           className="hover:underline hover:text-accent"
           href={"/dashboard/perusahaan/"}
         >
-          Perusahaab
+          Perusahaan
         </Link>{" "}
         -&gt;{" "}
         <Link
@@ -204,11 +205,12 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <input
               type="date"
               value={formData.start_date}
+              disabled={isSubmitting}
               onChange={(e) =>
                 setFormData({ ...formData, start_date: e.target.value })
               }
               id="start-date"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             />
             {errors.start_date && (
               <p className="mt-2 text-sm text-red-500">{errors.start_date}</p>
@@ -225,11 +227,12 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <input
               id="end-date"
               type="date"
+              disabled={isSubmitting}
               value={formData.end_date}
               onChange={(e) =>
                 setFormData({ ...formData, end_date: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             />
             {errors.end_date && (
               <p className="mt-2 text-sm text-red-500">{errors.end_date}</p>
@@ -243,7 +246,24 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Pesan
             </label>
+
+                <div className="relative">
+                  {/* Konten editor dengan opacity saat submit */}
+                  <div
+                    className={`${isSubmitting ? "opacity-50" : ""}`}
+                    aria-disabled={isSubmitting}
+                  >
             <Editor onChange={handleEditorChange} error={errors.message} />
+                      </div>
+                             {/* Overlay untuk blok interaksi + cursor not-allowed */}
+                  {isSubmitting && (
+                    <div
+                      className="absolute inset-0 z-10 cursor-not-allowed"
+                      style={{ pointerEvents: "auto" }}
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
 
             {errors.message && (
               <p className="mt-2 text-sm text-red-500">{errors.message}</p>
@@ -262,6 +282,7 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
               type="file"
               accept="application/pdf"
               onChange={handleFileChange}
+              disabled={isSubmitting}
               className="hidden"
             />
 
@@ -269,11 +290,19 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <div
               // only clickable to open picker if there is no preview
               onClick={() => {
-                if (!previewUrl) openFilePicker();
+                if (!previewUrl && !isSubmitting) openFilePicker();
               }}
               className={`w-full min-h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
-                previewUrl ? "cursor-default" : "cursor-pointer"
-              } ${errors.file ? "border-red-500" : "border-gray-300"}`}
+                  previewUrl
+                ? isSubmitting
+                  ? "cursor-not-allowed"
+                  : "cursor-default"
+                : isSubmitting
+                ? "cursor-not-allowed"
+                : "cursor-pointer"
+                } 
+                ${isSubmitting ? "opacity-60" : ""} 
+                ${errors.file ? "border-red-500" : "border-gray-300"}`}
             >
               {previewUrl ? (
                 <div className="w-full rounded-md border">
@@ -288,8 +317,9 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     </button>
                     <button
                       type="button"
+                      disabled={isSubmitting}
                       onClick={handleCancel}
-                      className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm"
+                      className="bg-red-500 text-white px-2 py-1 rounded-lg text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Hapus
                     </button>
@@ -322,6 +352,7 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
             href={`/dashboard/perushaaan/${id}`}
             onClick={async (e) => {
               e.preventDefault();
+              if (isSubmitting) return;
               const isConfirm = await alertConfirm(
                 "Apakah anda yakin ingin membatalkan!"
               );
@@ -329,7 +360,9 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 route.push(`/dashboard/perushaaan/${id}`);
               }
             }}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+            className={`px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors ${
+              isSubmitting ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+            }`}
           >
             Batal
           </Link>

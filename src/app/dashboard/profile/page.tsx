@@ -24,10 +24,18 @@ import { Province } from "@/models/province";
 import { CityRegency } from "@/models/cityRegency";
 import { Sector } from "@/models/sector";
 import Loader from "@/components/loader";
+import useDebounce from "@/hooks/useDebounce";
 
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
   ssr: false,
 });
+
+const Select = dynamic(() => import("react-select"), { ssr: false });
+
+interface ProvinceOption {
+  value: string;
+  label: string;
+}
 
 interface UserForm {
   photo_profile: null | File | string;
@@ -141,6 +149,16 @@ export default function ProfilePage() {
     useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [majors, setMajors] = useState<any[]>([]);
+
+  // State untuk react-select provinsi company
+  const [provinceSearch, setProvinceSearch] = useState("");
+  const [provinceOptions, setProvinceOptions] = useState<ProvinceOption[]>([]);
+
+  const [schoolProvinceSearch, setSchoolProvinceSearch] = useState("");
+  const [schoolProvinceOptions, setSchoolProvinceOptions] = useState<ProvinceOption[]>([]);
+
+  const debouncedProvinceSearch = useDebounce(provinceSearch, 500);
+
 
   const fetchProfile = async () => {
     try {
@@ -309,23 +327,19 @@ export default function ProfilePage() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const provinces = API.get(`${ENDPOINTS.PROVINCES}`);
       const cityRegencies = API.get(`${ENDPOINTS.CITY_REGENCIES}`);
       const sectors = API.get(`${ENDPOINTS.SECTORS}`);
       const major = API.get(`${ENDPOINTS.MAJORS}`);
 
       const response = await Promise.all([
-        provinces,
         cityRegencies,
         sectors,
         Cookies.get("authorization") === "student" ? major : undefined,
       ]);
-      console.log(response);
-      setProvinces(response[0].data.data);
-      setCityRegencies(response[1].data.data);
-      setSectors(response[2].data.data);
+      setCityRegencies(response[0].data.data);
+      setSectors(response[1].data.data);
       if (Cookies.get("authorization") === "student") {
-        setMajors(response[3]?.data.data);
+        setMajors(response[2]?.data.data);
       }
       await fetchProfile();
     } catch (error: AxiosError | unknown) {
@@ -348,6 +362,11 @@ export default function ProfilePage() {
     if (authorization === "school") {
       provinceId = schoolForm.province_id;
     }
+    
+    if (!provinceId) {
+      setCityRegencies([]);
+      return;
+    }
 
     try {
       const response = await API.get(
@@ -359,10 +378,37 @@ export default function ProfilePage() {
     }
   };
 
+  const fetchProvinceOptions = async () => {
+    try {
+      const response = await API.get(ENDPOINTS.PROVINCES, {
+        params: {
+          is_accepted: true,
+          search: debouncedProvinceSearch,
+          limit: 5,
+          is_limit: true,
+        },
+      });
+      console.log("fetchProvinceOptions", response.data.data);
+      const mapped = response.data.data.map((item: Province) => ({
+        value: item.id,
+        label: item.name,
+      }));
+      setProvinceOptions(mapped);
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     setAuthorization(Cookies.get("authorization") as string);
     fetchData();
   }, []);
+
+  
+  useEffect(() => {
+      fetchProvinceOptions();
+  }, [debouncedProvinceSearch, authorization]);
 
   useEffect(() => {
     fetchCityRegencies();
@@ -659,7 +705,7 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {/* Provinsi */}
+ {/* Provinsi dengan React Select */}
                 <div>
                   <label
                     htmlFor="company-province"
@@ -667,28 +713,81 @@ export default function ProfilePage() {
                   >
                     Provinsi
                   </label>
-                  <select
-                    id="company-province"
-                    value={companyForm.province_id || ""}
-                    onChange={(e) => {
+                  <Select
+                    isClearable
+                    isSearchable
+                    isDisabled={isSubmitting}
+                    options={provinceOptions}
+                    value={
+                      provinceOptions.find(
+                        (opt) => opt.value === companyForm.province_id
+                      ) || null
+                    }
+                    onChange={(selected: any) => {
                       setCompanyForm({
                         ...companyForm,
-                        province_id: e.target.value,
+                        province_id: selected?.value || "",
+                        city_regency_id: "", // Reset kota saat provinsi berubah
                       });
                     }}
-                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
-                      formErrors.province_id
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">Pilih Provinsi</option>
-                    {provinces.map((province) => (
-                      <option key={province.id} value={province.id}>
-                        {province.name}
-                      </option>
-                    ))}
-                  </select>
+                    onInputChange={(input: any) =>
+                      setProvinceSearch(input)
+                    }
+                    placeholder="Pilih provinsi"
+                    noOptionsMessage={() => "Tidak ada provinsi ditemukan"}
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isDisabled
+                          ? "#e5e7eb"
+                          : "#ffffff",
+                        borderColor: formErrors.province_id
+                          ? "#ef4444"
+                          : "#d1d5db",
+                        borderRadius: "0.375rem",
+                        padding: "0.125rem",
+                        minHeight: "42px",
+                        boxShadow: state.isFocused
+                          ? "0 0 0 2px rgba(var(--accent-rgb, 59, 130, 246), 0.5)"
+                          : "none",
+                        borderWidth: "1px",
+                        cursor: state.isDisabled ? "not-allowed" : "default",
+                        opacity: state.isDisabled ? 0.5 : 1,
+                        "&:hover": {
+                          borderColor: formErrors.province_id
+                            ? "#ef4444"
+                            : "#d1d5db",
+                        },
+                      }),
+                      valueContainer: (base) => ({
+                        ...base,
+                        padding: "2px 8px",
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        margin: 0,
+                        padding: 0,
+                      }),
+                      placeholder: (base) => ({
+                        ...base,
+                        color: "#9ca3af",
+                      }),
+                      singleValue: (base, state) => ({
+                        ...base,
+                        color: state.isDisabled ? "#6b7280" : "#000000",
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                      }),
+                      menuPortal: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                      }),
+                    }}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                  />
                   {formErrors.province_id && (
                     <p className="mt-1 text-sm text-red-500">
                       {formErrors.province_id}
@@ -948,7 +1047,7 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {/* Provinsi */}
+                  {/* Provinsi dengan React Select untuk School */}
                 <div>
                   <label
                     htmlFor="school-province"
@@ -956,34 +1055,88 @@ export default function ProfilePage() {
                   >
                     Provinsi
                   </label>
-                  <select
-                    id="school-province"
-                    value={schoolForm.province_id || ""}
-                    onChange={(e) => {
+                  <Select
+                    isClearable
+                    isSearchable
+                    isDisabled={isSubmitting}
+                    options={schoolProvinceOptions}
+                    value={
+                      schoolProvinceOptions.find(
+                        (opt) => opt.value === schoolForm.province_id
+                      ) || null
+                    }
+                    onChange={(selected: any) => {
                       setSchoolForm({
                         ...schoolForm,
-                        province_id: e.target.value,
+                        province_id: selected?.value || "",
+                        city_regency_id: "", // Reset kota saat provinsi berubah
                       });
                     }}
-                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
-                      formErrors.province_id
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">Pilih Provinsi</option>
-                    {provinces.map((province) => (
-                      <option key={province.id} value={province.id}>
-                        {province.name}
-                      </option>
-                    ))}
-                  </select>
+                    onInputChange={(input: any) =>
+                      setSchoolProvinceSearch(input)
+                    }
+                    placeholder="Pilih provinsi"
+                    noOptionsMessage={() => "Tidak ada provinsi ditemukan"}
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isDisabled
+                          ? "#e5e7eb"
+                          : "#ffffff",
+                        borderColor: formErrors.province_id
+                          ? "#ef4444"
+                          : "#d1d5db",
+                        borderRadius: "0.375rem",
+                        padding: "0.125rem",
+                        minHeight: "42px",
+                        boxShadow: state.isFocused
+                          ? "0 0 0 2px rgba(var(--accent-rgb, 59, 130, 246), 0.5)"
+                          : "none",
+                        borderWidth: "1px",
+                        cursor: state.isDisabled ? "not-allowed" : "default",
+                        opacity: state.isDisabled ? 0.5 : 1,
+                        "&:hover": {
+                          borderColor: formErrors.province_id
+                            ? "#ef4444"
+                            : "#d1d5db",
+                        },
+                      }),
+                      valueContainer: (base) => ({
+                        ...base,
+                        padding: "2px 8px",
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        margin: 0,
+                        padding: 0,
+                      }),
+                      placeholder: (base) => ({
+                        ...base,
+                        color: "#9ca3af",
+                      }),
+                      singleValue: (base, state) => ({
+                        ...base,
+                        color: state.isDisabled ? "#6b7280" : "#000000",
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                      }),
+                      menuPortal: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                      }),
+                    }}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                  />
                   {formErrors.province_id && (
                     <p className="mt-1 text-sm text-red-500">
                       {formErrors.province_id}
                     </p>
                   )}
                 </div>
+
 
                 {/* Kota Kabupaten */}
                 <div>

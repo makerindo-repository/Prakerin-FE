@@ -100,6 +100,7 @@ const ProvinsiPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
     setFormError({});
     try {
       if (editingId) {
@@ -377,8 +378,8 @@ const ProvinsiPage: React.FC = () => {
                   }
                   setIsModalOpen(false);
                 }}
-                className={`w-8 h-8 cursor-pointer text-red-500 hover:text-red-600 ${
-                  isSubmitting ? "pointer-events-none" : ""
+                className={`w-8 h-8 text-red-500 hover:text-red-600  ${
+                  isSubmitting ? "cursor-not-allowed opacity-50" : "cursor-pointer"
                 }`}
               />
             </div>
@@ -390,10 +391,11 @@ const ProvinsiPage: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
+                  disabled={isSubmitting}
                   id="province"
                   type="text"
                   placeholder="Masukkan nama provinsi"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
                     formError.name ? "border-red-500" : "border-gray-300"
                   }`}
                 />

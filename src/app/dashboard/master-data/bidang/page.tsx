@@ -378,13 +378,17 @@ const JurusanPage: React.FC = () => {
               </h3>
               <X
                 onClick={() => {
+                  if(isSubmitting) return;
                   if (editingId) {
                     setEditingId(null);
                     setFormData({ name: "" });
                   }
                   setIsModalOpen(false);
+                  setFormError({});
                 }}
-                className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600"
+                className={`w-8 h-8  text-red-500 hover:text-red-600  ${
+                  isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                }`}
               />
             </div>
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -397,8 +401,9 @@ const JurusanPage: React.FC = () => {
                   }
                   id="province"
                   type="text"
+                  disabled={isSubmitting}
                   placeholder="Masukkan nama bidang"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
                     formError.name ? "border-red-500" : "border-gray-300"
                   }`}
                 />

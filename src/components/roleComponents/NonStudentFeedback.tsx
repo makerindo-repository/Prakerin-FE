@@ -8,16 +8,36 @@ import RatingSummaryCompenent from "../RatingSummaryCompenent";
 import { RatingSummary } from "@/models/feedback";
 import { mapRatingToData } from "@/utils/mapRatingToData";
 import NotFoundComponent from "../NotFoundComponent";
+import { Pages } from "@/models/pagination";
+
+interface Feedback {
+  id: string;
+  name: string;
+  major: string;
+  schoolName: string;
+  rate: number;
+  text: string;
+  user?: {
+    photo_profile: File | null;
+  };
+}
 
 const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>({
     rating_count: 0,
-    average_rating: 0,
+    average_rating: 0, 
     rating_1: 0,
     rating_2: 0,
     rating_3: 0,
     rating_4: 0,
     rating_5: 0,
+  });
+
+  const [fedback, setFeedback] = useState<Feedback[]> ([]);
+
+  const [page, setPage] = useState<Pages>({
+    activePages: 1,
+    pages: 1,
   });
 
   const fetchRating = async () => {
@@ -33,6 +53,29 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
       console.error(error);
     }
   };
+
+  const fetchFeedback = async (selectedPage = page.activePages) => {
+    try {
+      const response = await API.get(`${ENDPOINTS.FEEDBACKS}/ulasan`, {
+        params: {
+          page: selectedPage,
+          limit: 10,
+        },
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+
+      });
+      if (response.status === 200) {
+        setFeedback(response.data.data);
+        setPage({
+          activePages: selectedPage,
+          pages: response.data.last_page, // pastikan ini adalah total halaman
+        });
+      }
+    } catch (err) {}
+  };
+
   useEffect(() => {
     fetchRating();
   }, []);

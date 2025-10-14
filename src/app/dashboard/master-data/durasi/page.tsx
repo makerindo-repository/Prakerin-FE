@@ -444,8 +444,9 @@ const DurasiPage: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, duration_unit: e.target.value })
                   }
+                  disabled={isSubmitting}
                   id="level"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm ${
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm  disabled:opacity-50 disabled:cursor-not-allowed ${
                     formError.duration_unit
                       ? "border-red-500"
                       : "border-gray-300"
@@ -476,7 +477,8 @@ const DurasiPage: React.FC = () => {
                   id="major"
                   type="number"
                   placeholder="Masukkan durasi"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm ${
+                  disabled={isSubmitting} 
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm  disabled:opacity-50 disabled:cursor-not-allowed ${
                     formError.duration_value
                       ? "border-red-500"
                       : "border-gray-300"
