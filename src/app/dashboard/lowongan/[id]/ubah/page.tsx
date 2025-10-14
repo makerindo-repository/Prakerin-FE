@@ -7,6 +7,7 @@ import {
   MapPin,
   MessageCircle,
   UserCircle,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
@@ -14,6 +15,8 @@ import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
 import { API, ENDPOINTS } from "../../../../../../utils/config";
+import { useRouter } from "next/navigation";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 
 interface JobOpening {
   title: string;
@@ -35,6 +38,7 @@ interface JobOpening {
 
 const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
+  const router = useRouter();
   const [jobOpening, setJobOpening] = useState<JobOpening>({
     title: "",
     description: "",
@@ -52,6 +56,8 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       photo_profile: "",
     },
   });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [userRole, setUserRole] = useState<string>();
 
   const fetchJobOpening = async () => {
     try {
@@ -94,9 +100,36 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      const isConfirm = await alertConfirm(
+        "Apakah anda yakin ingin menghapus lowongan ini?"
+      );
+      if (!isConfirm) return;
+
+      setIsDeleting(true);
+      await API.delete(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      await alertSuccess("Lowongan berhasil dihapus!");
+      router.push("/dashboard/lowongan");
+    } catch (error) {
+      console.error("Error deleting job opening:", error);
+      await alertError("Gagal menghapus lowongan");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   useEffect(() => {
     fetchJobOpening();
+    setUserRole(Cookies.get("authorization"));
   }, []);
+
+  const isCompanyOwner = userRole === "company";
 
   return (
     <main className="p-6">
@@ -158,7 +191,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-              {Cookies.get("userToken") === "student" ? (
+              {!isCompanyOwner ? (
                 <>
                   <button className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                     <MessageCircle className="w-4 h-4" />
@@ -193,12 +226,22 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   </Link>
                 </>
               ) : (
-                <Link
-                  href={`/dashboard/lowongan/${id}/ubah`}
-                  className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-lg font-medium transition-colors"
-                >
-                  Ubah Lowongan
-                </Link>
+                <>
+                  <Link
+                    href={`/dashboard/lowongan/${id}/ubah`}
+                    className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    Ubah Lowongan
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(id)}
+                    disabled={isDeleting}
+                    className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>{isDeleting ? "Menghapus..." : "Hapus"}</span>
+                  </button>
+                </>
               )}
             </div>
           </div>

@@ -11,6 +11,7 @@ import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import Select from "react-select";
+import  useDebounce  from "@/hooks/useDebounce";
 
 const Editor = dynamic<EditorProps & { error?: string }>(
   () => import("@/components/Editor"),
@@ -19,16 +20,8 @@ const Editor = dynamic<EditorProps & { error?: string }>(
   }
 );
 
-interface Duration {
-  id: string;
-  duration_value: number;
-  duration_unit: string;
-}
+const SelectNoSSR = dynamic(() => import("react-select"), { ssr: false });
 
-interface Field {
-  id: string;
-  name: string;
-}
 
 interface Test {
   id: string;
@@ -55,12 +48,15 @@ type type = "part_time" | "full_time" | "";
 type location = "onsite" | "remote" | "hybrid" | "field" | "";
 type grade = "all" | "smk" | "mahasiswa" | "";
 
+interface FormErrors {
+  [key: string]: string | undefined;
+}
+
 const tambahLowonganPage: React.FC = () => {
   const route = useRouter();
-  const [durations, setDurations] = useState<Duration[]>([]);
-  const [fields, setFields] = useState<Field[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [tests, setTests] = useState<Test[]>([]);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const [formData, setFormData] = useState<CreateJobOpening>({
     title: "",
@@ -77,6 +73,19 @@ const tambahLowonganPage: React.FC = () => {
     start_date: new Date(),
     closing_date: new Date(),
   });
+
+  
+  // ✅ Tambahan state untuk search dan data bidang/durasi
+  const [searchField, setSearchField] = useState("");
+  const [searchDuration, setSearchDuration] = useState("");
+
+  const debouncedField = useDebounce(searchField, 500);
+  const debouncedDuration = useDebounce(searchDuration, 500);
+
+  const [fieldOptions, setFieldOptions] = useState<{ value: string; label: string }[]>([]);
+  const [durationOptions, setDurationOptions] = useState<{ value: string; label: string }[]>([]);
+  const [isLoadingField, setIsLoadingField] = useState(false);
+  const [isLoadingDuration, setIsLoadingDuration] = useState(false);
 
   const formatDateTime = (date: Date) => {
     // Pastikan date adalah objek Date
@@ -116,11 +125,18 @@ const tambahLowonganPage: React.FC = () => {
         },
       });
 
-      await alertSuccess("Lowongan berhasil ditambahkan!");
       route.replace("/dashboard/lowongan");
+      await alertSuccess("Lowongan berhasil ditambahkan!");
     } catch (error: AxiosError | unknown) {
-      await alertError("Gagal menambahkan lowongan!");
-      console.error("Error submitting form:", error);
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          setErrors(responseError);
+        }
+      }
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -130,28 +146,6 @@ const tambahLowonganPage: React.FC = () => {
       ...prev,
       description: data,
     }));
-  };
-
-  const fetchData = async () => {
-    try {
-      const durations = API.get(ENDPOINTS.DURATIONS);
-
-      const fields = API.get(ENDPOINTS.FIELDS);
-
-      const tests = API.get(ENDPOINTS.TESTS, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-
-      const response = await Promise.all([durations, fields, tests]);
-
-      setDurations(response[0].data.data);
-      setFields(response[1].data.data);
-      setTests(response[2].data.data);
-    } catch (error) {
-      console.error("Error fetching durations:", error);
-    }
   };
 
   const handleChangeQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,9 +183,6 @@ const tambahLowonganPage: React.FC = () => {
     setFormData({ ...formData, closing_date: selectedDate });
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleAddTest = () => {
     setFormData((prev) => ({
@@ -214,6 +205,74 @@ const tambahLowonganPage: React.FC = () => {
       return { ...prev, tests: newTests };
     });
   };
+
+  // 🔹 Fetch bidang magang (FIELD)
+  useEffect(() => {
+    const fetchFields = async () => {
+      setIsLoadingField(true);
+      try {
+        const res = await API.get(ENDPOINTS.FIELDS, {
+          params: { search: debouncedField, limit: 5 },
+        });
+        setFieldOptions(
+          res.data.data.map((f: any) => ({
+            value: f.id,
+            label: f.name,
+          }))
+        );
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoadingField(false);
+      }
+    };
+    fetchFields();
+  }, [debouncedField]);
+
+  // 🔹 Fetch durasi magang (DURATION)
+  useEffect(() => {
+    const fetchDurations = async () => {
+      setIsLoadingDuration(true);
+      try {
+        const res = await API.get(ENDPOINTS.DURATIONS, {
+          params: { search: debouncedDuration, limit: 5 },
+        });
+        setDurationOptions(
+          res.data.data.map((d: any) => ({
+            value: d.id,
+            label: `${d.duration_value} ${d.duration_unit}`,
+          }))
+        );
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoadingDuration(false);
+      }
+    };
+    fetchDurations();
+  }, [debouncedDuration]);
+
+ const fetchData = async () => {
+    try {
+
+      const response = await API.get(ENDPOINTS.TESTS, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+
+      setTests(response.data.data);
+    } catch (error) {
+      console.error("Error fetching durations:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  
+  // ... (fungsi handleSubmit dan lainnya tetap sama)
 
   return (
     <main className="p-6">
@@ -258,13 +317,18 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="Masukkan judul lowongan"
+              disabled={isSubmitting}
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
             />
+
+            {errors.title && (
+              <p className="mt-1 text-sm text-red-500">{errors.title}</p>
+            )}
           </div>
 
           {/* Jenis Magang */}
@@ -277,12 +341,16 @@ const tambahLowonganPage: React.FC = () => {
               onChange={(e) =>
                 setFormData({ ...formData, type: e.target.value as type })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Pilih jenis magang</option>
               <option value="part_time">Paruh Waktu (Part-time)</option>
               <option value="full_time">Penuh Waktu (Full-time)</option>
             </select>
+            {errors.type && (
+              <p className="mt-1 text-sm text-red-500">{errors.type}</p>
+            )}
           </div>
 
           {/* Lokasi Magang */}
@@ -298,13 +366,17 @@ const tambahLowonganPage: React.FC = () => {
                   location: e.target.value as location,
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Pilih lokasi magang</option>
               <option value="onsite">Kerja di kantor (Onsite/WFO)</option>
               <option value="remote">Kerja jarak jauh (Remote/WFH)</option>
               <option value="hybrid">Hibrida (Hybrid)</option>
             </select>
+            {errors.location && (
+              <p className="mt-1 text-sm text-red-500">{errors.location}</p>
+            )}
           </div>
 
           {/* Tingkat Pendidikan */}
@@ -317,13 +389,17 @@ const tambahLowonganPage: React.FC = () => {
               onChange={(e) =>
                 setFormData({ ...formData, grade: e.target.value as grade })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Pilih tingkat pendidikan</option>
               <option value="all">Semua</option>
               <option value="smk">SMK</option>
               <option value="mahasiswa">Mahasiswa</option>
             </select>
+            {errors.grade && (
+              <p className="mt-1 text-sm text-red-500">{errors.grade}</p>
+            )}
           </div>
 
           {/* Status Magang */}
@@ -336,12 +412,16 @@ const tambahLowonganPage: React.FC = () => {
               onChange={(e) =>
                 setFormData({ ...formData, is_paid: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Pilih status magang</option>
               <option value="true">Dibayar (Paid)</option>
               <option value="false">Tidak dibayar (Unpaid)</option>
             </select>
+            {errors.is_paid && (
+              <p className="mt-1 text-sm text-red-500">{errors.is_paid}</p>
+            )}
           </div>
 
           {/* Kuota Magang */}
@@ -353,8 +433,12 @@ const tambahLowonganPage: React.FC = () => {
               type="number"
               value={formData.quota}
               onChange={handleChangeQuota}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             />
+            {errors.quota && (
+              <p className="mt-1 text-sm text-red-500">{errors.quota}</p>
+            )}
           </div>
 
           {/* Status Ketersediaan */}
@@ -367,54 +451,117 @@ const tambahLowonganPage: React.FC = () => {
               onChange={(e) =>
                 setFormData({ ...formData, is_available: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="true">Tersedia</option>
               <option value="false">Tidak Tersedia</option>
             </select>
+            {errors.is_available && (
+              <p className="mt-1 text-sm text-red-500">{errors.is_available}</p>
+            )}
           </div>
 
-          {/* Field Magang */}
+          {/* --- Bidang Magang --- */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Bidang Magang
             </label>
-            <select
-              value={formData.field_id}
-              onChange={(e) =>
-                setFormData({ ...formData, field_id: e.target.value })
+            <SelectNoSSR
+              isClearable
+              isSearchable
+              isLoading={isLoadingField}
+              value={
+                fieldOptions.find((opt) => opt.value === formData.field_id) || null
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="">Pilih bidang magang</option>
-              {fields.map((field) => (
-                <option key={field.id} value={field.id}>
-                  {field.name}
-                </option>
-              ))}
-            </select>
+              onChange={(selected: any) =>
+                setFormData({
+                  ...formData,
+                  field_id: selected?.value || "",
+                })
+              }
+              onInputChange={(val) => setSearchField(val)}
+              options={fieldOptions}
+              placeholder="Cari bidang magang..."
+              className="text-sm"
+              classNames={{
+                control: ({ isFocused }) =>
+                  `w-full px-2 py-1 border rounded-md transition-all ${
+                    errors?.field_id ? "border-red-500" : "border-gray-300"
+                  } ${
+                    isFocused
+                      ? "ring-2 ring-accent border-accent"
+                      : "focus:border-accent"
+                  }`,
+                menu: () =>
+                  "bg-white border border-gray-200 rounded-md shadow-lg mt-1 z-50",
+                option: ({ isFocused, isSelected }) =>
+                  `px-3 py-2 cursor-pointer text-sm ${
+                    isSelected
+                      ? "bg-accent text-white"
+                      : isFocused
+                      ? "bg-blue-50"
+                      : "hover:bg-gray-100"
+                  }`,
+                singleValue: () => "text-gray-800",
+                placeholder: () => "text-gray-400",
+              }}
+            />
+            {errors.field_id && (
+              <p className="mt-1 text-sm text-red-500">{errors.field_id}</p>
+            )}
           </div>
 
-          {/* Durasi Magang */}
+          {/* --- Durasi Magang --- */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Durasi Magang
             </label>
-            <select
-              value={formData.duration_id}
-              onChange={(e) =>
-                setFormData({ ...formData, duration_id: e.target.value })
+            <SelectNoSSR
+              isClearable
+              isSearchable
+              isLoading={isLoadingDuration}
+              value={
+                durationOptions.find(
+                  (opt) => opt.value === formData.duration_id
+                ) || null
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-            >
-              <option value="">Pilih durasi magang</option>
-              {durations.map((duration) => (
-                <option key={duration.id} value={duration.id}>
-                  {duration.duration_value}{" "}
-                  {getDurationUnit(duration.duration_unit)}
-                </option>
-              ))}
-            </select>
+              onChange={(selected: any) =>
+                setFormData({
+                  ...formData,
+                  duration_id: selected?.value || "",
+                })
+              }
+              onInputChange={(val) => setSearchDuration(val)}
+              options={durationOptions}
+              placeholder="Cari durasi magang..."
+              className="text-sm"
+              classNames={{
+                control: ({ isFocused }) =>
+                  `w-full px-2 py-1 border rounded-md transition-all ${
+                    errors?.duration_id ? "border-red-500" : "border-gray-300"
+                  } ${
+                    isFocused
+                      ? "ring-2 ring-accent border-accent"
+                      : "focus:border-accent"
+                  }`,
+                menu: () =>
+                  "bg-white border border-gray-200 rounded-md shadow-lg mt-1 z-50",
+                option: ({ isFocused, isSelected }) =>
+                  `px-3 py-2 cursor-pointer text-sm ${
+                    isSelected
+                      ? "bg-accent text-white"
+                      : isFocused
+                      ? "bg-blue-50"
+                      : "hover:bg-gray-100"
+                  }`,
+                singleValue: () => "text-gray-800",
+                placeholder: () => "text-gray-400",
+              }}
+            />
+            {errors.duration_id && (
+              <p className="mt-1 text-sm text-red-500">{errors.duration_id}</p>
+            )}
           </div>
 
           <div>
@@ -428,9 +575,13 @@ const tambahLowonganPage: React.FC = () => {
                   ? new Date(formData.start_date).toISOString().split("T")[0]
                   : ""
               }
+              disabled={isSubmitting}
               onChange={handleChangeStartDate}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             />
+            {errors.start_date && (
+              <p className="mt-1 text-sm text-red-500">{errors.start_date}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -443,9 +594,13 @@ const tambahLowonganPage: React.FC = () => {
                   ? new Date(formData.closing_date).toISOString().split("T")[0]
                   : ""
               }
+              disabled={isSubmitting}
               onChange={handleChangeCloseDate}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             />
+            {errors.closing_date && (
+              <p className="mt-1 text-sm text-red-500">{errors.closing_date}</p>
+            )}
           </div>
 
           <div className="col-span-2">
@@ -456,7 +611,8 @@ const tambahLowonganPage: React.FC = () => {
                   <select
                     value={selectedTest}
                     onChange={(e) => handleTestChange(index, e.target.value)}
-                    className="w-5/6 me-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                    className="w-5/6 me-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
                   >
                     <option value="">Pilih tes</option>
                     {tests.map((item) => (
@@ -467,7 +623,8 @@ const tambahLowonganPage: React.FC = () => {
                   </select>
                   <button
                     type="button"
-                    className="p-1 px-3 bg-red-500 rounded text-white hove:bg-red-600 cursor-pointer flex items-center gap-2"
+                    className="p-1 px-3 bg-red-500 rounded text-white hove:bg-red-600 cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
                     onClick={() => handleRemoveTest(index)}
                   >
                     <span>
@@ -480,7 +637,8 @@ const tambahLowonganPage: React.FC = () => {
             </div>
             <button
               type="button"
-              className="p-2 bg-green-500 my-3 rounded text-white hover:bg-green-600 cursor-pointer flex items-center gap-2"
+              className="p-2 bg-green-500 my-3 rounded text-white hover:bg-green-600 cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
               onClick={handleAddTest}
             >
               <span>
@@ -496,7 +654,35 @@ const tambahLowonganPage: React.FC = () => {
               Deskripsi
             </label>
 
-            <Editor onChange={handleEditorChange} />
+            {/* <Editor onChange={handleEditorChange} /> */}
+
+            <div className="relative">
+              {/* Konten editor dengan opacity saat submit */}
+              <div
+                className={`${isSubmitting ? "opacity-50" : ""}`}
+                aria-disabled={isSubmitting}
+              >
+                <Editor
+                  onChange={handleEditorChange}
+                  error={errors.cover_letter}
+                />
+              </div>
+
+              {/* Overlay untuk blok interaksi + cursor not-allowed */}
+              {isSubmitting && (
+                <div
+                  className="absolute inset-0 z-10 cursor-not-allowed"
+                  style={{ pointerEvents: "auto" }}
+                  aria-hidden="true"
+                ></div>
+              )}
+
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.description}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -506,6 +692,7 @@ const tambahLowonganPage: React.FC = () => {
             href="/dashboard/lowongan"
             onClick={async (e) => {
               e.preventDefault();
+              if (isSubmitting) return;
               const isConfirm = await alertConfirm(
                 "Apakah anda yakin ingin membatalkan!"
               );
@@ -513,7 +700,9 @@ const tambahLowonganPage: React.FC = () => {
                 route.push("/dashboard/lowongan");
               }
             }}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+            className={`px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors ${
+              isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+            } `}
           >
             Batal
           </Link>

@@ -246,14 +246,14 @@ export default function IndustryDashboard({
 
         <div className="flex gap-6">
           <div className="w-1/2 ">
-            <RatingSummaryCompenent data={ratingSummary} />
+            {/* <RatingSummaryCompenent data={ratingSummary} /> */}
           </div>
           <div className="w-1/2 ">
-            <PieChartCompenent
+            {/* <PieChartCompenent
               legend="Persentase Penilaian"
               tooltip="Persentase Penilaian"
               dataList={mapRatingToData(ratingSummary, ratingColors)}
-            />
+            /> */}
           </div>
         </div>
       </div>

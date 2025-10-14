@@ -7,6 +7,11 @@ import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import Link from "next/link";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import useDebounce from "@/hooks/useDebounce";
+import dynamic from "next/dynamic";
+
+const Select = dynamic(() => import("react-select"), { ssr: false });
+
 
 interface FormData {
   internship_id: string;
@@ -24,13 +29,9 @@ interface FormError {
   link?: string;
 }
 
-interface Internship {
-  student: {
-    name: string;
-  };
-  internship: {
-    id: string;
-  };
+interface InternshipOption {
+  value: string;
+  label: string;
 }
 
 const TambahTugas: React.FC = () => {
@@ -44,13 +45,39 @@ const TambahTugas: React.FC = () => {
 
   const route = useRouter();
 
-  const [internships, setInternships] = useState<Internship[]>([]);
   const [error, setError] = useState<FormError>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [search, setSearch] = useState("");
+  const [options, setOptions] = useState<InternshipOption[]>([]);
+  const debouncedSearch = useDebounce(search, 500);
+
+  
+  const fetchInternships = async () => {
+    try {
+      const response = await API.get(ENDPOINTS.USERS, {
+        params: { role: "student", search: debouncedSearch, limit: 5 },
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      const mapped = response.data.data.map((item: any) => ({
+        value: item.internship.id,
+        label: item.student.name,
+      }));
+      setOptions(mapped);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchInternships();
+  }, [debouncedSearch]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log(formData);
+    setIsSubmitting(true);
 
     try {
       const response = await API.post(ENDPOINTS.TASKS, formData, {
@@ -80,41 +107,10 @@ const TambahTugas: React.FC = () => {
         }
       }
       console.error(error);
+    }finally {
+      setIsSubmitting(false);
     }
   };
-
-  const handleCancel = async () => {
-    const confirm = await alertConfirm(
-      "Apakah anda yakin ingin membatalkan menambahkan tugas"
-    );
-    if (!confirm) return;
-
-    route.back();
-    // setFormData({ name: "", file: null });
-    // setPreviewUrl(null);
-  };
-
-  const fetchInternship = async () => {
-    try {
-      const response = await API.get(ENDPOINTS.USERS, {
-        params: {
-          // limit:
-          role: "student",
-        },
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-      console.log(response.data.data);
-      setInternships(response.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchInternship();
-  }, []);
 
   return (
     <main className="p-6">
@@ -152,36 +148,76 @@ const TambahTugas: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-2">
-          <label htmlFor="internship-id">Nama Magang</label>
-          <select
-            name="internship-id"
-            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent ${
-              error.internship_id ? "border-red-500" : "border-gray-300"
-            }`}
-            value={formData.internship_id}
-            onChange={(e) =>
-              setFormData({ ...formData, internship_id: e.target.value })
-            }
-          >
-            <option value="">Pilih siswa magang</option>
-            {internships.map((item) => (
-              <option key={item.internship.id} value={item.internship.id}>
-                {item.student.name}
-              </option>
-            ))}
-          </select>
-          {error.internship_id && (
-            <p className="mt-1 text-sm text-red-500">{error.internship_id}</p>
-          )}
-        </div>
+{/* Nama Magang */}
+<div className="grid grid-cols-1 gap-2">
+  <label>Nama Magang</label>
+  <Select
+    isClearable
+    isSearchable
+    isDisabled={isSubmitting}
+    options={options}
+    value={options.find((opt) => opt.value === formData.internship_id) || null}
+    onChange={(selected: any) =>
+      setFormData({ ...formData, internship_id: selected?.value || "" })
+    }
+    onInputChange={(input: any) => setSearch(input)}
+    placeholder="Masukkan nama siswa/mahasiswa magang"
+    styles={{
+      control: (base, state) => ({
+        ...base,
+        backgroundColor: state.isDisabled ? '#e5e7eb' : '#e5e7eb',
+        borderColor: error.internship_id ? '#ef4444' : '#d1d5db',
+        borderRadius: '0.5rem',
+        padding: '0.125rem',
+        minHeight: '42px',
+        boxShadow: state.isFocused 
+          ? '0 0 0 2px rgba(var(--accent-rgb, 59, 130, 246), 0.5)' 
+          : 'none',
+        borderWidth: '1px',
+        cursor: state.isDisabled ? 'not-allowed' : 'default',
+        opacity: state.isDisabled ? 0.5 : 1,
+        '&:hover': {
+          borderColor: error.internship_id ? '#ef4444' : '#d1d5db',
+        },
+      }),
+      valueContainer: (base) => ({
+        ...base,
+        padding: '2px 8px',
+      }),
+      input: (base) => ({
+        ...base,
+        margin: 0,
+        padding: 0,
+      }),
+      placeholder: (base) => ({
+        ...base,
+        color: '#9ca3af',
+      }),
+      singleValue: (base, state) => ({
+        ...base,
+        color: state.isDisabled ? '#6b7280' : '#000000',
+      }),
+      menu: (base) => ({
+        ...base,
+        zIndex: 50,
+      }),
+    }}
+  />
+  {error.internship_id && (
+    <p className="mt-1 text-sm text-red-500">{error.internship_id}</p>
+  )}
+</div>
+
+
+
         <div className="grid grid-cols-1 gap-2">
           <label htmlFor="name">Judul Tugas</label>
           <input
             type="text"
             name="name"
             placeholder="Masukkan judul tugas"
-            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent  ${
+            disabled={isSubmitting}
+            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 ${
               error.title ? "border-red-500" : "border-gray-300"
             }`}
             value={formData.title}
@@ -199,7 +235,8 @@ const TambahTugas: React.FC = () => {
           <input
             type="date"
             name="due-date"
-            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent  ${
+            disabled={isSubmitting}
+            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 ${
               error.due_date ? "border-red-500" : "border-gray-300"
             }`}
             value={formData.due_date}
@@ -218,7 +255,8 @@ const TambahTugas: React.FC = () => {
             type="text"
             name="link"
             placeholder="Masukkan link tugas (optional)"
-            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent  ${
+            disabled={isSubmitting}
+            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50  ${
               error.link ? "border-red-500" : "border-gray-300"
             }`}
             value={formData.link}
@@ -234,7 +272,8 @@ const TambahTugas: React.FC = () => {
           <textarea
             placeholder="Masukkan deskripsi tugas"
             name="description"
-            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent  ${
+            disabled={isSubmitting}
+            className={`w-full p-2 border rounded-lg pr-12 focus:ring-2 outline-none transition-colors bg-gray-200 focus:border-transparent focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 ${
               error.description ? "border-red-500" : "border-gray-300"
             }`}
             value={formData.description}
@@ -248,18 +287,30 @@ const TambahTugas: React.FC = () => {
         </div>
 
         <div className=" flex gap-4 justify-end">
-          <button
-            className="bg-gray-200  rounded-lg py-2 px-4 text-gray-600 min-w-24 cursor-pointer"
-            type="button"
-            onClick={handleCancel}
+          <Link
+            href="/dashboard/lowongan"
+            onClick={async (e) => {
+              e.preventDefault();
+              if (isSubmitting) return;
+              const isConfirm = await alertConfirm(
+                "Apakah anda yakin ingin membatalkan!"
+              );
+              if (isConfirm) {
+                route.push("/dashboard/lowongan");
+              }
+            }}
+            className={`px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors ${
+              isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+            } `}
           >
             Batal
-          </button>
+          </Link>
           <button
-            className="bg-accent rounded-lg py-2 px-4 text-white min-w-24 cursor-pointer hover:bg-accent-hover"
+            disabled={isSubmitting}
+            className="bg-accent rounded-lg py-2 px-4 text-white min-w-24 cursor-pointer hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
             type="submit"
           >
-            Simpan
+            {isSubmitting ? "Menyimpan..." : "Simpan"}
           </button>
         </div>
       </form>

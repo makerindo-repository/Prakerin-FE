@@ -40,6 +40,7 @@ const AdminSekolah: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
 
   const tabs = ["Semua", "Diterima", "Belum Diterima"];
 
@@ -83,6 +84,7 @@ const AdminSekolah: React.FC = () => {
           search: inputSearch,
           limit: 10,
           page: pages.activePages,
+          is_school: selectedType === "school" ? true : selectedType === "university" ? false : undefined,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -163,29 +165,51 @@ const AdminSekolah: React.FC = () => {
 
     setPages((prev) => ({ ...prev, activePages: 1 }));
     setIsReload(!isReload);
-  }, [activeTab, debouncedQuery]);
+  }, [activeTab, debouncedQuery, selectedType]);
 
   useEffect(() => {
     fetchData();
   }, [pages.activePages, isReload]);
   return (
     <>
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as ActiveTab)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer  ${
-              activeTab === tab
-                ? "bg-accent text-white shadow-sm hover:bg-accent-hover"
-                : "bg-gray-100 text-gray-600 hover:text-gray-800 hover:bg-gray-200"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+
+        {/* Filter and Add Button - Now Responsive */}
+        <div className="flex flex-col sm:flex-row justify-between mb-6 gap-3 sm:gap-4 items-stretch sm:items-center">
+
+          {/* Tabs */}
+          <div className="flex gap-2 mb-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as ActiveTab)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer  ${
+                  activeTab === tab
+                    ? "bg-accent text-white shadow-sm hover:bg-accent-hover"
+                    : "bg-gray-100 text-gray-600 hover:text-gray-800 hover:bg-gray-200"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-2 bg-white w-full sm:w-auto sm:min-w-[200px] p-4 rounded-xl shadow-sm">
+            <label htmlFor="select-major" className="font-medium text-sm">
+              Pilih Sekolah Atau Universitas
+            </label>
+            <select
+              id="select-major"
+              value={selectedType || ""}
+              onChange={(e) => setSelectedType(e.target.value || null)}
+              className="border p-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
+            >
+              <option value="">Semua</option>
+              <option value="school">Sekolah</option>
+              <option value="university">Universitas</option>
+            </select>
+          </div>
+        </div>
+      
 
       {/* Task Table */}
       <div className="bg-white rounded-2xl shadow-sm">

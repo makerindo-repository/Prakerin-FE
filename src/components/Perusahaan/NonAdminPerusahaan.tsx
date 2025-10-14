@@ -4,7 +4,6 @@ import {
   CircleArrowRight,
   MapPin,
   Search,
-  UserCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -206,7 +205,7 @@ const NonadminPerusahaan: React.FC = () => {
                     />
                   </div>
                 ) : (
-                  <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
+                  <Building className="w-15 h-15 text-[var(--color-accent)]" />
                 )}
 
                 <div className="ms-3">

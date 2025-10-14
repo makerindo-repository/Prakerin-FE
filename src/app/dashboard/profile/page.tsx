@@ -815,7 +815,7 @@ export default function ProfilePage() {
                   <input
                     id="company-phone-number"
                     type="tel"
-                    placeholder="+62 812-3456-7890"
+                    placeholder="+6281234567890"
                     value={companyForm?.phone_number || ""}
                     onChange={(e) =>
                       setCompanyForm({
@@ -1135,7 +1135,7 @@ export default function ProfilePage() {
                         phone_number: e.target.value,
                       });
                     }}
-                    placeholder="+62 812-3456-7890"
+                    placeholder="+6281234567890"
                     className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
                       formErrors.phone_number
                         ? "border-red-500"

@@ -1,4 +1,4 @@
-"use client";
+  "use client";
 import dynamic from "next/dynamic";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
@@ -38,10 +38,13 @@ const tambahLowonganPage: React.FC = () => {
 
   const [errors, setErrors] = useState<Error>({});
 
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
       await API.post(ENDPOINTS.TESTS, formData, {
         headers: {
@@ -108,7 +111,8 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="text"
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+              disabled={isSubmitting}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 ${
                 errors.title ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Masukkan judul tes"
@@ -127,11 +131,12 @@ const tambahLowonganPage: React.FC = () => {
               Tipe Tes
             </label>
             <select
+              disabled={isSubmitting}
               value={formData.type}
               onChange={(e) =>
                 setFormData({ ...formData, type: e.target.value as type })
               }
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 ${
                 errors.type ? "border-red-500" : "border-gray-300"
               }`}
             >
@@ -152,7 +157,8 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="text"
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+              disabled={isSubmitting}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 ${
                 errors.link ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="https://makerindo.co.id"
@@ -175,9 +181,10 @@ const tambahLowonganPage: React.FC = () => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
+              disabled={isSubmitting}
               placeholder="Masukkan deskripsi tentang tes"
               value={formData.description}
-              className={`resize-none w-full h-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+              className={`resize-none w-full h-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 ${
                 errors.description ? "border-red-500" : "border-gray-300"
               }`}
             ></textarea>
@@ -193,6 +200,7 @@ const tambahLowonganPage: React.FC = () => {
             href="/dashboard/tes"
             onClick={async (e) => {
               e.preventDefault();
+              if (isSubmitting) return;
               const isConfirm = await alertConfirm(
                 "Apakah anda yakin ingin membatalkan!"
               );
@@ -200,7 +208,7 @@ const tambahLowonganPage: React.FC = () => {
                 route.push("/dashboard/tes");
               }
             }}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+            className={`px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors ${isSubmitting ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
           >
             Batal
           </Link>

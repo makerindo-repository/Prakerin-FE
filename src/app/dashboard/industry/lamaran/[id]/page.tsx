@@ -34,9 +34,6 @@ interface Application {
   } | null;
   job_opening: {
     title: string;
-    // division: string;
-    // location: string;
-    // type: string;
     duration: string;
   };
   test: {
@@ -85,9 +82,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     },
     job_opening: {
       title: "",
-      // division: "",
-      // location: "",
-      // type: "",
       duration: "",
     },
     test: [],
@@ -117,7 +111,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           headers: {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
-          responseType: "blob", // penting!
+          responseType: "blob",
         }
       );
 
@@ -126,7 +120,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
       });
       const fileUrl = URL.createObjectURL(fileBlob);
 
-      setPreviewUrl(fileUrl); // ini nanti dipakai di <embed>
+      setPreviewUrl(fileUrl);
     } catch (error) {
       console.error(error);
     } finally {
@@ -146,16 +140,9 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     const file = e.target.files?.[0] || null;
     setFormData({ ...formData, file });
 
-    // revoke previous preview if any
-    // if (fileInputRef.current) {
-    //   URL.revokeObjectURL(fileInputRef.current);
-    //   fileInputRef.current = null;
-    // }
-
     if (file && file.type === "application/pdf") {
       const url = URL.createObjectURL(file);
       setPreviewFormPdf(url);
-      // fileInputRef.current = url;
     } else {
       setPreviewFormPdf(null);
     }
@@ -179,7 +166,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           },
         }
       );
-      await fetchData(); // refresh data setelah submit
+      await fetchData();
       await alertSuccess("Berhasil memperbarui status lamaran");
       setIsShowModal(false);
       setErrors({});
@@ -201,7 +188,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const handleTestChange = async (idTest: string) => {
     try {
-      // Update state lokal biar langsung kelihatan
       setApplication((prev) => ({
         ...prev,
         test: prev.test.map((t) =>
@@ -210,7 +196,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                 ...t,
                 pivot: {
                   ...t.pivot,
-                  is_passed: !t.pivot.is_passed, // toggle di frontend juga
+                  is_passed: !t.pivot.is_passed,
                 },
               }
             : t
@@ -252,13 +238,11 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
         -&gt; Detail Lamaran
       </h1>
 
-      {/* Header */}
       <div className="flex items-center mb-8 space-x-2 font-extrabold text-accent">
         <BriefcaseBusiness className="w-5 h-5" />
         <h2 className="text-2xl mt-2">Detail Lamaran Magang</h2>
       </div>
 
-      {/* Kartu Utama */}
       <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
         {isLoading ? (
           <div className="flex justify-center items-center h-96">
@@ -266,7 +250,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           </div>
         ) : (
           <>
-            {/* Bagian Header Pelamar */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-gray-200">
               <div className="flex items-start gap-4">
                 {application.user.photo_profile ? (
@@ -287,7 +270,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                     {application.student.name}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Emai : {application.user.email}
+                    Email : {application.user.email}
                   </p>
                   <p className="text-sm text-gray-600">
                     Kelas {application.student.class ?? "-"} | Jurusan{" "}
@@ -299,7 +282,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                 </div>
               </div>
 
-              {/* Status Lamaran */}
               <div
                 className={`bg-accent/10  font-semibold px-4 py-2 rounded-xl text-sm ${
                   application.status === "in_progress"
@@ -322,7 +304,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
             </div>
 
-            {/* Judul Lowongan */}
             <div className="mt-6 mb-8 bg-gray-50 border border-gray-200 p-5 rounded-xl">
               <h3 className="text-lg font-semibold text-gray-900 mb-1">
                 {application.job_opening.title}
@@ -335,7 +316,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
               </p>
             </div>
 
-            {/* Bagian Tes */}
             <section className="my-8 flex flex-col gap-2">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Kelola Tes Kandidat
@@ -384,7 +364,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
             </section>
 
-            {/* Surat Lamaran */}
             <section className="mt-10 flex flex-col gap-2">
               <h3 className="text-lg font-semibold text-gray-900">
                 Surat Lamaran
@@ -394,7 +373,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
             </section>
 
-            {/* CV Preview */}
             <section className="my-6 text-gray-600 flex flex-col gap-2">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">CV</h3>
               <div className="w-full rounded-xl border overflow-hidden shadow-sm">
@@ -410,7 +388,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
             </section>
 
-            {/* Tombol Aksi */}
             <div className="flex justify-end gap-5 mt-8">
               <Link
                 href={"/dashboard/industry/lamaran"}
@@ -446,10 +423,26 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
         )}
       </div>
 
+      {/* ========== BAGIAN YANG DIPERBAIKI: MODAL ========== */}
       {isShowModal && (
-        <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50">
-          <div className="bg-white text-black p-6 rounded-lg flex flex-col gap-2 min-w-sm lg:min-w-xl">
-            <div className=" rounded-lg justify-between flex">
+        <div className="fixed inset-0 flex items-center justify-center p-4 bg-black/25 z-50 overflow-y-auto">
+          {/* 
+            PERUBAHAN 1: Tambah padding (p-4) dan overflow-y-auto
+            - p-4: memberi ruang di semua sisi layar
+            - overflow-y-auto: memungkinkan scroll jika konten terlalu tinggi
+          */}
+          
+          <div className="bg-white text-black p-6 rounded-lg flex flex-col gap-2 w-full max-w-2xl max-h-[90vh] overflow-y-auto my-auto">
+            {/* 
+              PERUBAHAN 2: Ganti min-w dengan w-full max-w-2xl
+              - w-full: lebar 100% dari container (tapi dibatasi padding parent)
+              - max-w-2xl: maksimal lebar 672px (sesuai lg:min-w-xl)
+              - max-h-[90vh]: maksimal tinggi 90% viewport height
+              - overflow-y-auto: scroll jika konten melebihi max-h
+              - my-auto: center vertikal
+            */}
+            
+            <div className="rounded-lg justify-between flex">
               <h3 className="text-lg font-semibold">
                 {formData.status === "accepted" ? "Terima " : "Tolak"} Lamaran
               </h3>
@@ -460,11 +453,12 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                   setFormData({ ...formData, file: null });
                   setPreviewFormPdf(null);
                 }}
-                className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600"
+                className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600 flex-shrink-0"
               />
             </div>
+            
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-              <div className="flex flex-col gap-2 ">
+              <div className="flex flex-col gap-2">
                 <label htmlFor="letter">
                   Pilih Surat{" "}
                   {formData.status === "accepted" ? "Penerimaan" : "Penolakan"}
@@ -478,18 +472,17 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                   onChange={handleFileChange}
                   className="hidden"
                 />
+                
                 <div
-                  // only clickable to open picker if there is no preview
                   onClick={() => {
                     if (!previewFormPdf) openFilePicker();
                   }}
-                  className={`w-full min-h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
+                  className={`w-full min-h-[150px] border-2 border-dashed rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
                     previewFormPdf ? "cursor-default" : "cursor-pointer"
                   } ${errors.file ? "border-red-500" : "border-gray-300"}`}
                 >
                   {previewFormPdf ? (
                     <div className="w-full rounded-md border">
-                      {/* custom toolbar di atas embed */}
                       <div className="flex items-center gap-2 p-2 border-b bg-gray-100">
                         <button
                           type="button"
@@ -508,7 +501,6 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                         <div className="flex-1" />
                       </div>
 
-                      {/* PDF preview - berbeda untuk mobile dan desktop */}
                       {isMobile ? (
                         <div className="p-4 text-center bg-gray-50">
                           <FileText className="w-16 h-16 mx-auto text-accent mb-2" />
@@ -517,10 +509,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                             {formData.status === "accepted"
                               ? "penerimaan"
                               : "penolakan"}{" "}
-                            berhasil dipilih: <br />
-                            <span className="font-medium">
-                              {/* {formData.file?.name} */}
-                            </span>
+                            berhasil dipilih
                           </p>
                           <a
                             href={previewFormPdf}
@@ -528,7 +517,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                             rel="noopener noreferrer"
                             className="inline-block bg-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-accent-hover"
                           >
-                            Buka
+                            Buka{" "}
                             {formData.status === "accepted"
                               ? "Surat Penerimaan"
                               : "Surat Penolakan"}
@@ -539,9 +528,13 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                           src={previewFormPdf}
                           type="application/pdf"
                           width="100%"
-                          height="600px"
+                          height="400px"
                           className="w-full"
                         />
+                        /* 
+                          PERUBAHAN 3: Kurangi height dari 600px ke 400px
+                          - Agar tidak terlalu tinggi di dalam modal
+                        */
                       )}
                     </div>
                   ) : (
@@ -558,7 +551,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                 )}
               </div>
 
-              <div className="flex justify-end ">
+              <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={isSubmitting}

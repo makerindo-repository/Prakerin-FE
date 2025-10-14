@@ -6,12 +6,12 @@ import {
   Lock,
   MapPin,
   MessageCircle,
-  UserCircle,
   Users,
   Clock,
   Calendar,
   GraduationCap,
   Building,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
@@ -21,6 +21,9 @@ import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
 import { getDurationUnit } from "@/utils/getDurationUnit";
 import Loader from "@/components/loader";
+import { useRouter } from "next/navigation";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
+
 
 interface JobOpening {
   title: string;
@@ -65,6 +68,8 @@ type Type = "practice" | "theory" | "other";
 
 const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [authorization, setAuthorization] = useState<string>("");
   const [jobOpening, setJobOpening] = useState<JobOpening>({
@@ -197,6 +202,30 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const isConfirm = await alertConfirm(
+        "Apakah anda yakin ingin menghapus lowongan ini?"
+      );
+      if (!isConfirm) return;
+
+      setIsDeleting(true);
+      await API.delete(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      router.push("/dashboard/lowongan");
+      await alertSuccess("Lowongan berhasil dihapus!");
+    } catch (error) {
+      console.error("Error deleting job opening:", error);
+      await alertError("Gagal menghapus lowongan");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">
@@ -298,14 +327,24 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                       >
                         Lamar Sekarang
                       </Link>
-                    </>
+                    </>                       
                   ) : (
-                    <Link
-                      href={`/dashboard/lowongan/${id}/ubah`}
-                      className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-lg font-medium transition-colors"
-                    >
-                      Ubah Lowongan
-                    </Link>
+                    <>
+                      <Link
+                        href={`/dashboard/lowongan/${id}/ubah`}
+                        className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                      >
+                        Ubah Lowongan
+                      </Link>
+                  <button
+                    onClick={() => handleDelete()}
+                    disabled={isDeleting}
+                    className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>{isDeleting ? "Menghapus..." : "Hapus"}</span>
+                  </button>
+                    </>
                   )}
                 </div>
               </div>

@@ -5,6 +5,8 @@ import axios, { AxiosError } from "axios";
 import { API, ENDPOINTS } from "../../../utils/config";
 import ReCAPTCHA from "react-google-recaptcha";
 import { alertError, alertSuccess } from "@/libs/alert";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 interface FormData {
   username: string;
@@ -37,6 +39,7 @@ interface PrakerinRegistrationFormProps {
 const PrakerinRegistrationSekolahForm: React.FC<
   PrakerinRegistrationFormProps
 > = ({ setShowForm, typeSchool }) => {
+  const route = useRouter();
   const [formData, setFormData] = useState<FormData>({
     username: "",
     name: "",
@@ -106,10 +109,14 @@ const PrakerinRegistrationSekolahForm: React.FC<
   };
 
   const handleSubmit = async (): Promise<void> => {
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     setIsSubmitting(true);
+
     const token = await recaptchaRef.current.executeAsync();
     recaptchaRef.current.reset();
     formData.recaptcha_token = token;
+
 
     try {
       await API.post(`${ENDPOINTS.USERS}/register`, formData, {
@@ -119,6 +126,20 @@ const PrakerinRegistrationSekolahForm: React.FC<
       });
 
       await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda!");
+
+      // Cookies.set("userToken", response.data.token, {
+      // expires: 1,
+      // path: "/",
+      //   sameSite: "strict",
+      // });
+      // Cookies.set("authorization", response.data.role, {
+      //   expires:  1,
+      //   path: "/",
+      //   sameSite: "strict",
+      // });
+
+      localStorage.setItem("login-success", "OK");
+
 
       setShowForm("");
 
@@ -135,6 +156,8 @@ const PrakerinRegistrationSekolahForm: React.FC<
         type: typeSchool
       });
       setProfileImage(null);
+
+      route.push("/dashboard");
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -188,12 +211,15 @@ const PrakerinRegistrationSekolahForm: React.FC<
                 Tambah Foto
               </label>
               <div className="relative">
-                <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                <div className={`w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
+                  isSubmitting && "opacity-50"
+                }`}>
                   <input
                     type="file"
                     accept="image/*"
+                    disabled={isSubmitting}
                     onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed "
                   />
                   {profileImage ? (
                     <img
@@ -226,8 +252,9 @@ const PrakerinRegistrationSekolahForm: React.FC<
                     name="username"
                     value={formData.username}
                     onChange={handleInputChange}
-                    placeholder="Masukan Username anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                    disabled={isSubmitting}
+                    placeholder="Masukan username anda disini"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                       errors.username ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -247,8 +274,9 @@ const PrakerinRegistrationSekolahForm: React.FC<
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Masukan nama sekolah/universitas anda"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                    disabled={isSubmitting}
+                    placeholder={`Masukan nama ${label().toLowerCase()} anda`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                       errors.name ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -267,11 +295,12 @@ const PrakerinRegistrationSekolahForm: React.FC<
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Masukan alamat sekolah/universitas anda"
+                      placeholder={`Masukan alamat ${label().toLowerCase()} anda`}
                       name="address"
                       value={formData.address}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors appearance-none bg-white ${
+                      disabled={isSubmitting}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors appearance-none bg-white disabled:cursor-not-allowed disabled:opacity-50 ${
                         errors.address ? "border-red-500" : "border-gray-300"
                       }`}
                     />
@@ -291,8 +320,9 @@ const PrakerinRegistrationSekolahForm: React.FC<
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="Masukan Email anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                    disabled={isSubmitting}
+                    placeholder="Masukan email anda disini"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                       errors.email ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -314,15 +344,17 @@ const PrakerinRegistrationSekolahForm: React.FC<
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
+                      disabled={isSubmitting}
+                      placeholder="Masukan password anda disini"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 disabled:cursor-not-allowed disabled:opacity-50 ${
                         errors.password ? "border-red-500" : "border-gray-300"
                       }`}
                     />
                     <button
                       type="button"
+                      disabled={isSubmitting}
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {showPassword ? (
                         <Eye className="w-5 h-5" />
@@ -347,8 +379,9 @@ const PrakerinRegistrationSekolahForm: React.FC<
                       name="password_confirmation"
                       value={formData.password_confirmation}
                       onChange={handleInputChange}
-                      placeholder="Masukan Password anda disini"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
+                      disabled={isSubmitting}
+                      placeholder="Masukan password anda disini"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 disabled:cursor-not-allowed disabled:opacity-50 ${
                         errors.confirm_password
                           ? "border-red-500"
                           : "border-gray-300"
@@ -356,10 +389,11 @@ const PrakerinRegistrationSekolahForm: React.FC<
                     />
                     <button
                       type="button"
+                      disabled={isSubmitting}
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {showConfirmPassword ? (
                         <Eye className="w-5 h-5" />
@@ -383,7 +417,7 @@ const PrakerinRegistrationSekolahForm: React.FC<
             <button
               type="button"
               onClick={handleBack}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer"
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               disabled={isSubmitting}
             >
               Kembali

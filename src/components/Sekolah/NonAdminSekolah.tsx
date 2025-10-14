@@ -4,7 +4,6 @@ import {
   CircleArrowRight,
   MapPin,
   Search,
-  UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
@@ -208,7 +207,7 @@ const NonAdminSekolah: React.FC = () => {
                     />
                   </div>
                 ) : (
-                  <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
+                  <BookOpen className="w-15 h-15 text-[var(--color-accent)]" />
                 )}
 
                 <div className="ms-3">

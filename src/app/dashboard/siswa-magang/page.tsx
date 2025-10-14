@@ -104,14 +104,16 @@ const SiswMagangPage: React.FC = () => {
   }, [page.activePages, isReload]);
 
   return (
-    <main className="p-6">
+    <main className="p-4 sm:p-6">
+      {/* Header Section */}
       <h1 className="text-accent-dark text-sm mb-5">Siswa/Mahasiswa Magang</h1>
-      <div className="flex items-center  space-x-2 font-extrabold text-accent mb-6">
+      <div className="flex items-center space-x-2 font-extrabold text-accent mb-6">
         <UsersRound className="w-5 h-5" />
-        <h2 className="text-2xl mt-2">Siswa/Mahasiswa Magang</h2>
+        <h2 className="text-xl sm:text-2xl mt-2">Siswa/Mahasiswa Magang</h2>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      {/* Tabs Section */}
+      <div className="flex gap-2 mb-6 overflow-x-auto">
         <TabsComponent
           data={tabs}
           activeTab={activeTab}
@@ -119,92 +121,104 @@ const SiswMagangPage: React.FC = () => {
         />
       </div>
 
-      <div className="justify-end flex mb-6">
-        <div className="relative bg-white rounded-2xl ">
+      {/* Search Section */}
+      <div className="flex justify-end mb-6">
+        <div className="relative bg-white rounded-2xl w-full sm:w-auto sm:min-w-[300px]">
           <input
             type="text"
             onChange={(e) => setInputSearch(e.target.value)}
             value={inputSearch}
             placeholder="Cari siswa/mahasiswa..."
-            className="text-gray-600 w-full px-4 py-3 pl-12 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300"
+            className="text-gray-600 w-full px-4 py-3 pl-10 sm:pl-12 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300 text-sm sm:text-base"
           />
-
-          <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 sm:left-4 top-3 sm:top-3.5 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Loading State */}
         {isLoading && (
-          <div className="text-center py-12 col-span-2 ">
+          <div className="text-center py-12 col-span-1 lg:col-span-2">
             <Loader width={64} height={64} />
           </div>
         )}
 
+        {/* Data Cards */}
         {data.length !== 0 && !isLoading && (
           <>
             {data.map((item) => (
               <Link
                 href={`/dashboard/siswa-magang/${item.id}`}
-                className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
                 key={item.id}
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center space-x-3">
-                    {item.photo_profile ? (
-                      <div className="w-15 h-15 relative rounded-full border-white border">
-                        <Image
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.photo_profile}`}
-                          alt="Logo Perusahaan"
-                          fill
-                          sizes="100%"
-                          className="object-cover rounded-full"
-                        />
-                      </div>
-                    ) : (
-                      <UserCircle className="w-15 h-15 text-[var(--color-accent)]" />
-                    )}
-                    <div className="flex-col flex gap-1">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-start sm:items-center space-x-3 w-full">
+                    {/* Profile Image */}
+                    <div className="flex-shrink-0">
+                      {item.photo_profile ? (
+                        <div className="w-12 h-12 sm:w-15 sm:h-15 relative rounded-full border-2 border-white overflow-hidden">
+                          <Image
+                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.photo_profile}`}
+                            alt={item.student.name}
+                            fill
+                            sizes="(max-width: 640px) 48px, 60px"
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <UserCircle className="w-12 h-12 sm:w-15 sm:h-15 text-accent" />
+                      )}
+                    </div>
+
+                    {/* Student Info */}
+                    <div className="flex-col flex gap-1 min-w-0 flex-1">
                       <div>
-                        <h4 className="font-semibold text-gray-900 text-lg">
+                        <h4 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
                           {item.student.name}
                         </h4>
-                        <h5 className="text-gray-700">{item.field}</h5>
+                        <h5 className="text-gray-700 text-sm sm:text-base truncate">
+                          {item.field}
+                        </h5>
                       </div>
-                      <p className="text-sm text-gray-500">
-                        Kontak : {item.email} |{" "}
-                        {item.student.phone_number ?? "-"}
-                      </p>
+                      <div className="text-xs sm:text-sm text-gray-500">
+                        <p className="truncate">
+                          <span className="font-medium">Kontak:</span> {item.email}
+                        </p>
+                        {item.student.phone_number && (
+                          <p className="truncate">
+                            <span className="font-medium">HP:</span> {item.student.phone_number}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </Link>
             ))}
-            {data.length !== 0 && !isLoading && (
-              <div className="lg:col-span-2">
-                <PaginationComponent
-                  activePage={page.activePages}
-                  loading={isLoading}
-                  onPageChange={handlePageChange}
-                  totalPages={page.pages}
-                />
-              </div>
-            )}
           </>
         )}
+
+        {/* Empty State */}
         {data.length === 0 && !isLoading && (
-          <div className="text-center py-12 col-span-2 ">
+          <div className="text-center py-12 col-span-1 lg:col-span-2">
             <NotFoundComponent text="Anda belum memiliki siswa/mahasiswa magang." />
           </div>
         )}
       </div>
 
       {/* Pagination Section */}
-      <PaginationComponent
-        activePage={page.activePages}
-        loading={isLoading}
-        onPageChange={handlePageChange}
-        totalPages={page.pages}
-      />
+      {data.length !== 0 && !isLoading && (
+        <div className="mt-6">
+          <PaginationComponent
+            activePage={page.activePages}
+            loading={isLoading}
+            onPageChange={handlePageChange}
+            totalPages={page.pages}
+          />
+        </div>
+      )}
     </main>
   );
 };

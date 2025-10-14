@@ -264,7 +264,7 @@ const JurusanPage: React.FC = () => {
   }, [pages.activePages, isReload]);
 
   return (
-    <main className="p-6 ">
+    <main className="p-4 sm:p-6">
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-accent-dark text-sm mb-5">Kota/Kabupaten</h1>
@@ -276,12 +276,12 @@ const JurusanPage: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as ActiveTab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer  ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer ${
                 activeTab === tab
                   ? "bg-accent text-white shadow-sm hover:bg-accent-hover"
                   : "bg-gray-100 text-gray-600 hover:text-gray-800 hover:bg-gray-200"
@@ -292,16 +292,17 @@ const JurusanPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex justify-between mb-6 items-center">
-          <div className="flex flex-col gap-2 bg-white min-w-md p-4 rounded-xl shadow-sm">
-            <label htmlFor="select-province" className="font-medium">
+        {/* Filter and Add Button - Responsive Layout */}
+        <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mb-6 items-stretch sm:items-center">
+          <div className="flex flex-col gap-2 bg-white w-full sm:w-auto sm:min-w-[250px] p-4 rounded-xl shadow-sm">
+            <label htmlFor="select-province" className="font-medium text-sm">
               Pilih Provinsi
             </label>
             <select
               id="select-province"
               value={selectedProvince || ""}
               onChange={(e) => setSelectedProvince(e.target.value || null)}
-              className="border p-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="border p-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
             >
               <option value="">Semua</option>
               {provinces.map((province) => (
@@ -314,39 +315,39 @@ const JurusanPage: React.FC = () => {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="text-white bg-accent hover:bg-accent-hover rounded-xl p-3 px-5 flex items-center space-x-2 cursor-pointer"
+            className="text-white bg-accent hover:bg-accent-hover rounded-xl p-3 px-5 flex items-center justify-center space-x-2 cursor-pointer w-full sm:w-auto text-sm sm:text-base whitespace-nowrap"
           >
-            <CirclePlus className="w-5 h-5 " />
+            <CirclePlus className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Tambah Kota/Kabupaten</span>
           </button>
         </div>
       </div>
 
       {/* Task Table */}
-      <div className="bg-white rounded-2xl shadow-sm">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type="text"
             placeholder="Cari Kota/Kabupaten..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
-            className="w-full bg-accent text-white pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-transparent transition-colors"
+            className="w-full bg-accent text-white pl-9 sm:pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-transparent transition-colors text-sm sm:text-base placeholder:text-gray-200"
           />
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[600px]">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-3 font-medium text-gray-600">No</th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 text-sm">No</th>
+                <th className="text-left p-3 font-medium text-gray-600 text-sm">
                   Nama
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 text-sm">
                   Status
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600">
+                <th className="text-left p-3 font-medium text-gray-600 text-sm">
                   Aksi
                 </th>
               </tr>
@@ -358,13 +359,13 @@ const JurusanPage: React.FC = () => {
                     key={cityRegency.id}
                     className="border-b hover:bg-gray-50"
                   >
-                    <td className="p-4 text-gray-800">
+                    <td className="p-4 text-gray-800 text-sm">
                       {index + 1 + (pages.activePages - 1) * 10}
                     </td>
-                    <td className="p-4 text-gray-800">{cityRegency.name}</td>
+                    <td className="p-4 text-gray-800 text-sm">{cityRegency.name}</td>
                     <td className="p-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
                           cityRegency.is_accepted
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
@@ -376,38 +377,40 @@ const JurusanPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="p-4">
-                      {!cityRegency.is_accepted && (
+                      <div className="flex items-center gap-1">
+                        {!cityRegency.is_accepted && (
+                          <button
+                            onClick={() =>
+                              handleAccept(cityRegency.id, cityRegency.name)
+                            }
+                            className="p-2 text-green-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => {
+                            setEditingId(cityRegency.id);
+                            setFormData({
+                              name: cityRegency.name,
+                              province_id: cityRegency.province_id,
+                            });
+                            setIsModalOpen(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() =>
-                            handleAccept(cityRegency.id, cityRegency.name)
+                            handleDelete(cityRegency.id, cityRegency.name)
                           }
-                          className="p-2 text-green-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                          className="p-2 text-red-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
                         >
-                          <Check className="w-4 h-4" />
+                          <Trash className="w-4 h-4" />
                         </button>
-                      )}
-
-                      <button
-                        onClick={() => {
-                          setEditingId(cityRegency.id);
-                          setFormData({
-                            name: cityRegency.name,
-                            province_id: cityRegency.province_id,
-                          });
-                          setIsModalOpen(true);
-                        }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleDelete(cityRegency.id, cityRegency.name)
-                        }
-                        className="p-2 text-red-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -422,9 +425,9 @@ const JurusanPage: React.FC = () => {
           </table>
         </div>
 
-        {/* Empty State (if no cityRegencies) */}
+        {/* Empty State */}
         {cityRegencies.length === 0 && loading === false && (
-          <div className="text-center py-12 col-span-2 ">
+          <div className="text-center py-12 col-span-2">
             <NotFoundComponent text="Tidak ada kota/kabupaten yang ditemukan." />
           </div>
         )}
@@ -437,11 +440,12 @@ const JurusanPage: React.FC = () => {
         loading={loading}
       />
 
+      {/* Modal - Responsive */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50">
-          <div className="bg-white text-black p-6 rounded-lg flex flex-col gap-2 min-w-sm lg:min-w-xl">
-            <div className=" rounded-lg justify-between flex">
-              <h3 className="text-lg font-semibold">
+        <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50 p-4">
+          <div className="bg-white text-black p-4 sm:p-6 rounded-lg flex flex-col gap-2 w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="rounded-lg justify-between flex">
+              <h3 className="text-base sm:text-lg font-semibold">
                 {editingId ? "Ubah" : "Tambah"} Kota/Kabupaten
               </h3>
               <X
@@ -452,19 +456,19 @@ const JurusanPage: React.FC = () => {
                   }
                   setIsModalOpen(false);
                 }}
-                className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600"
+                className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer text-red-500 hover:text-red-600 flex-shrink-0"
               />
             </div>
-            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-4 sm:gap-6" onSubmit={handleSubmit}>
               <div className="flex flex-col gap-2">
-                <label htmlFor="province">Pilih Provinsi</label>
+                <label htmlFor="province" className="text-sm sm:text-base">Pilih Provinsi</label>
                 <select
                   value={formData.province_id}
                   onChange={(e) =>
                     setFormData({ ...formData, province_id: e.target.value })
                   }
                   id="province"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm ${
                     formError.province_id ? "border-red-500" : "border-gray-300"
                   }`}
                 >
@@ -476,36 +480,36 @@ const JurusanPage: React.FC = () => {
                   ))}
                 </select>
                 {formError.province_id && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="mt-1 text-xs sm:text-sm text-red-500">
                     {formError.province_id}
                   </p>
                 )}
               </div>
 
               <div className="flex flex-col gap-2">
-                <label htmlFor="province">Nama Kota/Kabupaten</label>
+                <label htmlFor="cityName" className="text-sm sm:text-base">Nama Kota/Kabupaten</label>
                 <input
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  id="province"
+                  id="cityName"
                   type="text"
                   placeholder="Masukkan nama kota/kabupaten"
-                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${
+                  className={`border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm ${
                     formError.name ? "border-red-500" : "border-gray-300"
                   }`}
                 />
                 {formError.name && (
-                  <p className="mt-1 text-sm text-red-500">{formError.name}</p>
+                  <p className="mt-1 text-xs sm:text-sm text-red-500">{formError.name}</p>
                 )}
               </div>
 
-              <div className="flex justify-end ">
+              <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-accent text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-accent-hover"
+                  className="bg-accent text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-accent-hover text-sm sm:text-base w-full sm:w-auto"
                 >
                   {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
                 </button>

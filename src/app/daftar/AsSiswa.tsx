@@ -6,6 +6,10 @@ import axios, { AxiosError } from "axios";
 import ReCAPTCHA from "react-google-recaptcha";
 import { json } from "stream/consumers";
 import { alertError, alertSuccess } from "@/libs/alert";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import Select from "react-select";
+import  useDebounce  from "@/hooks/useDebounce";
 
 interface FormData {
   username: string;
@@ -19,10 +23,6 @@ interface FormData {
   image?: File | null;
 }
 
-interface SchoolData {
-  id: string;
-  name: string;
-}
 
 interface FormErrors {
   [key: string]: string | undefined;
@@ -33,9 +33,17 @@ interface PrakerinRegistrationFormProps {
   typeStudent: string;
 }
 
+interface SchoolData {
+  value: string,
+  label: string
+}
+
+
+
 const PrakerinRegistrationSiswaForm: React.FC<
   PrakerinRegistrationFormProps
 > = ({ setShowForm, typeStudent }) => {
+  const route = useRouter();
   const [formData, setFormData] = useState<FormData>({
     username: "",
     name: "",
@@ -48,29 +56,13 @@ const PrakerinRegistrationSiswaForm: React.FC<
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showpassword_confirmation, setShowpassword_confirmation] =
+  const [showPasswordConfirmation, setShowpasswordConfirmation] =
     useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const recaptchaRef = useRef<any>(null);
-  const [schools, setSchools] = useState<SchoolData[]>([]);
 
-  const fetchData = async () => {
-    try {
-      const response = await API.get(ENDPOINTS.USERS, {
-        params: { role: "school" },
-      });
-
-      setSchools(response.data.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -114,20 +106,37 @@ const PrakerinRegistrationSiswaForm: React.FC<
   };
 
   const handleSubmit = async (): Promise<void> => {
+    setShowPassword(false);
+    setShowpasswordConfirmation(false);
     setIsSubmitting(true);
     const token = await recaptchaRef.current.executeAsync();
     recaptchaRef.current.reset();
     formData.recaptcha_token = token;
     try {
-      console.log(formData);
 
-      await API.post(`${ENDPOINTS.USERS}/register`, formData, {
+
+      const response = await API.post(`${ENDPOINTS.USERS}/register`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
       await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda!");
+
+
+      Cookies.set("userToken", response.data.token, {
+      expires: 1,
+      path: "/",
+        sameSite: "strict",
+      });
+      Cookies.set("authorization", response.data.role, {
+        expires:  1,
+        path: "/",
+        sameSite: "strict",
+      });
+
+      localStorage.setItem("login-success", "OK");
+    
 
       setShowForm("");
 
@@ -141,7 +150,11 @@ const PrakerinRegistrationSiswaForm: React.FC<
         recaptcha_token: "",
         role: "student",
       });
+      
       setProfileImage(null);
+
+
+      route.push("/dashboard");
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -164,6 +177,40 @@ const PrakerinRegistrationSiswaForm: React.FC<
   const label = () => {
     return typeStudent[0].toUpperCase() + typeStudent.slice(1);
   };
+
+ 
+  const [inputSearch, setInputSearch] = useState("");
+  const debouncedQuery = useDebounce(inputSearch, 600);
+  const [schoolOptions, setSchoolOptions] = useState<{ value: string; label: string }[]>([]);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(false);
+
+  useEffect(() => {
+    const fetchSchools = async () => {
+      setIsLoadingSchools(true);
+      try {
+        const res = await API.get(ENDPOINTS.USERS, {
+          params: { 
+            role: "school",
+            search: debouncedQuery,
+            is_school: typeStudent === "siswa" ? true : false,
+            limit: 5 },
+        });
+        setSchoolOptions(
+          res.data.data.map((school: any) => ({
+            value: school.id,
+            label: school.name,
+          }))
+        );
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoadingSchools(false);
+      }
+    };
+
+    fetchSchools();
+  }, [debouncedQuery]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
@@ -191,8 +238,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                 <div
                   className={`w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
                     isSubmitting
-                      ? "cursor-not-allowed opacity-50"
-                      : "cursor-pointer"
+                      && "opacity-50"
                   }`}
                 >
                   <input
@@ -200,7 +246,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     accept="image/*"
                     disabled={isSubmitting}
                     onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                   />
                   {profileImage ? (
                     <img
@@ -234,7 +280,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     value={formData.username}
                     disabled={isSubmitting}
                     onChange={handleInputChange}
-                    placeholder="Masukan Username anda disini"
+                    placeholder="Masukan username anda disini"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.username ? "border-red-500" : "border-gray-300"
                     }`}
@@ -255,7 +301,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     value={formData.name}
                     onChange={handleInputChange}
                     disabled={isSubmitting}
-                    placeholder="Masukan Nama anda disini"
+                    placeholder="Masukan nama anda disini"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.name ? "border-red-500" : "border-gray-300"
                     }`}
@@ -268,58 +314,61 @@ const PrakerinRegistrationSiswaForm: React.FC<
 
               {/* School and Email */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+               <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Asal{" "}
-                    {typeStudent === "siswa" ? "Sekolah" : "Perguruan Tinggi"}
+                    Asal {typeStudent === "siswa" ? "Sekolah" : "Perguruan Tinggi"}
                     <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <select
-                      name="school_id"
-                      value={formData.school_id}
-                      onChange={handleInputChange}
-                      disabled={isSubmitting}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed ${
-                        errors.school_id ? "border-red-500" : "border-gray-300"
-                      }`}
-                    >
-                      <option value="">
-                        Pilih{" "}
-                        {typeStudent === "siswa"
-                          ? "Sekolah"
-                          : "Perguruan Tinggi"}{" "}
-                        anda
-                      </option>
-                      {schools.map((school, key) => (
-                        <option key={key} value={school.id}>
-                          {school.name}
-                        </option>
-                      ))}
-                      <option value="other">Lainnya</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                      <svg
-                        className="w-4 h-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  {errors.school_id && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.school_id}
-                    </p>
+
+                  <Select
+                    isClearable
+                    isDisabled={isSubmitting}
+                    isLoading={isLoadingSchools}
+                    value={
+                      schoolOptions.find((opt) => opt.value === formData.school_id) || null
+                    }
+                    onChange={(selected) =>
+                      setFormData({
+                        ...formData,
+                        school_id: selected?.value || "",
+                      })
+                    }
+                    onInputChange={(val) => setInputSearch(val)}
+                    options={schoolOptions}
+                    placeholder={`Pilih ${
+                      typeStudent === "siswa" ? "sekolah" : "perguruan tinggi"
+                    } anda`}
+                    className="text-sm"
+                    classNames={{
+                      control: ({ isFocused }) =>
+                        `w-full px-2 py-1 border rounded-lg transition-all ${
+                          errors?.school_id
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        } ${
+                          isFocused
+                            ? "ring-2 ring-accent border-accent"
+                            : "focus:border-accent"
+                        }`,
+                      menu: () =>
+                        "bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-50",
+                      option: ({ isFocused, isSelected }) =>
+                        `px-3 py-2 cursor-pointer text-sm ${
+                          isSelected
+                            ? "bg-accent text-white"
+                            : isFocused
+                            ? "bg-blue-50"
+                            : "hover:bg-gray-100"
+                        }`,
+                      singleValue: () => "text-gray-800",
+                      placeholder: () => "text-gray-400",
+                    }}
+                  />
+                  {errors?.school_id && (
+                    <p className="mt-1 text-sm text-red-500">{errors.school_id}</p>
                   )}
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Email<span className="text-red-500">*</span>
@@ -330,7 +379,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     value={formData.email}
                     disabled={isSubmitting}
                     onChange={handleInputChange}
-                    placeholder="Masukan Email anda disini"
+                    placeholder="Masukan email anda disini"
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       errors.email ? "border-red-500" : "border-gray-300"
                     }`}
@@ -339,6 +388,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     <p className="mt-1 text-sm text-red-500">{errors.email}</p>
                   )}
                 </div>
+                
               </div>
 
               {/* Password and Confirm Password */}
@@ -354,13 +404,14 @@ const PrakerinRegistrationSiswaForm: React.FC<
                       value={formData.password}
                       onChange={handleInputChange}
                       disabled={isSubmitting}
-                      placeholder="Masukan Password anda disini"
+                      placeholder="Masukan password anda disini"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 disabled:opacity-50 disabled:cursor-not-allowed ${
                         errors.password ? "border-red-500" : "border-gray-300"
                       }`}
                     />
                     <button
                       type="button"
+                      disabled={isSubmitting}
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -383,12 +434,12 @@ const PrakerinRegistrationSiswaForm: React.FC<
                   </label>
                   <div className="relative">
                     <input
-                      type={showpassword_confirmation ? "text" : "password"}
+                      type={showPasswordConfirmation ? "text" : "password"}
                       name="password_confirmation"
                       value={formData.password_confirmation}
                       onChange={handleInputChange}
                       disabled={isSubmitting}
-                      placeholder="Masukan Password anda disini"
+                      placeholder="Masukan password anda disini"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 disabled:opacity-50 disabled:cursor-not-allowed ${
                         errors.password_confirmation
                           ? "border-red-500"
@@ -398,12 +449,12 @@ const PrakerinRegistrationSiswaForm: React.FC<
                     <button
                       type="button"
                       onClick={() =>
-                        setShowpassword_confirmation(!showpassword_confirmation)
+                        setShowpasswordConfirmation(!showPasswordConfirmation)
                       }
                       disabled={isSubmitting}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {showpassword_confirmation ? (
+                      {showPasswordConfirmation ? (
                         <Eye className="w-5 h-5" />
                       ) : (
                         <EyeOff className="w-5 h-5" />
@@ -425,7 +476,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
             <button
               type="button"
               onClick={handleBack}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
               Kembali
@@ -440,7 +491,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>{isSubmitting ? "Mendaftar..." : "Daftar"}</span>
               {!isSubmitting && (

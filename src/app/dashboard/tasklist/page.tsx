@@ -163,33 +163,36 @@ const TasklistPage: React.FC = () => {
   }, []);
 
   return (
-    <main className="p-6">
+    <main className="p-4 sm:p-6">
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-accent-dark text-sm mb-5">Daftar Tugas</h1>
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center space-x-2 font-extrabold text-accent">
             <ClipboardCheck className="w-5 h-5" />
-            <h2 className="text-2xl mt-2">Daftar Tugas</h2>
+            <h2 className="text-xl sm:text-2xl mt-2">Daftar Tugas</h2>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          <TabsComponent
-            data={tabs}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+        {/* Tabs - dengan scroll horizontal di mobile */}
+        <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex gap-2 min-w-max sm:min-w-0">
+            <TabsComponent
+              data={tabs}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          </div>
         </div>
+
         {Cookies.get("authorization") === "company" && (
           <div className="flex justify-end mb-6">
             <Link
               href="/dashboard/tasklist/tambah"
-              className="text-white bg-accent rounded-xl p-3 px-5 flex items-center space-x-2"
+              className="text-white bg-accent rounded-xl p-2.5 px-4 sm:p-3 sm:px-5 flex items-center space-x-2 text-sm sm:text-base"
             >
-              <CirclePlus className="w-5 h-5 " />
-              <span>Tambah Tugas</span>
+              <CirclePlus className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="whitespace-nowrap">Tambah Tugas</span>
             </Link>
           </div>
         )}
@@ -199,37 +202,39 @@ const TasklistPage: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type="text"
             placeholder="Cari tugas..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
-            className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
+            className="w-full bg-accent text-white placeholder-teal-200 pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300 text-sm sm:text-base"
           />
         </div>
-        <div className="overflow-x-auto">
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                   No
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                   Nama Tugas
                 </th>
                 {authorization === "company" && (
-                  <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                  <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                     Nama Pemagang
                   </th>
                 )}
-                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                   Tenggat Waktu
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                   Status
                 </th>
-                <th className="text-left p-3 font-medium text-gray-600 uppercase">
+                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                   Aksi
                 </th>
               </tr>
@@ -238,33 +243,33 @@ const TasklistPage: React.FC = () => {
               {tasks && !isLoading ? (
                 tasks.map((task, index) => (
                   <tr key={task.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4 text-gray-800">
+                    <td className="p-4 text-gray-800 text-sm">
                       {index + 1 + (pages.activePages - 1) * 10}
                     </td>
-                    <td className="p-4 text-gray-800">{task.title}</td>
+                    <td className="p-4 text-gray-800 text-sm">{task.title}</td>
                     {authorization === "company" && (
-                      <td className="p-4 text-gray-800">
+                      <td className="p-4 text-gray-800 text-sm">
                         {task.internship.student.name}
                       </td>
                     )}
-                    <td className="p-4 text-gray-600">
+                    <td className="p-4 text-gray-600 text-sm">
                       {getDeadline(task.due_date)}
                     </td>
                     <td className="p-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
                           task.status
                         )}`}
                       >
                         {getStatus(task.status)}
                       </span>
                     </td>
-                    <td className="p-4 flex items-center">
+                    <td className="p-4">
                       <Link
                         href={`/dashboard/tasklist/${task.id}`}
-                        className="w-fit h-fit text-blue-600 hover:text-blue-600/75 rounded-full transition-colors cursor-pointer"
+                        className="w-fit h-fit text-blue-600 hover:text-blue-600/75 rounded-full transition-colors cursor-pointer inline-block"
                       >
-                        <Info className="w-4 h-4 " />
+                        <Info className="w-4 h-4" />
                       </Link>
                     </td>
                   </tr>
@@ -283,9 +288,64 @@ const TasklistPage: React.FC = () => {
           </table>
         </div>
 
-        {/* Empty State (if no tasks) */}
+        {/* Mobile Card View */}
+        <div className="md:hidden">
+          {tasks && !isLoading ? (
+            <div className="divide-y">
+              {tasks.map((task, index) => (
+                <div key={task.id} className="p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0 mr-3">
+                      <div className="text-xs text-gray-500 mb-1">
+                        #{index + 1 + (pages.activePages - 1) * 10}
+                      </div>
+                      <h3 className="font-medium text-gray-900 text-sm break-words">
+                        {task.title}
+                      </h3>
+                    </div>
+                    <Link
+                      href={`/dashboard/tasklist/${task.id}`}
+                      className="flex-shrink-0 text-blue-600 hover:text-blue-600/75 rounded-full transition-colors"
+                    >
+                      <Info className="w-5 h-5" />
+                    </Link>
+                  </div>
+
+                  {authorization === "company" && (
+                    <div className="mb-2">
+                      <span className="text-xs text-gray-500">Pemagang: </span>
+                      <span className="text-sm text-gray-800">
+                        {task.internship.student.name}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <div className="flex items-center text-gray-600">
+                      <span className="mr-1">📅</span>
+                      {getDeadline(task.due_date)}
+                    </div>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        task.status
+                      )}`}
+                    >
+                      {getStatus(task.status)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 text-center">
+              <Loader />
+            </div>
+          )}
+        </div>
+
+        {/* Empty State */}
         {tasks.length === 0 && !isLoading && (
-          <div className="text-center py-12 col-span-2 ">
+          <div className="text-center py-12">
             <NotFoundComponent text="Anda belum memiliki tugas." />
           </div>
         )}

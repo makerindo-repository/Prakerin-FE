@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Image from "next/image";
 import Loader from "@/components/loader";
+import NotFoundComponent from "@/components/NotFoundComponent";
 
 interface SaveJobOpening {
   id: string;
@@ -42,11 +43,15 @@ const LowonganArchivePage: React.FC = () => {
           is_saved: true,
         },
       });
+      console.log(response);
       if (response.status === 200) {
         setSaveJobOpenings(response.data.data);
       }
     } catch (error) {
       console.error("Error fetching saved job openings:", error);
+    }
+    finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,7 +104,7 @@ const LowonganArchivePage: React.FC = () => {
         <h2 className="text-2xl mt-2">Lowongan Tersimpan</h2>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-        {saveJobOpenings.length > 0 && isLoading ? (
+        {saveJobOpenings.length > 0 && !isLoading && (
           saveJobOpenings.map((job) => (
             <Link
               key={job.id}
@@ -163,9 +168,16 @@ const LowonganArchivePage: React.FC = () => {
               </div>
             </Link>
           ))
-        ) : (
+        )} 
+        { isLoading && (
           <div className="lg:col-span-2">
             <Loader height={64} width={64} />
+          </div>
+        )}
+
+       {saveJobOpenings.length === 0 && !isLoading && (
+          <div className="text-center py-12 col-span-2 ">
+            <NotFoundComponent text="Tidak ada perusahaan tersimpan yang ditemukan." />
           </div>
         )}
       </div>

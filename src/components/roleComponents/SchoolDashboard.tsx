@@ -1,4 +1,4 @@
-import {
+  import {
   BadgeCheck,
   BriefcaseBusiness,
   Building,
@@ -127,7 +127,7 @@ export default function SchoolDashboard({
     fetchData();
   }, []);
 
-  const ratingColors = ["#ff0000", "#ff6600", "#ffcc00", "#66cc00", "#009900"]; // contoh warna
+  const ratingColors = ["#ff0000", "#ff6600", "#ffcc00", "#66cc00", "#009900"];
 
   if (isLoading) {
     return (
@@ -138,100 +138,121 @@ export default function SchoolDashboard({
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 col-span-5 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
-          <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">
+    <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+      {/* Statistics Cards - Responsive Grid */}
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+        {/* Card 1 */}
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 flex justify-between items-center gap-2">
+          <div className="text-accent-dark min-w-0 flex-1">
+            <h1 className="font-extrabold text-xl sm:text-2xl whitespace-nowrap">
               {summary.student_count}
             </h1>
-            <h3 className=" text-md">Total Siswa/Mahasiswa</h3>
+            <h3 className="text-xs sm:text-sm leading-tight break-words">
+              Total Siswa/Mahasiswa
+            </h3>
           </div>
-          <Users className="text-accent w-7 h-7 my-auto" />
+          <Users className="text-accent w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0" />
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
-          <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">
+
+        {/* Card 2 */}
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 flex justify-between items-center gap-2">
+          <div className="text-accent-dark min-w-0 flex-1">
+            <h1 className="font-extrabold text-xl sm:text-2xl whitespace-nowrap">
               {summary.student_internship_count}
             </h1>
-            <h3 className=" text-md">Total Siswa/Mahasiswa Magang</h3>
+            <h3 className="text-xs sm:text-sm leading-tight break-words">
+              Total Siswa Magang
+            </h3>
           </div>
-          <Users className="text-accent w-7 h-7 my-auto" />
+          <Users className="text-accent w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0" />
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
-          <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">
+
+        {/* Card 3 */}
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 flex justify-between items-center gap-2">
+          <div className="text-accent-dark min-w-0 flex-1">
+            <h1 className="font-extrabold text-xl sm:text-2xl whitespace-nowrap">
               {summary.job_opening_count.total}
             </h1>
-            <h3 className=" text-md">Total Lowongan</h3>
+            <h3 className="text-xs sm:text-sm leading-tight break-words">
+              Total Lowongan
+            </h3>
           </div>
-          <BriefcaseBusiness className="text-accent w-7 h-7 my-auto" />
+          <BriefcaseBusiness className="text-accent w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0" />
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
-          <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">
+
+        {/* Card 4 */}
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 flex justify-between items-center gap-2">
+          <div className="text-accent-dark min-w-0 flex-1">
+            <h1 className="font-extrabold text-xl sm:text-2xl whitespace-nowrap">
               {summary.company_count}
             </h1>
-            <h3 className=" text-md">Total Perusahaan</h3>
+            <h3 className="text-xs sm:text-sm leading-tight break-words">
+              Total Perusahaan
+            </h3>
           </div>
-
-          <Building className="text-accent w-7 h-7 my-auto" />
+          <Building className="text-accent w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0" />
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex justify-between">
-          <div className="text-accent-dark">
-            <h1 className="font-extrabold  text-2xl">
+
+        {/* Card 5 */}
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 flex justify-between items-center gap-2">
+          <div className="text-accent-dark min-w-0 flex-1">
+            <h1 className="font-extrabold text-xl sm:text-2xl whitespace-nowrap">
               {summary.achievement_count}
             </h1>
-            <h3 className=" text-md">Total Penghargaan</h3>
+            <h3 className="text-xs sm:text-sm leading-tight break-words">
+              Total Penghargaan
+            </h3>
           </div>
-          <BadgeCheck className="text-accent w-7 h-7 my-auto" />
+          <BadgeCheck className="text-accent w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0" />
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex flex-col justify-between">
-        <div className="flex  mb-4   justify-between">
-          <div className="flex flex-col ">
-            <h3 className="font-bold text-lg">Penilaian Sekolah </h3>
-            <p className="text-sm text-gray-600">
+      {/* School Rating Section */}
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 flex flex-col justify-between">
+        <div className="flex flex-col sm:flex-row mb-4 gap-2 sm:gap-4 justify-between items-start">
+          <div className="flex flex-col flex-1">
+            <h3 className="font-bold text-base sm:text-lg">Penilaian Sekolah</h3>
+            <p className="text-xs sm:text-sm text-gray-600">
               Penilaian didapat dari siswa/mahasiswa dan perusahaan yang terdaftar sebagai
               pengguna Prakerin
             </p>
           </div>
-          <Link href="/dashboard/feedback">
+          <Link href="/dashboard/feedback" className="self-end sm:self-auto">
             <CircleArrowRight
-              className="text-accent/75  hover:text-accent"
-              size={32}
+              className="text-accent/75 hover:text-accent transition-colors"
+              size={28}
             />
           </Link>
         </div>
 
-        <div className="flex gap-6">
-          <div className="w-1/2 ">
-            <RatingSummaryCompenent data={ratingSummary} />
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+          <div className="w-full lg:w-1/2">
+            {/* <RatingSummaryCompenent data={ratingSummary} /> */}
           </div>
-          <div className="w-1/2 ">
-            <PieChartCompenent
+          <div className="w-full lg:w-1/2">
+            {/* <PieChartCompenent
               legend="Persentase Penilaian"
               tooltip="Persentase Penilaian"
               dataList={mapRatingToData(ratingSummary, ratingColors)}
-            />
+            /> */}
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex flex-col justify-between">
+      {/* Student Statistics Section */}
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 flex flex-col justify-between">
         <div className="flex flex-col mb-4">
-          <h3 className="font-bold text-lg">Statistik Siswa </h3>
-          <p className="text-sm text-gray-600">
+          <h3 className="font-bold text-base sm:text-lg">Statistik Siswa</h3>
+          <p className="text-xs sm:text-sm text-gray-600">
             Visualisasi total siswa/mahasiswa yang telah magang
           </p>
         </div>
 
-        <div className="flex gap-6">
-          <div className="w-1/2 ">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+          <div className="w-full lg:w-1/2">
             <PieChartCompenent
-              legend="Distribusi Siswa/Mahasiswa dan Lowongan"
-              tooltip="Persentasi Siswa/Mahasiswa dan Lowongan"
+              legend="Distribusi Siswa dan Lowongan"
+              tooltip="Persentasi Siswa dan Lowongan"
               dataList={[
                 {
                   name: "Total Siswa",
@@ -246,10 +267,10 @@ export default function SchoolDashboard({
               ]}
             />
           </div>
-          <div className="w-1/2 ">
+          <div className="w-full lg:w-1/2">
             <PieChartCompenent
-              legend="Distribusi Siswa/Mahasiswa Magang, Belum Magang, dan Telah Magang"
-              tooltip="Persentasi Siswa/Mahasiswa Magang, Belum Magang, dan Telah Magang"
+              legend="Status Magang Siswa"
+              tooltip="Distribusi Status Magang"
               dataList={[
                 {
                   name: "Belum Magang",
@@ -272,21 +293,22 @@ export default function SchoolDashboard({
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-3 px-5 flex flex-col justify-between">
+      {/* Company and Job Opening Statistics Section */}
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 flex flex-col justify-between">
         <div className="flex flex-col mb-4">
-          <h3 className="font-bold text-lg">
+          <h3 className="font-bold text-base sm:text-lg">
             Statistik Perusahaan dan Lowongan
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600">
             Visualisasi total perusahaan dan lowongan
           </p>
         </div>
 
-        <div className="flex gap-6">
-          <div className="w-1/2 ">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+          <div className="w-full lg:w-1/2">
             <PieChartCompenent
-              legend="Distribusi Total Perusahaan dan Lowongan"
-              tooltip="Persentase Total Perusahaan dan Lowongan"
+              legend="Perusahaan dan Lowongan"
+              tooltip="Total Perusahaan dan Lowongan"
               dataList={[
                 {
                   name: "Perusahaan",
@@ -301,10 +323,10 @@ export default function SchoolDashboard({
               ]}
             />
           </div>
-          <div className="w-1/2 ">
+          <div className="w-full lg:w-1/2">
             <PieChartCompenent
-              legend="Distribusi Lowongan Aktif & Tidak Aktif"
-              tooltip="Persentase Lowongan Aktif & Tidak Aktif"
+              legend="Status Lowongan"
+              tooltip="Lowongan Aktif & Tidak Aktif"
               dataList={[
                 {
                   name: "Lowongan Aktif",

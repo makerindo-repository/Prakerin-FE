@@ -171,7 +171,6 @@ const lamaranPage: React.FC = () => {
       const link = document.createElement("a");
       link.href = url;
 
-      // Bisa static atau ambil dari backend Content-Disposition
       const nameCv = internshipApplications.find((application) => {
         return application.curriculum_vitae.id === cvId;
       });
@@ -188,14 +187,20 @@ const lamaranPage: React.FC = () => {
   };
 
   return (
-    <main className="p-6">
-      <h1 className="text-accent-dark text-sm mb-5">Lamaran Magang</h1>
-      <div className="flex items-center mb-8  space-x-2 font-extrabold text-accent">
-        <FileText className="w-5 h-5" />
-        <h2 className="text-2xl mt-2">Lamaran Magang</h2>
+    <main className="p-4 sm:p-6 min-h-screen">
+      {/* Breadcrumb */}
+      <h1 className="text-accent-dark text-xs sm:text-sm mb-3 sm:mb-5 break-words">
+        Lamaran Magang
+      </h1>
+
+      {/* Page Title */}
+      <div className="flex items-center mb-6 sm:mb-8 gap-2 font-extrabold text-accent">
+        <FileText className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+        <h2 className="text-xl sm:text-2xl">Lamaran Magang</h2>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      {/* Tabs */}
+      <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2">
         <TabsComponent
           data={tabs}
           activeTab={activeTab}
@@ -203,47 +208,48 @@ const lamaranPage: React.FC = () => {
         />
       </div>
 
-      <div className="rounded-t-2xl  bg-accent">
+      {/* Search Bar */}
+      <div className="rounded-t-2xl bg-accent">
         <div className="relative">
           <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={20}
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white w-4 h-4 sm:w-5 sm:h-5"
           />
           <input
             type="text"
             placeholder="Cari lamaran..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
-            className="w-full bg-accent text-white placeholder-teal-200 pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
+            className="w-full bg-accent text-white placeholder-white/70 text-sm sm:text-base pl-10 pr-4 py-2.5 sm:py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300"
           />
         </div>
       </div>
 
+      {/* Table Container */}
       <div className="bg-white rounded-b-2xl shadow-md overflow-hidden">
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[800px]">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   No
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Nama Siswa/Mahasiswa
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Asal Sekolah
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Jurusan
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   CV
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Aksi
                 </th>
               </tr>
@@ -252,45 +258,43 @@ const lamaranPage: React.FC = () => {
               {internshipApplications && !isLoading ? (
                 internshipApplications.map((application, index) => (
                   <tr key={application.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {index + 1 + (pages.activePages - 1) * 10}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 lg:px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
                       {application.student.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 lg:px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
                       {application.school.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 lg:px-6 py-4 text-sm text-gray-900">
                       {application.major ?? "-"}
                     </td>
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm ${changeStatusColor(
+                      className={`px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium ${changeStatusColor(
                         application.status
                       )}`}
                     >
                       {changeStatus(application.status)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm">
                       <button
                         type="button"
                         onClick={() =>
                           handleDownload(application.curriculum_vitae.id)
                         }
-                        className="bg-green-500 rounded-full py-1 px-2 cursor-pointer hover:bg-green-600"
+                        className="bg-green-500 text-white rounded-full py-1.5 px-3 text-xs cursor-pointer hover:bg-green-600 transition-colors"
                       >
                         Unduh
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/dashboard/industry/lamaran/${application.id}`}
-                          className="text-blue-600 hover:text-blue-800 cursor-pointer"
-                        >
-                          <CircleAlert size={16} />
-                        </Link>
-                      </div>
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <Link
+                        href={`/dashboard/industry/lamaran/${application.id}`}
+                        className="text-blue-600 hover:text-blue-800 cursor-pointer inline-block p-1"
+                      >
+                        <CircleAlert size={18} />
+                      </Link>
                     </td>
                   </tr>
                 ))
@@ -307,45 +311,84 @@ const lamaranPage: React.FC = () => {
 
         {/* Mobile Cards */}
         <div className="md:hidden">
-          {internshipApplications.map((application, index) => (
-            <div key={application.id} className="p-4 border-b border-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">
-                  {application.student.name}
-                </h3>
-                <span className="text-sm text-gray-500">#{index + 1}</span>
-              </div>
+          {internshipApplications && !isLoading ? (
+            internshipApplications.map((application, index) => (
+              <div
+                key={application.id}
+                className="p-4 border-b border-gray-200 last:border-b-0"
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3 gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 text-sm break-words">
+                      {application.student.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1 break-words">
+                      {application.school.name}
+                    </p>
+                  </div>
+                  <span className="text-xs text-gray-500 font-medium flex-shrink-0">
+                    #{index + 1 + (pages.activePages - 1) * 10}
+                  </span>
+                </div>
 
-              <div className="flex flex-wrap gap-2 mb-3">
-                <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium flex items-center">
-                  <Download size={12} className="mr-1" />
-                  Unduh
-                </button>
-                <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium flex items-center">
-                  <Eye size={12} className="mr-1" />
-                  Lihat
-                </button>
-              </div>
+                {/* Info */}
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Jurusan:</span>
+                    <span className="text-xs text-gray-900">
+                      {application.major ?? "-"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Status:</span>
+                    <span
+                      className={`text-xs font-medium ${changeStatusColor(
+                        application.status
+                      )}`}
+                    >
+                      {changeStatus(application.status)}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="flex justify-end space-x-2">
-                <button className="text-blue-600 hover:text-blue-800 p-1">
-                  <Edit size={16} />
-                </button>
-                <button className="text-red-600 hover:text-red-800 p-1">
-                  <Trash2 size={16} />
-                </button>
+                {/* Actions */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() =>
+                      handleDownload(application.curriculum_vitae.id)
+                    }
+                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1 transition-colors"
+                  >
+                    <Download size={12} />
+                    <span>Unduh CV</span>
+                  </button>
+                  <Link
+                    href={`/dashboard/industry/lamaran/${application.id}`}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1 transition-colors"
+                  >
+                    <CircleAlert size={12} />
+                    <span>Detail</span>
+                  </Link>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="p-4 text-center">
+              <Loader />
             </div>
-          ))}
+          )}
         </div>
 
+        {/* Empty State */}
         {internshipApplications.length === 0 && !isLoading && (
-          <div className="text-center py-12 col-span-2 ">
+          <div className="text-center py-12">
             <NotFoundComponent text="Belum ada orang yang melamar." />
           </div>
         )}
       </div>
 
+      {/* Pagination */}
       <PaginationComponent
         activePage={pages.activePages}
         totalPages={pages.pages}
@@ -355,4 +398,5 @@ const lamaranPage: React.FC = () => {
     </main>
   );
 };
+
 export default lamaranPage;

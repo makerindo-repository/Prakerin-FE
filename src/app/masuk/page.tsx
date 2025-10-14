@@ -43,6 +43,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setShowPassword(false);
 
     try {
       setIsSubmitting(true);

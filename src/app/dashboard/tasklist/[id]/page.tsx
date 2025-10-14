@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import Link from "next/link";
 import { alertConfirm, alertSuccess } from "@/libs/alert";
 import Loader from "@/components/loader";
+import { formatToWhatsAppNumber } from "@/utils/formatToWhatsAppNumber";
 
 interface Task {
   id: string;
@@ -17,6 +18,7 @@ interface Task {
   link: string | null;
   phone_number: string | null;
 }
+
 
 const DetailTasklistPage = ({
   params,
@@ -72,9 +74,7 @@ const DetailTasklistPage = ({
       "Apakah Anda yakin ingin mengubah status tugas ini?"
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       await API.patch(
@@ -118,6 +118,9 @@ const DetailTasklistPage = ({
     setAuthorization(Cookies.get("authorization") as string);
   }, []);
 
+  // 🔗 Format nomor WA langsung di sini
+  const formattedWhatsAppNumber = formatToWhatsAppNumber(task.phone_number  || "");
+
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">
@@ -136,7 +139,6 @@ const DetailTasklistPage = ({
         </div>
       </div>
 
-      {/* Description Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         {isLoading ? (
           <div className="flex justify-center items-center h-96">
@@ -155,7 +157,7 @@ const DetailTasklistPage = ({
                     <span className="text-sm">{task.due_date}</span>
                   </div>
                   <span
-                    className={` ${getStatusColor(
+                    className={`${getStatusColor(
                       task.status
                     )} rounded-full p-1 px-3`}
                   >
@@ -183,9 +185,9 @@ const DetailTasklistPage = ({
                   </div>
                 )}
 
-                {task.phone_number ? (
+                {formattedWhatsAppNumber ? (
                   <Link
-                    href={`https://wa.me/${task.phone_number}`}
+                    href={`https://wa.me/${formattedWhatsAppNumber}`}
                     target="_blank"
                     className="bg-accent text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap"
                   >
@@ -197,24 +199,22 @@ const DetailTasklistPage = ({
                     className="bg-gray-300 text-gray-600 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 whitespace-nowrap"
                   >
                     {authorization === "company" ? (
-                      <span className="">
-                        Perusahaan tidak memiliki nomer telepon
-                      </span>
+                      <span>Perusahaan tidak memiliki nomor telepon</span>
                     ) : (
-                      <span className="">
-                        Pemagang tidak memiliki nomer telepon
-                      </span>
+                      <span>Pemagang tidak memiliki nomor telepon</span>
                     )}
                   </button>
                 )}
               </div>
             </div>
+
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Deskripsi
             </h3>
             <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
               <p>{task.description}</p>
             </div>
+
             {task.link && (
               <>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -237,4 +237,5 @@ const DetailTasklistPage = ({
     </main>
   );
 };
+
 export default DetailTasklistPage;

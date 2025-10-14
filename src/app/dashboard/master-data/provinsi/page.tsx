@@ -370,13 +370,16 @@ const ProvinsiPage: React.FC = () => {
               </h3>
               <X
                 onClick={() => {
+                  if(isSubmitting) return;
                   if (editingId) {
                     setEditingId(null);
                     setFormData({ name: "" });
                   }
                   setIsModalOpen(false);
                 }}
-                className="w-8 h-8 cursor-pointer text-red-500 hover:text-red-600"
+                className={`w-8 h-8 cursor-pointer text-red-500 hover:text-red-600 ${
+                  isSubmitting ? "pointer-events-none" : ""
+                }`}
               />
             </div>
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>

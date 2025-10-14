@@ -18,9 +18,15 @@ interface Perusahaan {
   user?: {
     photo_profile: File | null;
   };
+  id:string;
   name: string;
   kota: string;
   provinsi: string;
+}
+
+interface Feedback {
+  text: string;
+  rating: number;
 }
 
 const StudentFeedback = () => {
@@ -32,6 +38,7 @@ const StudentFeedback = () => {
   });
   const [feedback, setFeedback] = useState("");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [idFeed, setIdFeed] = useState<String>("");
   const [rating, setRating] = useState<number>(0); // rating 1-5
   const [loading, setLoading] = useState(false);
 
@@ -40,9 +47,8 @@ const StudentFeedback = () => {
     setLoading(true);
 
     try {
-      const response = await API.get(ENDPOINTS.USERS, {
+      const response = await API.get(`${ENDPOINTS.FEEDBACKS}/rate`, {
         params: {
-          role: "company",
           page: selectedPage,
           limit: 10,
         },
@@ -54,14 +60,8 @@ const StudentFeedback = () => {
       if (response.status === 200) {
         console.log("Company fetched successfully:", response.data);
 
-        const data = response.data.data.map((item: any) => ({
-          id: item.id,
-          photo_profile: item.photo_profile,
-          name: item.company.name,
-          city_regency: item.city_regency.name,
-          province: item.province.name,
-        }));
-        setPerushaan(data);
+        
+        setPerushaan(response.data.data);
         setPage({
           activePages: selectedPage,
           pages: response.data.last_page, // pastikan ini adalah total halaman
@@ -79,9 +79,21 @@ const StudentFeedback = () => {
     console.log("Rating:", rating);
 
     try {
-      const response = API.post(ENDPOINTS.FEEDBACKS, JSON.stringify({}));
+      const response = API.post(ENDPOINTS.FEEDBACKS, {
+        'to_user_id' : idFeed,
+        'to_type' : 'company',
+        'rating' : rating,
+        'text': feedback
+      }, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        }
+      });
     } catch (err) {}
     await alertSuccess("");
+    setFeedback("");
+    setIdFeed("");
+    setRating(0);
     setClose(true); // tutup modal setelah submit
   };
 
@@ -90,6 +102,10 @@ const StudentFeedback = () => {
     setSelectedIndex(index);
     setRating(0); // reset rating setiap buka modal baru
     setFeedback(""); // reset feedback
+    // set id untuk feedback saat membuka modal (hindari setState di dalam render)
+    if (perusahaan[index]) {
+      setIdFeed(perusahaan[index].id);
+    }
   };
 
   useEffect(() => {
@@ -107,6 +123,8 @@ const StudentFeedback = () => {
   // Modal
   const modal = (index: number) => {
     const company = perusahaan[index];
+    if (!company) return null; // guard: jangan render kalau data belum ada
+
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -195,7 +213,7 @@ const StudentFeedback = () => {
             perusahaan.map((data, index) => (
               <div
                 className="bg-white flex flex-col md:flex-row space-x-5 p-5 px-10 md:px-5 rounded-2xl justify-between items-end md:items-center"
-                key={index}
+                key={data.id || index}
               >
                 <div className="flex w-full md:w-auto">
                   <img
