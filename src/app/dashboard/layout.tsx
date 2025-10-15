@@ -68,6 +68,7 @@ interface Profile {
   //   | "Super Admin"
   //   | "";
   role: Role;
+  rawRole?: string; // tambahkan untuk menyimpan nilai role mentah dari API
   username: string;
 }
 
@@ -283,7 +284,10 @@ export default function DashboardLayout({
         } else {
           roleLabel = "";
         }
-        setProfile({ ...data, role: roleLabel ?? "" });
+        // simpan juga role mentah sehingga bisa dipakai untuk memilih menu
+        setProfile({ ...data, role: roleLabel ?? "", rawRole: data.role });
+        // set menu berdasarkan role mentah dari API (lebih andal daripada cookie)
+        setMenuItems(MENU_MAP[data.role] ?? []);
       }
     } catch (error: any) {
       if (error.name !== "CanceledError" && error.name !== "AbortError") {
