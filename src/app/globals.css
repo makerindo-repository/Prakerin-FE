@@ -1,14 +1,13 @@
 @import "tailwindcss";
 
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-    --color-accent: #00809D;
-    --color-accent-hover: #006B7A;
-    --color-accent-dark: #1B2643;
-    --color-accent-light: #00BEE9; 
-  --color-vip: #EA9F13;
+  --color-accent: #00809d;
+  --color-accent-hover: #006b7a;
+  --color-accent-dark: #1b2643;
+  --color-accent-light: #00bee9;
+  --color-vip: #ea9f13;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-poppins: var(--font-poppins);
@@ -21,49 +20,44 @@
   --animate-slide-in-right: slideInRight 0.6s ease-in-out;
 
   @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 }
-
-
 
 :root {
-  --text-primary: #1f2937; 
-  --text-secondary: #6b7280; 
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
   --background: #ffffff;
-
 }
-
-
 
 body {
   font-family: Arial, Helvetica, sans-serif;
@@ -85,7 +79,9 @@ body {
 }
 
 /* styles/editor.css */
-#editorjs h1, h2, h3 {
+#editorjs h1,
+h2,
+h3 {
   font-weight: bold;
   margin-bottom: 0.5rem;
 }

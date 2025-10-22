@@ -16,10 +16,12 @@ import { getGreeting } from "@/utils/getGreeting";
 import Image from "next/image";
 import { alertSuccess } from "@/libs/alert";
 import Loader from "@/components/loader";
+import AdminDashboard from "@/components/roleComponents/adminDashboard";
 
 interface Profile {
   photo_profile?: string | null;
   name: string;
+  username?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -55,6 +57,8 @@ const Dashboard: React.FC = () => {
             response.data.data.role = "";
         }
         setProfile(response.data.data);
+        console.log(response.data.data);
+        
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -99,7 +103,7 @@ const Dashboard: React.FC = () => {
               )}
               <div>
                 <p className="text-sm opacity-90">{getGreeting()}</p>
-                <h1 className="text-xl font-semibold">{profile.name}</h1>
+                <h1 className="text-xl font-semibold">{profile.name ? profile.name : profile?.username}</h1>
               </div>
             </div>
           </div>
@@ -114,6 +118,9 @@ const Dashboard: React.FC = () => {
       )}
       {role && role === "school" && (
         <SchoolDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+      )}
+      {role && role === "super_admin" && (
+        <AdminDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
       )}
     </main>
   );

@@ -42,7 +42,7 @@ const accessMap: Record<string, string[]> = {
     "/dashboard/perusahaan*",
     "/dashboard/tasklist*",
     "/dashboard/feedback",
-    "/dashboard/sertifikat",
+    "/dashboard/sertifikat*",
     "/dashboard/pembimbing",
     "/dashboard/profile",
   ],
