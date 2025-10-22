@@ -10,7 +10,6 @@ import { CVData } from "@/types/cv";
 import { API, ENDPOINTS } from "../../../../../utils/config";
 import { CVResult } from "@/models/CV";
 import Cookies from "js-cookie";
-import html2pdf from "html2pdf.js";
 
 interface PromptFieldProps {
   onResult?: (s: string) => void;
@@ -147,25 +146,6 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
     }
   };
 
-  const handleDownload = () => {
-    if (!cvRef.current) return;
-
-    const element = cvRef.current;
-    const opt = {
-      margin: 0,
-      fileName: `${cv?.full_name || "cv"}.pdf`,
-      image: { type: "jpeg" as const, quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "a4", orientation: "portrait" as const },
-    };
-
-    setLoading(true);
-    html2pdf()
-      .set(opt)
-      .from(element)
-      .save()
-      .finally(() => setLoading(false));
-  };
 
   const renderView = () => {
     if (!cv) {
@@ -249,7 +229,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
           </button>
         ) : (
           <button
-            onClick={handleDownload}
+            // onClick={handleDownload}
             className="px-4 py-2 rounded-md text-sm bg-accent text-white hover:opacity-90 disabled:opacity-60"
             disabled={loading}
           >
@@ -290,7 +270,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
               </button>
             </div>
           </div>
-          <div ref={cvRef}>{renderView()}</div>
+          {renderView()}
         </div>
       )}
     </div>
