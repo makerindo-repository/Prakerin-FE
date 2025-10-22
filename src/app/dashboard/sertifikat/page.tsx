@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "../../../../utils/config";
 import Cookies from "js-cookie";
 import UnderConstruction from "@/components/UnderConstruction";
+import { useRouter } from "next/navigation";
 
 interface Perusahaan {
   image?: File | null;
@@ -19,6 +20,7 @@ interface Certificate {
 const SertifikatPage: React.FC = () => {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
 
+  const router = useRouter();
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([
     {
       kota: "Bandung",
@@ -99,7 +101,7 @@ const SertifikatPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex space-x-5">
-                <button className="bg-accent/30 text-accent flex justify-between items-center p-1 px-2 space-x-2 rounded-full">
+                <button onClick={() => router.push("sertifikat/10b8756c-abd6-419c-97c1-350eeb86ef22")} className="bg-accent/30 text-accent flex justify-between items-center p-1 px-2 space-x-2 rounded-full">
                   <span>Lihat Sertifikat</span>
                   <CircleArrowRight className="w-4 h-4" />
                 </button>
