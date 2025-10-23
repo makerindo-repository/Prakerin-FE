@@ -144,7 +144,7 @@ const PrakerinRegistrationIndustryForm: React.FC<
       setProfileImage(null);
 
       setShowForm("");
-      route.push("/dashboard");
+      route.push("/masuk");
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;

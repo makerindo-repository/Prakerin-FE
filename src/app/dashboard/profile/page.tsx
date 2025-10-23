@@ -394,6 +394,7 @@ export default function ProfilePage() {
         label: item.name,
       }));
       setProvinceOptions(mapped);
+      setSchoolProvinceOptions(mapped);
       
     } catch (error) {
       console.error(error);

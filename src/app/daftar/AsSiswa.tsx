@@ -154,7 +154,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
       setProfileImage(null);
 
 
-      route.push("/dashboard");
+      route.push("/masuk");
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
