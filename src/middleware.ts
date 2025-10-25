@@ -69,6 +69,23 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
+  // Check active status for protected routes that require activation
+  const activeCookie = req.cookies.get("active")?.value;
+  const isActive = !!activeCookie && ["true", "1", "yes", "on"].includes(activeCookie.toLowerCase());
+  const requiresActive = [
+    // use patterns that match both the base path and subpaths
+    "/dashboard/lowongan*",
+    "/dashboard/cv*",
+    "/dashboard/tasklist*",
+    "/dashboard/feedback*",
+    "/dashboard/sertifikat*",
+  ];
+
+  // If route requires activation and user is not active, redirect to dashboard
+  if (!isActive && matchPath(path, requiresActive)) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
   const role = req.cookies.get("authorization")?.value || "";
 
   // Cek deny-list dulu

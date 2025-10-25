@@ -338,12 +338,49 @@ export default function DashboardLayout({
   // compute menuItems on client only to avoid reading cookies during SSR which
   // leads to hydration mismatches. Start with empty array on first render.
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [isActive, setIsActive] = useState<boolean>(false);
+
+  // routes that require active status (same as middleware)
+  const REQUIRES_ACTIVE_PREFIXES = [
+    "/dashboard/lowongan",
+    "/dashboard/cv",
+    "/dashboard/tasklist",
+    "/dashboard/feedback",
+    "/dashboard/sertifikat",
+  ];
 
   useEffect(() => {
     const authorization =
       typeof window !== "undefined" ? Cookies.get("authorization") ?? "" : "";
     setMenuItems(MENU_MAP[authorization] ?? []);
+    // read active cookie client-side and normalize truthy values
+    if (typeof window !== "undefined") {
+      const v = Cookies.get("active") ?? "";
+      const active = !!v && ["true", "1", "yes", "on"].includes(v.toLowerCase());
+      setIsActive(active);
+    }
   }, []);
+
+  // compute visible menu items: hide protected items when not active
+  const visibleMenuItems = useMemo(() => {
+    if (isActive) return menuItems;
+    const isProtectedHref = (href?: string) => {
+      if (!href) return false;
+      return REQUIRES_ACTIVE_PREFIXES.some((p) => href === p || href.startsWith(p + "/") || href.startsWith(p));
+    };
+
+    return menuItems
+      .map((item) => {
+        if (item.children) {
+          const filteredChildren = item.children.filter((child) => !isProtectedHref(child.href));
+          // if no children left, drop parent unless parent itself has href and is allowed
+          if (filteredChildren.length === 0 && isProtectedHref(item.href)) return null;
+          return { ...item, children: filteredChildren } as MenuItem;
+        }
+        return isProtectedHref(item.href) ? null : item;
+      })
+      .filter(Boolean) as MenuItem[];
+  }, [menuItems, isActive]);
 
   return (
     <div className="min-h-screen bg-blue-50">
@@ -377,12 +414,17 @@ export default function DashboardLayout({
               <h3 className="text-xs">{dateString}</h3>
             </div>
           </div>
-          {menuItems.map((item) => (
+          {!isActive ? (
+            <div className="px-5">
+            <span className="text-red-500 text-xs">*Akun Kamu belum Aktif silahkan konfirmasi ke admin untuk mengaktifkan akun</span>
+            </div>
+          ):null}
+          {visibleMenuItems.map((item) => (
             <div key={item.href ?? item.label}>
               {item.children ? (
                 <SidebarDropdownMenu
                   item={item}
-                  pathName={pathName}
+                  pathName={pathName} 
                   setSidebarOpen={closeSidebar}
                 />
               ) : (

@@ -58,6 +58,8 @@ export default function LoginPage() {
         recaptcha_token: data.recaptcha_token,
       });
 
+      // console.log(response.data);
+
       Cookies.set("userToken", response.data.token, {
         expires: isRemember ? 30 : 1,
         path: "/",
@@ -67,6 +69,12 @@ export default function LoginPage() {
         expires: isRemember ? 30 : 1,
         path: "/",
         sameSite: "strict",
+      });
+
+      Cookies.set("active", response.data.is_verified,{
+        expires: isRemember ? 30 : 1,
+        path: "/",
+        sameSite: 'strict'
       });
 
       localStorage.setItem("login-success", "OK");
