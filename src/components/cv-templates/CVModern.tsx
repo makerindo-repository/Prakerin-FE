@@ -1,11 +1,13 @@
 import React from 'react';
-import { Mail, Phone, Linkedin, MapPin, GraduationCap } from 'lucide-react';
-import { CVResult } from '@/models/CV';
+import { Mail, Phone, Linkedin, GraduationCap, Briefcase } from 'lucide-react';
+import { CVResult } from '@/models/CV'; // Asumsi model data
 
+// Definisikan konstanta gaya di sini
+const ACCENT_COLOR = '#3b82f6'; // Biru cerah (mirip Tailwind blue-500)
+const BG_COLOR = '#1f2937'; // Abu-abu gelap (mirip Tailwind gray-800)
+const TEXT_COLOR = '#4b5563'; // Abu-abu sedang
 
-const CVModern: React.FC<{data?: CVResult| null}> = ({ data }) => {
-  // const profile = data?.profile_user ?? null;
-  // const personal = profile?.presonal_detail ?? {} as any;
+const CVModernPDF: React.FC<{data?: CVResult| null}> = ({ data }) => {
   const work_experience = data?.work_experience ?? [];
   const education = data?.education ?? [];
   const skills = data?.skills ?? [];
@@ -15,35 +17,59 @@ const CVModern: React.FC<{data?: CVResult| null}> = ({ data }) => {
   const email = data?.email ?? "email@anda.com";
   const phone = data?.phone_number ?? "081234567890";
   const linkedin = data?.linkedin_url ?? "linkedin.com/in/username";
-  // summary isn't part of CVResult; create a short summary from first responsibilities if available
-  const summary = data?.summary?? "null"
+  const summary = data?.summary ?? "Ringkasan profesional Anda akan ditempatkan di sini. Jelaskan pengalaman, keterampilan, dan tujuan karier Anda secara singkat dan padat untuk menarik perhatian perekrut.";
 
   return (
-    <div className="flex min-h-[1123px] bg-white shadow-lg font-sans">
+    <div style={{
+      display: 'flex',
+      minHeight: '1123px', // A4 height
+      backgroundColor: '#ffffff',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '10pt',
+    }}>
       {/* --- SIDEBAR KIRI --- */}
-      <aside className="w-1/3 bg-gray-800 text-white p-8">
-        <header className="text-center mb-12">
-          <div className="w-32 h-32 bg-accent rounded-full mx-auto mb-4"></div>
-          <h1 className="text-3xl font-bold text-white">{fullName}</h1>
-          <h2 className="text-lg text-accent font-light">{jobTitle}</h2>
+      <aside style={{
+        width: '33.333333%',
+        backgroundColor: BG_COLOR,
+        color: '#ffffff',
+        padding: '32px',
+      }}>
+        <header style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div style={{
+            width: '100px',
+            height: '100px',
+            backgroundColor: ACCENT_COLOR,
+            borderRadius: '50%',
+            margin: '0 auto 16px',
+          }}>{/*  */}</div>
+          <h1 style={{ fontSize: '24pt', fontWeight: 'bold', color: '#ffffff', margin: '0 0 4px 0' }}>{fullName}</h1>
+          <h2 style={{ fontSize: '12pt', color: ACCENT_COLOR, fontWeight: '300', margin: '0' }}>{jobTitle}</h2>
         </header>
 
         {/* --- KONTAK --- */}
-        <section className="mb-10">
-          <h3 className="text-lg font-semibold text-accent uppercase tracking-wider mb-3">Kontak</h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-3"><Mail size={16} /><p>{email}</p></div>
-            <div className="flex items-center gap-3"><Phone size={16} /><p>{phone}</p></div>
-            <div className="flex items-center gap-3"><Linkedin size={16} /><p>{linkedin}</p></div>
+        <section style={{ marginBottom: '30px' }}>
+          <h3 style={{ fontSize: '10pt', fontWeight: 'bold', color: ACCENT_COLOR, textTransform: 'uppercase', letterSpacing: '0.1em', paddingBottom: '4px', borderBottom: `1px solid ${ACCENT_COLOR}` }}>Kontak</h3>
+          <div style={{ marginTop: '10px', fontSize: '9pt', lineHeight: '1.5' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}><Mail size={14} style={{ marginRight: '8px' }} /><p style={{ margin: 0 }}>{email}</p></div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}><Phone size={14} style={{ marginRight: '8px' }} /><p style={{ margin: 0 }}>{phone}</p></div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}><Linkedin size={14} style={{ marginRight: '8px' }} /><p style={{ margin: 0 }}>{linkedin}</p></div>
           </div>
         </section>
 
         {/* --- KETERAMPILAN --- */}
-        <section className="mb-10">
-          <h3 className="text-lg font-semibold text-accent uppercase tracking-wider mb-3">Keterampilan</h3>
-          <div className="flex flex-wrap gap-2">
+        <section style={{ marginBottom: '30px' }}>
+          <h3 style={{ fontSize: '10pt', fontWeight: 'bold', color: ACCENT_COLOR, textTransform: 'uppercase', letterSpacing: '0.1em', paddingBottom: '4px', borderBottom: `1px solid ${ACCENT_COLOR}` }}>Keterampilan</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
             {skills.slice(0, 10).map((skill, index) => (
-              <span key={index} className="bg-accent/20 text-white text-xs font-medium px-3 py-1 rounded-full">
+              <span key={index} style={{
+                backgroundColor: ACCENT_COLOR + '33', // Accent with 20% opacity
+                color: '#ffffff',
+                fontSize: '8pt',
+                fontWeight: '500',
+                padding: '3px 8px',
+                borderRadius: '12px',
+              }}>
                 {skill}
               </span>
             ))}
@@ -52,38 +78,43 @@ const CVModern: React.FC<{data?: CVResult| null}> = ({ data }) => {
 
         {/* --- PENDIDIKAN --- */}
         <section>
-          <h3 className="text-lg font-semibold text-accent uppercase tracking-wider mb-3">Pendidikan</h3>
-          {education.map((edu, index) => (
-            <div key={index} className="text-sm">
-              <p className="font-bold">{edu.degree}</p>
-              <p className="text-gray-300">{edu.institution}</p>
-              <p className="text-gray-400 text-xs italic">{edu.graduation_year}</p>
-            </div>
-          ))}
+          <h3 style={{ fontSize: '10pt', fontWeight: 'bold', color: ACCENT_COLOR, textTransform: 'uppercase', letterSpacing: '0.1em', paddingBottom: '4px', borderBottom: `1px solid ${ACCENT_COLOR}` }}>Pendidikan</h3>
+          <div style={{ marginTop: '10px' }}>
+            {education.map((edu, index) => (
+              <div key={index} style={{ fontSize: '9pt', marginBottom: '12px' }}>
+                <p style={{ fontWeight: 'bold', margin: '0' }}>{edu.degree}</p>
+                <p style={{ color: '#d1d5db', margin: '0' }}>{edu.institution}</p>
+                <p style={{ color: '#9ca3af', fontSize: '8pt', fontStyle: 'italic', margin: '0' }}>{edu.graduation_year}</p>
+              </div>
+            ))}
+          </div>
         </section>
       </aside>
 
       {/* --- KONTEN UTAMA --- */}
-      <main className="w-2/3 p-10 text-gray-800">
+      <main style={{ width: '66.666667%', padding: '40px', color: TEXT_COLOR }}>
         {/* --- RINGKASAN --- */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 border-b-2 border-accent pb-2 mb-4">Ringkasan</h2>
-          <p className="text-base leading-relaxed">{summary}</p>
+        <section style={{ marginBottom: '30px' }}>
+          <h2 style={{ fontSize: '14pt', fontWeight: 'bold', color: BG_COLOR, borderBottom: `2px solid ${ACCENT_COLOR}`, paddingBottom: '4px', marginBottom: '12px', textTransform: 'uppercase' }}>Ringkasan</h2>
+          <p style={{ fontSize: '10pt', lineHeight: '1.5' }}>{summary}</p>
         </section>
 
         {/* --- PENGALAMAN KERJA --- */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-800 border-b-2 border-accent pb-2 mb-6">Pengalaman Kerja</h2>
-          <div className="space-y-6">
+          <h2 style={{ fontSize: '14pt', fontWeight: 'bold', color: BG_COLOR, borderBottom: `2px solid ${ACCENT_COLOR}`, paddingBottom: '4px', marginBottom: '20px', textTransform: 'uppercase' }}>Pengalaman Kerja</h2>
+          <div style={{}}>
             {work_experience.map((job, index) => (
-              <div key={index} className="relative pl-6 border-l-2 border-gray-200">
-                 <div className="absolute -left-[9px] top-1 w-4 h-4 bg-accent rounded-full border-4 border-white"></div>
-                <p className="text-xs text-gray-500">{job.start_date} - {job.end_date}</p>
-                <h3 className="text-lg font-semibold text-accent-dark">{job.job_title}</h3>
-                <p className="text-md font-medium text-gray-600 mb-2">{job.company}</p>
-                <ul className="list-disc list-outside ml-4 text-sm space-y-1 text-gray-700">
+              <div key={index} style={{ position: 'relative', paddingLeft: '20px', borderLeft: `2px solid #e5e7eb`, marginBottom: '20px' }}>
+                 {/* Timeline dot */}
+                 <div style={{ position: 'absolute', left: '-5px', top: '0', width: '10px', height: '10px', backgroundColor: ACCENT_COLOR, borderRadius: '50%', border: '2px solid #ffffff' }}></div>
+                
+                <p style={{ fontSize: '9pt', color: '#6b7280', margin: '0' }}>{job.start_date} - {job.end_date}</p>
+                <h3 style={{ fontSize: '11pt', fontWeight: 'bold', color: ACCENT_COLOR, margin: '4px 0 2px 0' }}>{job.job_title}</h3>
+                <p style={{ fontSize: '10pt', fontWeight: '500', color: TEXT_COLOR, margin: '0 0 8px 0' }}>{job.company}</p>
+                
+                <ul style={{ listStyleType: 'disc', listStylePosition: 'outside', marginLeft: '16px', padding: 0, fontSize: '9pt', color: '#374151' }}>
                   {job.description_points.map((point, i) => (
-                    <li key={i}>{point}</li>
+                    <li key={i} style={{ marginBottom: '4px' }}>{point}</li>
                   ))}
                 </ul>
               </div>
@@ -95,4 +126,4 @@ const CVModern: React.FC<{data?: CVResult| null}> = ({ data }) => {
   );
 };
 
-export default CVModern;
+export default CVModernPDF;
