@@ -1,22 +1,27 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import {
-  Building,
-  User,
-  MapPin,
-  BriefcaseBusiness,
-  UserCircle,
-} from "lucide-react";
-import SiswaDashboard from "@/components/roleComponents/SiswaDashboard";
-import IndustryDashboard from "@/components/roleComponents/industryDashboard";
-import SchoolDashboard from "@/components/roleComponents/SchoolDashboard";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
+import { UserCircle } from "lucide-react";
+import dynamic from "next/dynamic";
 import Cookies from "js-cookie";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { createApiCall, ENDPOINTS } from "../../../utils/config";
 import { getGreeting } from "@/utils/getGreeting";
 import Image from "next/image";
 import { alertSuccess } from "@/libs/alert";
 import Loader from "@/components/loader";
-import AdminDashboard from "@/components/roleComponents/adminDashboard";
+
+// Lazy load role-specific dashboards
+const SiswaDashboard = dynamic(() => import("@/components/roleComponents/SiswaDashboard"), {
+  loading: () => <Loader width={64} height={64} />,
+});
+const IndustryDashboard = dynamic(() => import("@/components/roleComponents/industryDashboard"), {
+  loading: () => <Loader width={64} height={64} />,
+});
+const SchoolDashboard = dynamic(() => import("@/components/roleComponents/SchoolDashboard"), {
+  loading: () => <Loader width={64} height={64} />,
+});
+const AdminDashboard = dynamic(() => import("@/components/roleComponents/adminDashboard"), {
+  loading: () => <Loader width={64} height={64} />,
+});
 
 interface Profile {
   photo_profile?: string | null;
@@ -32,38 +37,37 @@ const Dashboard: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await API.get(`${ENDPOINTS.USERS}/profile`, {
+      const response = await createApiCall({
+        url: `${ENDPOINTS.USERS}/profile`,
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      });
+      }, signal);
+      
       if (response.status === 200) {
-        switch (response.data.data.role) {
-          case "student":
-            response.data.data.role = "Siswa";
-            break;
-          case "company":
-            response.data.data.role = "Perusahaan";
-            break;
-          case "school":
-            response.data.data.role = "Sekolah";
-            break;
-          case "super_admin":
-            response.data.data.role = "Super Admin";
-            break;
-          default:
-            response.data.data.role = "";
-        }
-        setProfile(response.data.data);
-        console.log(response.data.data);
+        const data = response.data.data;
         
+        // Optimize role mapping
+        const roleMap: Record<string, string> = {
+          student: "Siswa",
+          company: "Perusahaan",
+          school: "Sekolah",
+          super_admin: "Super Admin",
+        };
+        
+        setProfile({
+          ...data,
+          role: roleMap[data.role] || "",
+        });
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error("Error fetching profile:", error);
+      }
     }
-  };
+  }, []);
 
   const alertLogin = async () => {
     const loginSuccess = localStorage.getItem("login-success");
@@ -74,10 +78,14 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchProfile();
+    const controller = new AbortController();
+    
+    fetchProfile(controller.signal);
     alertLogin();
     setRole(Cookies.get("authorization") as string);
-  }, []);
+    
+    return () => controller.abort();
+  }, [fetchProfile]);
 
   return (
     <main className="p-6 relative">
@@ -110,18 +118,20 @@ const Dashboard: React.FC = () => {
         </>
       )}
 
-      {role && role === "student" && (
-        <SiswaDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
-      )}
-      {role && role === "company" && (
-        <IndustryDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
-      )}
-      {role && role === "school" && (
-        <SchoolDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
-      )}
-      {role && role === "super_admin" && (
-        <AdminDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
-      )}
+      <Suspense fallback={<Loader width={64} height={64} />}>
+        {role === "student" && (
+          <SiswaDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+        )}
+        {role === "company" && (
+          <IndustryDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+        )}
+        {role === "school" && (
+          <SchoolDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+        )}
+        {role === "super_admin" && (
+          <AdminDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+        )}
+      </Suspense>
     </main>
   );
 };

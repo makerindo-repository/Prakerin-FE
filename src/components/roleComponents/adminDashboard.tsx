@@ -25,6 +25,10 @@ interface Summary {
   total_achievements: number;
   active_internships: number;
   total_feedback: number;
+  total_users_with_pro_account: number;
+  total_companies_with_pro_account: number;
+  total_schools_with_pro_account: number;
+  total_users_without_pro_account: number;
 }
 
 interface SystemMetrics {
@@ -139,7 +143,7 @@ export default function AdminDashboard({
         />
         <StatCard
           title="User Premium"
-          value={summary.active_internships}
+          value={summary.total_users_with_pro_account}
           icon={<Crown className="text-accent w-6 h-6 sm:w-7 sm:h-7" />}
         />
       </div>
@@ -184,16 +188,16 @@ export default function AdminDashboard({
             }))}
           />
         </div>
-
+        {/* User Premium */}
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5">
           <h3 className="font-bold text-base sm:text-lg mb-2">User Premium</h3>
           <PieChartCompenent
             legend=""
             tooltip="Total per Tipe Pengguna"
             dataList={[
-              { name: "Non Pro", value: summary.total_students, color: "#e2e600ff" },
-              { name: "Perusahaan", value: summary.total_companies, color: "#4f46e5" },
-              { name: "Sekolah", value: summary.total_schools, color: "#22c55e" },
+              { name: "Non Pro", value: summary.total_users_without_pro_account, color: "#e2e600ff" },
+              { name: "Perusahaan", value: summary.total_companies_with_pro_account, color: "#4f46e5" },
+              { name: "Sekolah", value: summary.total_schools_with_pro_account, color: "#22c55e" },
             ]}
           />
         </div>
@@ -205,9 +209,9 @@ export default function AdminDashboard({
         </p>
 
         <div className="grid grid-cols-1 gap-4">
-          <MetricBox label="Sekolah" value={systemMetrics.new_registrations} color="bg-blue-50" />
-          <MetricBox label="Universitas" value={systemMetrics.active_users} color="bg-green-50" />
-          <MetricBox label="Non Pro" value={systemMetrics.total_placements} color="bg-yellow-50" />
+          <MetricBox label="Sekolah" value={summary.total_schools_with_pro_account} color="bg-blue-50" />
+          <MetricBox label="Perusahaan" value={summary.total_companies_with_pro_account} color="bg-green-50" />
+          <MetricBox label="Non Pro" value={summary.total_users_without_pro_account} color="bg-yellow-50" />
         </div>
       </div>
       </div>

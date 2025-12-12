@@ -15,7 +15,7 @@ import {
   CheckSquare,
   MessageSquare,
   Award,
-  User, // Sudah ada
+  User,
   Menu,
   X,
   Clock,
@@ -40,11 +40,11 @@ import {
   ClipboardCheck,
   Stamp,
   Medal,
-  LayoutDashboard, // TAMBAHKAN: LogOut
+  LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { createApiCall, ENDPOINTS } from "../../../utils/config";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { alertConfirm } from "@/libs/alert";
@@ -189,6 +189,11 @@ const MENU_MAP: Record<string, MenuItem[]> = {
           label: "Bidang Magang",
           href: "/dashboard/master-data/bidang",
         },
+        {
+          icon: UsersRound,
+          label: "User",
+          href: "/dashboard/master-data/users",
+        },
       ],
     },
     {
@@ -254,43 +259,39 @@ export default function DashboardLayout({
 
   const fetchProfile = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await API.get(`${ENDPOINTS.USERS}/profile`, {
+      const response = await createApiCall({
+        url: `${ENDPOINTS.USERS}/profile`,
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-        signal,
-      });
+      }, signal);
+      
       if (response.status === 200) {
         const data = response.data.data;
-        console.log(data);
-        // map role to readable
-        const roleMap: Record<string, string> = {
-          student: "Siswa/Mahasiswa",
-          company: "Perusahaan",
-          school: "Sekolah/Universitas",
-          super_admin: "Super Admin",
+        
+        // Optimize role mapping
+        const getRoleLabel = (role: string, userData: any) => {
+          switch (role) {
+            case "school":
+              return userData.school?.type === "school" ? "Sekolah" : "Perguruan Tinggi";
+            case "student":
+              return userData.student?.school?.type === "school" ? "Siswa" : "Mahasiswa";
+            case "company":
+              return "Perusahaan";
+            case "super_admin":
+              return "Super Admin";
+            default:
+              return "";
+          }
         };
-        var roleLabel = "";
-        if (data.role === "school") {
-          roleLabel =
-            data.school.type === "school" ? "Sekolah" : "Perguruan Tinggi";
-        } else if (data.role === "student") {
-          roleLabel =
-            data.student.school.type === "school" ? "Siswa" : "Mahasiswa";
-        } else if (data.role === "company") {
-          roleLabel = "Perusahaan";
-        } else if (data.role === "super_admin") {
-          roleLabel = "Super Admin";
-        } else {
-          roleLabel = "";
-        }
-        // simpan juga role mentah sehingga bisa dipakai untuk memilih menu
-        setProfile({ ...data, role: roleLabel ?? "", rawRole: data.role });
-        // set menu berdasarkan role mentah dari API (lebih andal daripada cookie)
+        
+        const roleLabel = getRoleLabel(data.role, data);
+        
+        setProfile({ ...data, role: roleLabel, rawRole: data.role });
         setMenuItems(MENU_MAP[data.role] ?? []);
       }
     } catch (error: any) {
-      if (error.name !== "CanceledError" && error.name !== "AbortError") {
+      if (error.name !== "AbortError") {
         console.error("Error fetching profile:", error);
       }
     }

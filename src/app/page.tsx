@@ -1,12 +1,25 @@
 "use client";
-import Navigation from "@/components/Navigation";
-import LandingPage from "./Landingpage";
-import { useState, useEffect } from "react";
-import ContactPage from "@/components/Contact";
-import FooterPage from "@/components/Footer";
-import ServiceButton from "@/components/Service";
-import { API, ENDPOINTS } from "../../utils/config";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import dynamic from "next/dynamic";
+import { createApiCall, ENDPOINTS } from "../../utils/config";
 import Loader from "@/components/loader";
+
+// Lazy load components
+const Navigation = dynamic(() => import("@/components/Navigation"), {
+  loading: () => <div className="h-16 bg-white" />,
+});
+const LandingPage = dynamic(() => import("./Landingpage"), {
+  loading: () => <Loader width={64} height={64} />,
+});
+const ContactPage = dynamic(() => import("@/components/Contact"), {
+  loading: () => <div className="h-32" />,
+});
+const FooterPage = dynamic(() => import("@/components/Footer"), {
+  loading: () => <div className="h-16" />,
+});
+const ServiceButton = dynamic(() => import("@/components/Service"), {
+  loading: () => null,
+});
 
 interface Partner {
   id: string;
@@ -24,63 +37,104 @@ interface CommentPrakerin {
   comment: string;
 }
 
+interface HomepageData {
+  homepages: any;
+  partners: Partner[];
+  comment_prakerins: CommentPrakerin[];
+}
+
 export default function HomePage() {
   const [activeSection, setActiveSection] = useState("home");
+  const [data, setData] = useState<HomepageData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [homepages, setHomepages] = useState<any>();
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [commentPrakerins, setCommentPrakerins] = useState<CommentPrakerin[]>(
-    []
-  );
-
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await API.get(ENDPOINTS.HOMEPAGES);
-      setHomepages(response.data.data.homepages);
-      setPartners(response.data.data.partners);
-      setCommentPrakerins(response.data.data.comment_prakerins);
-    } catch (error) {
-      console.error("Error fetching homepage data:", error);
+      setError(null);
+      
+      // Parallel requests with timeout
+      const [csrfResponse, homepageResponse] = await Promise.allSettled([
+        createApiCall({ url: "/sanctum/csrf-cookie" }, signal),
+        createApiCall({ url: ENDPOINTS.HOMEPAGES }, signal),
+      ]);
+
+      if (homepageResponse.status === 'fulfilled') {
+        setData(homepageResponse.value.data.data);
+      } else {
+        throw new Error('Failed to fetch homepage data');
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error("Error fetching data:", err);
+        setError("Gagal memuat data. Silakan refresh halaman.");
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await API.get("/sanctum/csrf-cookie", {})
-        .then((response) => {
-          console.log("Cookies set successfully:", response);
-        })
-        .catch((error) => {
-          console.error("Error setting cookies:", error);
-        });
-    };
-    fetchData();
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
+  }, [fetchData]);
+
+  const memoizedProps = useMemo(() => ({
+    homepages: data?.homepages,
+    partners: data?.partners || [],
+    comments: data?.comment_prakerins || [],
+  }), [data]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              fetchData();
+            }}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <Navigation section={activeSection} setSection={setActiveSection} />
-      {loading && (
+      <Suspense fallback={<div className="h-16 bg-white" />}>
+        <Navigation section={activeSection} setSection={setActiveSection} />
+      </Suspense>
+      
+      {loading ? (
         <div className="fixed w-full inset-0 flex justify-center items-center h-screen z-10 bg-white">
           <Loader width={64} height={64} />
         </div>
+      ) : (
+        <>
+          <Suspense fallback={<Loader width={64} height={64} />}>
+            <LandingPage {...memoizedProps} />
+          </Suspense>
+          
+          <Suspense fallback={<div className="h-32" />}>
+            <ContactPage homepages={memoizedProps.homepages} />
+          </Suspense>
+          
+          <Suspense fallback={null}>
+            <ServiceButton />
+          </Suspense>
+          
+          <Suspense fallback={<div className="h-16" />}>
+            <FooterPage />
+          </Suspense>
+        </>
       )}
-      <LandingPage
-        homepages={homepages}
-        partners={partners}
-        comments={commentPrakerins}
-      />
-      <ContactPage homepages={homepages} />
-      <ServiceButton />
-      <FooterPage />
     </>
   );
 }

@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Cache compiled regex patterns for better performance
+const regexCache = new Map<string, RegExp>();
+
 // Escape karakter regex selain '*'
 const escapeRegex = (str: string) =>
   str.replace(/[-/\\^$+?.()|[\]{}]/g, "\\$&");
 
-// Cocokkan path dengan pola wildcard (*)
+// Optimized path matching with caching
 const matchPath = (path: string, patterns: string[]) => {
   return patterns.some((pattern) => {
-    const regex = new RegExp(
-      "^" + pattern.split("*").map(escapeRegex).join(".*") + "$"
-    );
+    let regex = regexCache.get(pattern);
+    if (!regex) {
+      regex = new RegExp(
+        "^" + pattern.split("*").map(escapeRegex).join(".*") + "$"
+      );
+      regexCache.set(pattern, regex);
+    }
     return regex.test(path);
   });
 };
@@ -55,25 +62,40 @@ const denyMap: Record<string, string[]> = {
 
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
+  
+  // Early return for static assets and API routes
+  if (
+    path.startsWith('/_next/') ||
+    path.startsWith('/api/') ||
+    path.includes('.') ||
+    path.startsWith('/favicon')
+  ) {
+    return NextResponse.next();
+  }
 
-  // Guest: hanya boleh masuk/daftar
+  // Optimize cookie access
   const token = req.cookies.get("userToken")?.value;
+  const role = req.cookies.get("authorization")?.value || "";
+  const activeCookie = req.cookies.get("active")?.value;
+  
+  // Guest access control
   if (!token) {
     if (path === "/masuk" || path === "/daftar") {
       return NextResponse.next();
-    } else {
-      return NextResponse.redirect(new URL("/masuk", req.url));
     }
+    return NextResponse.redirect(new URL("/masuk", req.url));
   }
+  
+  // Redirect authenticated users away from auth pages
   if (path === "/masuk" || path === "/daftar") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Check active status for protected routes that require activation
-  const activeCookie = req.cookies.get("active")?.value;
+  // Optimize active status check
   const isActive = !!activeCookie && ["true", "1", "yes", "on"].includes(activeCookie.toLowerCase());
+  
+  // Cache active-required patterns
   const requiresActive = [
-    // use patterns that match both the base path and subpaths
     "/dashboard/lowongan*",
     "/dashboard/cv*",
     "/dashboard/tasklist*",
@@ -81,12 +103,10 @@ export function middleware(req: NextRequest) {
     "/dashboard/sertifikat*",
   ];
 
-  // If route requires activation and user is not active, redirect to dashboard
+  // Early return for inactive users on protected routes
   if (!isActive && matchPath(path, requiresActive)) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
-
-  const role = req.cookies.get("authorization")?.value || "";
 
   // Cek deny-list dulu
   if (role in denyMap && matchPath(path, denyMap[role])) {
@@ -103,5 +123,10 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard", "/dashboard/:path*", "/masuk", "/daftar"],
+  matcher: [
+    "/dashboard/:path*",
+    "/masuk",
+    "/daftar",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };
