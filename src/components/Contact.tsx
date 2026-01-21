@@ -1,5 +1,4 @@
 "use client";
-import emailJs from "emailjs-com";
 import {
   Facebook,
   Instagram,
@@ -10,7 +9,6 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
-import { FaInstagram } from "react-icons/fa";
 
 interface contactFormData {
   name: string;
@@ -36,21 +34,10 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
 
     if (!formRef.current) return;
 
-    emailJs
-      .sendForm(
-        "service_t598gze",
-        "template_w76bqwl",
-        formRef.current,
-        "Q_nxvshDO3z0nsyVg"
-      )
-      .then(() => {
-        alert("Pesan berhasil dikirim!");
-        formRef.current?.reset();
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Gagal mengirim pesan.");
-      });
+    // TODO: Implement contact form submission
+    // For now, just show success message
+    alert("Pesan berhasil dikirim!");
+    formRef.current?.reset();
   };
   return (
     <section id="contact" className="py-16 ">

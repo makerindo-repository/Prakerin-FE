@@ -73,22 +73,25 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow access to homepage and public routes for everyone
+  const publicRoutes = ["/", "/masuk", "/daftar", "/tentang-kami", "/hubungi-cs", "/lapor-bug"];
+  if (publicRoutes.includes(path)) {
+    return NextResponse.next();
+  }
+
   // Optimize cookie access
   const token = req.cookies.get("userToken")?.value;
   const role = req.cookies.get("authorization")?.value || "";
   const activeCookie = req.cookies.get("active")?.value;
   
-  // Guest access control
-  if (!token) {
-    if (path === "/masuk" || path === "/daftar") {
-      return NextResponse.next();
+  // Require authentication only for dashboard routes
+  if (path.startsWith('/dashboard')) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/masuk", req.url));
     }
-    return NextResponse.redirect(new URL("/masuk", req.url));
-  }
-  
-  // Redirect authenticated users away from auth pages
-  if (path === "/masuk" || path === "/daftar") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  } else {
+    // Allow all other routes for everyone
+    return NextResponse.next();
   }
 
   // Optimize active status check

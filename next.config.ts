@@ -8,12 +8,13 @@ const nextConfig: NextConfig = {
   
   // Experimental features for performance
   experimental: {
-    optimizeCss: true,
+    // Disable CSS optimization temporarily to fix critters error
+    // optimizeCss: true,
     optimizePackageImports: ['lucide-react', 'react-icons'],
   },
   
   // Build optimizations
-  swcMinify: true,
+  // swcMinify is enabled by default in Next.js 15
   
   // Image optimization
   images: {
