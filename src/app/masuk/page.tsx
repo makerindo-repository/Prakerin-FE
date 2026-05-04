@@ -81,15 +81,25 @@ export default function LoginPage() {
 
       route.push("/dashboard");
     } catch (error: AxiosError | unknown) {
-      if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        if (typeof responseError === "string") {
-          await alertError(responseError);
+      if (error instanceof AxiosError) { //just a much more robust error checking, to see what went wrong on login before
+        const responseData = error.response?.data;
+        console.error("Login error response:", responseData);
+        if (responseData?.errors) {
+          if (typeof responseData.errors === "string") {
+            await alertError(responseData.errors);
+          } else if (typeof responseData.errors === "object" && responseData.errors !== null) {
+            setErrors(responseData.errors);
+          } else {
+            await alertError("Login Failed");
+          }
+        } else if (responseData?.message) {
+          await alertError(responseData.message);
         } else {
-          setErrors(responseError);
+          await alertError("Login Failed");
         }
+      } else {
+        await alertError("An unexpected error occurred");
       }
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +108,7 @@ export default function LoginPage() {
   return (
     <>
       <button
-        onClick={() => route.back()}
+        onClick={() => window.location.href = "/"}
         className="absolute top-4 left-4 p-3 rounded-full hover:bg-accent-hover transition bg-accent cursor-pointer shadow-md"
       >
         <ArrowLeft className="text-white" />
@@ -127,7 +137,7 @@ export default function LoginPage() {
                   id="email"
                   disabled={isSubmitting}
                   className={`w-full px-12 py-3 border rounded-lg pr-12 focus:ring-accent focus:border-accent outline-none transition-colors ${
-                    errors.password ? "border-red-500" : "border-gray-300"
+                    errors.email ? "border-red-500" : "border-gray-300"
                   } disabled:cursor-not-allowed disabled:opacity-50`}
                 />
                 <UserRound className="text-accent absolute left-4 top-3.5 w-5 h-5" />

@@ -100,7 +100,7 @@ export function IndustryLowongan() {
                     <div className="flex text-sm text-gray-500 space-x-2">
                       <MapPin className="w-4 h-4 my-auto" />
                       <p className="">
-                        {data.city_regency.name}, {data.province.name}
+                        {data.city_regency?.name ?? "N/A"}, {data.province?.name ?? "N/A"}
                       </p>
                     </div>
                   </div>

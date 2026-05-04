@@ -16,7 +16,10 @@ interface Partner {
 
 interface CommentPrakerin {
   id: string;
-  photo_profile: string;
+  photo_profile: string | null;
+  user?: {
+    photo_profile?: string | null;
+  };
   name: string;
   position: string;
   comment: string;
@@ -565,7 +568,7 @@ export default function LandingPage({
                                   relative overflow-hidden shadow-inner shrink-0"
                           >
                             <Image
-                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.photo_profile}`}
+                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.user?.photo_profile || item.photo_profile}`}
                               alt={item.name}
                               fill
                               sizes="96px"
@@ -706,13 +709,15 @@ export default function LandingPage({
 
             <div className="flex flex-col items-center text-center gap-3">
               <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-100 shadow bg-white">
-                <Image
-                  src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${activeComment.photo_profile}`}
-                  alt={activeComment.name}
-                  width={96}
-                  height={96}
-                  className="object-cover"
-                />
+                {(activeComment.user?.photo_profile || activeComment.photo_profile) && (
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${activeComment.user?.photo_profile || activeComment.photo_profile}`}
+                    alt={activeComment.name}
+                    width={96}
+                    height={96}
+                    className="object-cover"
+                  />
+                )}
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">

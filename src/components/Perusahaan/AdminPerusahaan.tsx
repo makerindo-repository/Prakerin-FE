@@ -135,6 +135,7 @@ const AdminPerusahaan: React.FC = () => {
       );
       await fetchData();
       await alertSuccess(`Perusahaan ${name} berhasil diterima!`);
+      console.log("API DEF", API.defaults.method);
     } catch (error) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;

@@ -357,7 +357,7 @@ export default function InternshipPage() {
                       {item.duration?.duration_value}{" "}
                       {getDurationUnit(item.duration?.duration_unit)}
                     </div>
-                    <div className="flex items-center gap-1">{`${item.company.address}, ${item.city_regency.name}, ${item.province.name}`}</div>
+                    <div className="flex items-center gap-1">{`${item.company.address}, ${item.city_regency?.name ?? "N/A"}, ${item.province?.name ?? "N/A"}`}</div>
                     {item.is_paid && (
                       <div className="flex items-center gap-1 ">
                         <CircleDollarSign className="w-4 h-4 " />

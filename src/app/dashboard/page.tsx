@@ -29,6 +29,8 @@ interface Profile {
   username?: string;
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('api/', ''); //BASE_URL to fetch profile pictures correctly since previous added /api into the path
+
 const Dashboard: React.FC = () => {
   const [role, setRole] = useState<string>("");
   const [profile, setProfile] = useState<Profile>({
@@ -66,6 +68,8 @@ const Dashboard: React.FC = () => {
       if (error.name !== "AbortError") {
         console.error("Error fetching profile:", error);
       }
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -99,7 +103,7 @@ const Dashboard: React.FC = () => {
               {profile.photo_profile ? (
                 <div className="w-16 h-16 relative rounded-full border-white border">
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${profile.photo_profile}`}
+                    src={`${BASE_URL}/storage/photo-profile/${profile.photo_profile}`}
                     alt="Photo Profile"
                     fill
                     sizes="100%"
@@ -109,6 +113,7 @@ const Dashboard: React.FC = () => {
               ) : (
                 <UserCircle className="w-16 h-16 text-white" />
               )}
+              {/*There should be something that made a random text appear, with the content of current page name / username if in profile page*/}
               <div>
                 <p className="text-sm opacity-90">{getGreeting()}</p>
                 <h1 className="text-xl font-semibold">{profile.name ? profile.name : profile?.username}</h1>

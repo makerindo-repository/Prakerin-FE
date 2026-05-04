@@ -263,8 +263,8 @@ const DetailLowonganPage = ({
                       <div className="flex items-center gap-1 text-gray-500 mt-1">
                         <MapPin className="w-4 h-4" />
                         <span className="text-sm">
-                          {data && data.city_regency.name},{" "}
-                          {data && data.province.name}
+                          {(data && data.city_regency?.name) ?? "N/A"},{" "}
+                          {(data && data.province?.name) ?? "N/A"}
                         </span>
                       </div>
                     </div>
@@ -273,14 +273,15 @@ const DetailLowonganPage = ({
                   {/* Action Buttons */}
                   {Cookies.get("authorization") === "student" && (
                     <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                      <Link
+                      {/* <Link
                         href={"#"}
-                        className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                        className="flex items-center justify-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                        aria-disabled
                       >
                         <MessageCircle className="w-4 h-4" />
                         <span>Chat Perusahaan</span>
                         <Lock className="w-4 h-4" />
-                      </Link>
+                      </Link> */}
                       <button
                         type="button"
                         className={`flex items-center justify-center gap-2 hover:text-blue-600 hover:bg-white px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors cursor-pointer ${

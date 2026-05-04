@@ -34,7 +34,7 @@ interface CreateJobOpening {
   location: location;
   grade: grade;
   is_paid: string | boolean;
-  quota: number;
+  qouta: number;
   is_available: string | boolean;
   field_id: string;
   duration_id: string;
@@ -64,7 +64,7 @@ const tambahLowonganPage: React.FC = () => {
     location: "",
     grade: "",
     is_paid: "",
-    quota: 1,
+    qouta: 1,
     is_available: "true",
     field_id: "",
     duration_id: "",
@@ -152,7 +152,7 @@ const tambahLowonganPage: React.FC = () => {
     if (Number(e.target.value) < 1 || Number(e.target.value) > 50) {
       return;
     }
-    setFormData({ ...formData, quota: Number(e.target.value) });
+    setFormData({ ...formData, qouta: Number(e.target.value) });
   };
 
   const handleChangeStartDate = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -431,7 +431,7 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="number"
-              value={formData.quota}
+              value={formData.qouta} //actual value in migration is named qouta, rather updating table
               onChange={handleChangeQuota}
               disabled={isSubmitting}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"

@@ -114,6 +114,20 @@ const PrakerinRegistrationSiswaForm: React.FC<
     formData.recaptcha_token = token;
     try {
 
+      // const data = new FormData(); //Penambahan const data untuk melewati format FormData
+
+      // data.append("username", formData.username);
+      // data.append("name", formData.name);
+      // data.append("school_id", formData.school_id);
+      // data.append("email", formData.email);
+      // data.append("password", formData.password);
+      // data.append("password_confirmation", formData.password_confirmation);
+      // data.append("recaptcha_token", formData.recaptcha_token);
+      // data.append("role", formData.role);
+
+      // if (profileImage) {
+      //   data.append("profile_image", profileImage);
+      // }
 
       const response = await API.post(`${ENDPOINTS.USERS}/register`, formData, {
         headers: {

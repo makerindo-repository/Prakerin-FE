@@ -31,7 +31,10 @@ interface Partner {
 
 interface CommentPrakerin {
   id: string;
-  photo_profile: string;
+  photo_profile: string | null;
+  user?: {
+    photo_profile?: string | null;
+  };
   name: string;
   position: string;
   comment: string;
@@ -61,8 +64,9 @@ export default function HomePage() {
 
       if (homepageResponse.status === 'fulfilled') {
         setData(homepageResponse.value.data.data);
-      } else {
-        throw new Error('Failed to fetch homepage data');
+      } else { //just a much more robust error handling, to know what went wrong
+        console.error("Homepage API error:", homepageResponse.reason);
+        throw homepageResponse.reason;
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {

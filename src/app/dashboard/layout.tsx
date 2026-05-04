@@ -82,7 +82,7 @@ type Role =
   | "";
 
 // A constant map of menus per role to avoid recreating arrays every render
-const MENU_MAP: Record<string, MenuItem[]> = {
+const MENU_MAP: Record<string, MenuItem[]> = { //every part that commented is do so because page is still in built, uncomment to access
   student: [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
     { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan" },
@@ -119,14 +119,14 @@ const MENU_MAP: Record<string, MenuItem[]> = {
       href: "/dashboard/sekolah",
     },
     { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou" },
-    { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
+    // { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
     { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback" },
     { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat" },
-    {
-      icon: Medal,
-      label: "Pembimbing Perusahaan",
-      href: "/dashboard/pembimbing-perusahaan",
-    },
+    // {
+    //   icon: Medal,
+    //   label: "Pembimbing Perusahaan",
+    //   href: "/dashboard/pembimbing-perusahaan",
+    // },
     { icon: User, label: "Profil", href: "/dashboard/profile" },
   ],
   school: [
@@ -139,13 +139,13 @@ const MENU_MAP: Record<string, MenuItem[]> = {
     { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan" },
     { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan" },
     { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou" },
-    { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
+    // { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
     { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback" },
-    {
-      icon: Medal,
-      label: "Guru Pembimbing",
-      href: "/dashboard/guru-pembimbing",
-    },
+    // {
+    //   icon: Medal,
+    //   label: "Guru Pembimbing",
+    //   href: "/dashboard/guru-pembimbing",
+    // },
     { icon: User, label: "Profil", href: "/dashboard/profile" },
   ],
   super_admin: [
@@ -169,11 +169,11 @@ const MENU_MAP: Record<string, MenuItem[]> = {
           label: "Sektor Perusahaan",
           href: "/dashboard/master-data/sektor",
         },
-        {
-          icon: IdCard,
-          label: "Posisi Magang(Deprecated)",
-          href: "/dashboard/master-data/posisi",
-        },
+        // {
+        //   icon: IdCard,
+        //   label: "Posisi Magang(Deprecated)",
+        //   href: "/dashboard/master-data/posisi",
+        // },
         {
           icon: CalendarClock,
           label: "Durasi Magang",
@@ -207,7 +207,7 @@ const MENU_MAP: Record<string, MenuItem[]> = {
       label: "Sekolah/Universitas",
       href: "/dashboard/sekolah",
     },
-    { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
+    //{ icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" }, //due to it still in construction, I commented it
     { icon: User, label: "Profil", href: "/dashboard/profile" },
   ],
 };
@@ -251,7 +251,8 @@ export default function DashboardLayout({
 
     Cookies.remove("userToken");
     Cookies.remove("authorization");
-    router.replace("/");
+    //router.replace("/");
+    window.location.href = "/"; //replaced the supposed replace to hard location change for auto reload
   };
   // Menu definitions moved outside component for readability and to avoid
   // recreating large arrays on every render. We'll compute the menu for the
@@ -268,6 +269,7 @@ export default function DashboardLayout({
       
       if (response.status === 200) {
         const data = response.data.data;
+        console.log(data);
         
         // Optimize role mapping
         const getRoleLabel = (role: string, userData: any) => {
@@ -287,7 +289,19 @@ export default function DashboardLayout({
         
         const roleLabel = getRoleLabel(data.role, data);
         
-        setProfile({ ...data, role: roleLabel, rawRole: data.role });
+        // Extract photo_profile from the correct nested location based on role
+        let photoProfile = null;
+        if (data.role === "student" && data.student?.photo_profile) {
+          photoProfile = data.student.photo_profile;
+        } else if (data.role === "school" && data.school?.photo_profile) {
+          photoProfile = data.school.photo_profile;
+        } else if (data.role === "company" && data.company?.photo_profile) {
+          photoProfile = data.company.photo_profile;
+        } else if (data.photo_profile) {
+          photoProfile = data.photo_profile;
+        }
+        
+        setProfile({ ...data, photo_profile: photoProfile, role: roleLabel, rawRole: data.role });
         setMenuItems(MENU_MAP[data.role] ?? []);
       }
     } catch (error: any) {
@@ -329,7 +343,9 @@ export default function DashboardLayout({
     : "-";
 
   const handleBack = () => {
-    router.push("/");
+    //router.push("/");
+    window.location.href = "/" //same same here
+    console.log("Force returned");
   };
 
   const toggleDropdown = useCallback(() => setDropdownOpen((v) => !v), []);

@@ -54,7 +54,7 @@ interface JobOpening {
   location: string;
   grade: string;
   is_paid: boolean;
-  quota: number;
+  qouta: number;
   is_available: boolean;
   field_id: string;
   duration_id: string;
@@ -100,7 +100,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
     location: "",
     grade: "",
     is_paid: false,
-    quota: 1,
+    qouta: 1,
     is_available: true,
     field_id: "",
     duration_id: "",
@@ -146,7 +146,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
           location: data.location,
           grade: data.grade,
           is_paid: data.is_paid.toString(),
-          quota: data.quota,
+          qouta: data.qouta,
           is_available: data.is_available.toString(),
           field_id: data.field_id,
           duration_id: data.duration_id,
@@ -275,7 +275,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
     if (Number(e.target.value) < 1 || Number(e.target.value) > 50) {
       return;
     }
-    setFormData({ ...formData, quota: Number(e.target.value) });
+    setFormData({ ...formData, qouta: Number(e.target.value) });
   };
 
   const handleChangeStartDate = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -689,13 +689,13 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             </label>
             <input
               type="number"
-              value={formData.quota}
+              value={formData.qouta}
               onChange={handleChangeQuota}
               disabled={isSubmitting}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            {errors.quota && (
-              <p className="mt-1 text-sm text-red-500">{errors.quota}</p>
+            {errors.qouta && (
+              <p className="mt-1 text-sm text-red-500">{errors.qouta}</p>
             )}
           </div>
 

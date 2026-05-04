@@ -117,8 +117,16 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         console.log("Job Opening:", response.data.data);
         setJobOpening(response.data.data);
       }
+      else {
+        console.error("Non-200 response:", response.status, response.data);
+      }
     } catch (error: any) {
-      console.error("Error fetching job opening:", error);
+      console.error("Error fetching job opening:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        error: error,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -149,9 +157,11 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   };
 
   useEffect(() => {
-    fetchJobOpening();
+    if (id) {
+      fetchJobOpening();
+    }
     setAuthorization(Cookies.get("authorization") as string);
-  }, []);
+  }, [id]);
 
   const getLocation = (
     location: "onsite" | "remote" | "hybrid" | "field"
@@ -284,8 +294,8 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                     <div className="flex items-center gap-1 text-gray-500 mt-1">
                       <MapPin className="w-4 h-4" />
                       <span className="text-sm">
-                        {jobOpening.city_regency.name},{" "}
-                        {jobOpening.province.name}
+                        {jobOpening.city_regency?.name ?? "N/A"},{" "}
+                        {jobOpening.province?.name ?? "N/A"}
                       </span>
                     </div>
                   </div>

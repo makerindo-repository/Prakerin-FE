@@ -104,7 +104,7 @@ const Users: React.FC = () => {
 
   const handleDelete = async (id: string, name: string) => {
     const confirm = await alertConfirm(
-      `Apakah anda yakin ingin menghapus perusahaan "${name}"?`
+      `Apakah anda yakin ingin menghapus pengguna "${name}"?` //from "perusahaan" to "pengguna" (versatility)
     );
     if (!confirm) return;
 
@@ -244,7 +244,7 @@ const Users: React.FC = () => {
                       <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer" onClick={() => router.push(`users/${item.id}`)}><Pencil className="w-4 h-4" /></button>
                       <button
                         onClick={() =>
-                          handleDelete(item.id, item.company?.name)
+                          handleDelete(item.id, item.username) //from item.company?.username to item.username (not every user is company, previous returns undefined)
                         }
                         className="p-2 text-red-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
                       >

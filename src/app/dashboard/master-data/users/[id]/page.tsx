@@ -98,7 +98,7 @@ interface FormErrors {
 export default function UserDetailPage() {
   const [authorization, setAuthorization] = useState("");
   const [userForm, setUserForm] = useState<UserForm>({
-    photo_profile: null,
+    photo_profile: null as File | null, //photo profile won't appear if did not explicitly defined as File
     username: "",
     email: "",
     password: "",
@@ -169,6 +169,8 @@ export default function UserDetailPage() {
 
   const params = useParams();
   const id = params?.id as string; // id dari route /users/[id]
+  
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('api/', ''); //BASE_URL to fetch profile pictures correctly since previous added /api into the path
 
   const fetchProfile = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -189,6 +191,12 @@ export default function UserDetailPage() {
           password: "",
           password_confirmation: "",
         });
+      
+      if (data.photo_profile) {
+        setProfileImage(
+          `${BASE_URL}/storage/photo-profile/${data.photo_profile}`
+        );
+      }
 
         const role = (data.role as string) ?? "";
         setAuthorization(role);
@@ -253,8 +261,9 @@ export default function UserDetailPage() {
   const handleSubmit = async (e: React.FormEvent, form: string) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    console.log("Hitting the handler");
     try {
+      console.log(form);
       let request = {};
       let text = "";
 
@@ -287,20 +296,28 @@ export default function UserDetailPage() {
           break;
       }
 
-      // submitting request
+      // submitting request + new explicitly added formData constant
+      const formData = new FormData();
+
+      Object.entries(request).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value as any);
+        }
+      });
+
+      formData.append("_method", "PATCH");
       const response = await API.post(
         `${ENDPOINTS.USERS}/${id}`,
-        {
-          ...request,
-          _method: "PATCH",
-        },
+        formData, //append formData in the response
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "multipart/form-data", //added this header that also present in profile as admin cannot edit pfp
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
       );
+      // console.log("Request:", request); //testing
+      // console.log("Backend see:", response.data); //testing
 
       fetchData();
       fetchProfile();
@@ -315,6 +332,7 @@ export default function UserDetailPage() {
         } else {
           setFormErrors(responseError);
         }
+        //console.error(responseError); //testing
       }
       console.error(error);
     } finally {
@@ -345,10 +363,8 @@ export default function UserDetailPage() {
       }
 
       const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        if (e.target?.result) {
-          setProfileImage(e.target.result as string);
-        }
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string);
       };
       reader.readAsDataURL(file);
 
@@ -512,7 +528,7 @@ export default function UserDetailPage() {
                   />
                 ) : typeof userForm.photo_profile === "string" ? (
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${userForm.photo_profile}`}
+                    src={`${BASE_URL}/storage/photo-profile/${userForm.photo_profile}`} //explicitly use BASE_URL above
                     alt="Profile"
                     width={100}
                     height={100}
@@ -751,7 +767,7 @@ export default function UserDetailPage() {
                       setCompanyForm({ ...companyForm, name: e.target.value })
                     }
                     className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
-                      formErrors.username ? "border-red-500" : "border-gray-300"
+                      formErrors.name ? "border-red-500" : "border-gray-300" //from email to name (simple wrong naming)
                     }`}
                   />
                   {formErrors.name && (

@@ -36,7 +36,10 @@ interface Partner {
 
 interface CommentPrakerin {
   id: string;
-  photo_profile: string;
+  photo_profile: string | null;
+  user?: {
+    photo_profile?: string | null;
+  };
   name: string;
   position: string;
   comment: string;
@@ -319,8 +322,9 @@ const PerusahaanPage: React.FC = () => {
       position: comment.position,
       comment: comment.comment,
     });
+    const photoProfile = comment.user?.photo_profile || comment.photo_profile;
     setImage(
-      `${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${comment.photo_profile}`
+      `${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${photoProfile}`
     );
   };
 
@@ -550,13 +554,15 @@ const PerusahaanPage: React.FC = () => {
 
                 {/* Foto Profil */}
                 <div className="w-24 h-24 rounded-full overflow-hidden shadow-md border border-gray-100 mb-4 relative">
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.photo_profile}`}
-                    alt={item.name}
-                    fill
-                    sizes="100%"
-                    className="object-cover"
-                  />
+                  {(item.user?.photo_profile || item.photo_profile) && (
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.user?.photo_profile || item.photo_profile}`}
+                      alt={item.name}
+                      fill
+                      sizes="100%"
+                      className="object-cover"
+                    />
+                  )}
                 </div>
 
                 {/* Detail Ulasan */}

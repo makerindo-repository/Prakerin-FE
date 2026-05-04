@@ -14,7 +14,7 @@ export default function DaftarPage() {
   return (
     <>
       <button
-        onClick={() => route.back()}
+        onClick={() => window.location.href = "/"}
         className="absolute top-4 left-4 p-3 rounded-full hover:bg-accent-hover transition bg-accent cursor-pointer shadow-md"
       >
         <ArrowLeft className="text-white" />

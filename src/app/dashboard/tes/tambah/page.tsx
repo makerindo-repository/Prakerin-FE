@@ -140,10 +140,10 @@ const tambahLowonganPage: React.FC = () => {
                 errors.type ? "border-red-500" : "border-gray-300"
               }`}
             >
-              <option value="">Pilih jenis tes</option>
-              <option value="theory">Tes teori</option>
-              <option value="practice">Tes praktik</option>
-              <option value="other">Tes lainnya</option>
+              <option value="">Pilih Jenis Tes</option>
+              <option value="theory">Tes Teori</option>
+              <option value="practice">Tes Praktik</option>
+              <option value="other">Tes Lainnya</option>
             </select>
             {errors.type && (
               <p className="mt-1 text-sm text-red-500">{errors.type}</p>
