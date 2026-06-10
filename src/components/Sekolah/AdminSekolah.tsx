@@ -8,6 +8,7 @@ import {
   Search,
   Trash,
   X,
+  Eye,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
@@ -31,6 +32,7 @@ interface Data {
   id: string;
   email: string;
   school: {
+    id: string;
     name: string;
     is_verified: boolean;
   };
@@ -248,6 +250,7 @@ const AdminSekolah: React.FC = () => {
             <tbody>
               {data && loading !== true ? (
                 data.map((item, index) => (
+                  console.log(item),
                   <tr key={item.id} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-gray-800">
                       {index + 1 + (pages.activePages - 1) * 10}
@@ -278,6 +281,7 @@ const AdminSekolah: React.FC = () => {
                           >
                             <Check className="w-4 h-4" />
                           </button>
+
                           <Link
                             href={`mailto:${item.email}`}
                             className="p-2 text-accent hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
@@ -286,6 +290,15 @@ const AdminSekolah: React.FC = () => {
                           </Link>
                         </>
                       )}
+
+                      {/* View Students */}
+                      <Link
+                        href={`/dashboard/sekolah/${item.school.id}/murid`}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+
                       <button
                         onClick={() => handleDelete(item.id, item.school?.name)}
                         className="p-2 text-red-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"

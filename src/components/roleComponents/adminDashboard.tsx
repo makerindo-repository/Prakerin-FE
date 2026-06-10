@@ -76,8 +76,7 @@ export default function AdminDashboard({
         });
 
         const data: DashboardData = response.data;
-        console.log(response.data);
-        
+        console.log ("Dashboard Data:", response.data);
         setSummary(data.summary);
         setSystemMetrics(data.system_metrics);
         setRegionalData(data.regional_data);
@@ -227,7 +226,7 @@ export default function AdminDashboard({
           <ActivityBox
             title="Lowongan Aktif"
             value={summary.total_job_openings}
-            desc={`${Math.round(summary.total_job_openings / summary.total_companies)} rata-rata per perusahaan`}
+            desc={`${(summary.total_job_openings / summary.total_companies).toFixed(2)} rata-rata per perusahaan`}
           />
           <ActivityBox title="Total Penghargaan" value={summary.total_achievements} desc="Diberikan kepada siswa & perusahaan" />
           <ActivityBox title="Ulasan Platform" value={summary.total_feedback} desc="Dari pengguna aktif" />

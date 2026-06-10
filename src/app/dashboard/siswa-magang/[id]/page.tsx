@@ -3,6 +3,7 @@ import {
   Briefcase,
   Calendar,
   Clock,
+  Cookie,
   Info,
   MapIcon,
   MapPin,
@@ -160,10 +161,21 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
         },
       });
 
-      const response = await Promise.all([student, task]);
+      //Fixed the problem where internship data did not shows up, I just hope tasks won't be the same, haven't testicle- I mean tested that.
+      //Anyway, added internship const, added internship in the response, and change setData
+      //The fix on line 274 is to make Gender not a link but an actual text, and for 290, 291, and 332 as safeguard should internship data missing.
+      const internship = API.get(`${ENDPOINTS.INTERNSHIPS}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`
+        }
+      });
 
+      const response = await Promise.all([student, task, internship]);
       console.log(response);
-      setData(response[0].data.data);
+      setData({
+        ...response[0].data.data,
+        internship: response[2].data.data
+      });
       setTasks(response[1].data.data);
     } catch (error) {
       console.error(error);
@@ -259,7 +271,7 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
                     <div className="text-sm text-gray-600">
                       Nomer Telepon : {data.student.phone_number ?? "-"}
                     </div>
-                    <div className="text-sm text-teal-600 mt-1 cursor-pointer hover:underline">
+                    <div className="text-sm text-gray-600">
                       Jenis Kelamin : {getGender(data.student.gender ?? "")}
                     </div>
                   </div>
@@ -275,8 +287,8 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
                           Durasi
                         </div>
                         <div className="text-sm font-medium text-gray-900">
-                          {getDateIndonesia(data.internship.start_date)} -{" "}
-                          {getDateIndonesia(data.internship.end_date)}
+                          {getDateIndonesia(data.internship?.start_date)} -{" "}
+                          {getDateIndonesia(data.internship?.end_date)}
                         </div>
                       </div>
                     </div>
@@ -317,7 +329,7 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
                   Kembali
                 </Link>
                 <Link
-                  href={`/dashboard/siswa-magang/${data.internship.id}/penempatan`}
+                  href={`/dashboard/siswa-magang/${data.internship?.id}/penempatan`}
                   className="px-6 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg font-medium transition-colors"
                 >
                   Ubah
