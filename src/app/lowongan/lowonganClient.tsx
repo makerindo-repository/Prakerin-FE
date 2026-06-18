@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import { useRouter, useSearchParams } from "next/navigation";
 import DescriptionRendererLite from "@/components/RenderBlocksLite";
 import LoaderData from "@/components/loader";

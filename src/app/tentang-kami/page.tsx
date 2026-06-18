@@ -6,7 +6,7 @@ import Navigation from "@/components/Navigation";
 import { useEffect, useState } from "react";
 import Loader from "@/components/loader";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 
 const cards = [
   {

@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import DescriptionRenderer from "@/components/RenderBlocks";
 import RenderBlocks from "@/components/RenderBlocks";
 import Cookies from "js-cookie";

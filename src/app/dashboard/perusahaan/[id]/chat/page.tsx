@@ -16,7 +16,7 @@ import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
 import Image from "next/image";
 import RenderBlocks from "@/components/RenderBlocks";
-import { API, ENDPOINTS } from "../../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import UnderConstruction from "@/components/UnderConstruction";
 
 interface Company {

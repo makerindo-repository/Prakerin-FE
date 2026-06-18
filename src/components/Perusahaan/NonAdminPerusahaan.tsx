@@ -14,7 +14,7 @@ import TabsCompenent from "@/components/TabsCompenent";
 import PaginationComponent from "@/components/PaginationComponent";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import LoaderData from "@/components/loader";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 
 interface Perusahaan {
   id: string;

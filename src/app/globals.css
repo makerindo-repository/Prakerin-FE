@@ -137,3 +137,182 @@ h3 {
 .colored-toast .swal2-html-container {
   color: white;
 }
+
+/* Darkmode */
+@variant dark (&:where(.dark, .dark *));
+
+/* --- OVERRIDE DARK MODE FINAL --- */
+@layer base {
+  .dark,
+  .dark body, 
+  .dark main,
+  .dark header,
+  .dark nav,
+  .dark #beranda, 
+  .dark #ulasan, 
+  .dark div[class*="min-h-screen"],
+  .dark div[class*="bg-slate-50"],
+  .dark div[class*="bg-gray-50"]{
+    background-color: #0f172a !important;
+  }
+
+  .dark #mitra-sekolah {
+    background-image: none !important;
+    background-color: #0f172a !important;
+  }
+
+  .dark #mitra-sekolah .bg-gradient-to-r.from-blue-50 {
+    background-image: linear-gradient(to right, #0f172a 0%, transparent 100%) !important;
+  }
+  
+  .dark #mitra-sekolah .bg-gradient-to-l.from-indigo-50 {
+    background-image: linear-gradient(to left, #0f172a 0%, transparent 100%) !important;
+  }
+
+  .dark #mitra-sekolah .bg-white {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  .dark #mitra-sekolah .bg-gradient-to-br.from-blue-100 {
+    background-image: linear-gradient(to bottom right, #334155, #1e293b) !important;
+  }
+
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
+  .dark p, .dark span, .dark .text-gray-600, .dark .text-gray-500, .dark .text-gray-700, .dark .text-gray-800 {
+    color: #ffffff !important;
+  }
+
+  .dark label,
+  .dark form span,
+  .dark form p,
+  .dark .text-sm.text-gray-600,
+  .dark .text-sm.text-gray-700 {
+    color: #ffffff !important;
+  }
+
+  /* Fix Select bawaan dan Wrapper React Select */
+  .dark select,
+  .dark div[class*="-control"] {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border: 1px solid #334155 !important;
+  }
+
+  /* Fix warna text & menu dropdown React Select */
+  .dark div[class*="-singleValue"],
+  .dark div[class*="-placeholder"] {
+    color: #ffffff !important;
+  }
+  .dark div[class*="-menu"] {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+  }
+  .dark div[class*="-option"] {
+    background-color: transparent !important;
+    color: #ffffff !important;
+  }
+  .dark div[class*="-option"]:hover {
+    background-color: #334155 !important;
+  }
+
+  .dark a[href*="\/"] button,
+  .dark button[class*="rounded-full"] {
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .dark select option {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+  }
+
+  /* Memaksa card utama form pendaftaran asSiswa menjadi gelap */
+  .dark section:not([class*="bg-gradient"]) .bg-white,
+  .dark .bg-gray-50,
+  .dark .bg-gray-100,
+  .dark div.max-w-4xl,
+  .dark div.max-w-4xl .bg-white {
+    background-color: #1e293b !important;
+  }
+
+  .dark #beranda button.bg-white {
+    background-color: #1e293b !important;
+    border: 1px solid #ffffff !important;
+  }
+  
+  .dark .bg-gray-200\/50 {
+    background-color: #1e293b !important;
+    border: 1px solid #ffffff !important;
+  }
+
+  /* Perbaikan input text, email, password & border di form */
+  .dark input[type="text"],
+  .dark input[type="email"],
+  .dark input[type="password"],
+  .dark textarea{
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border: 1px solid #334155 !important;
+  }
+
+  .dark .bg-gradient-to-r.from-white,
+  .dark .bg-gradient-to-r.from-blue-50,
+  .dark .bg-gradient-to-r.from-gray-50 {
+    background-image: linear-gradient(to right, #0f172a 0%, transparent 100%) !important;
+  }
+  
+  .dark .bg-gradient-to-l.from-white,
+  .dark .bg-gradient-to-l.from-indigo-50,
+  .dark .bg-gradient-to-l.from-gray-50 {
+    background-image: linear-gradient(to left, #0f172a 0%, transparent 100%) !important;
+  }
+
+  .dark input::placeholder {
+    color: #64748b !important;
+  }
+
+  .dark label,
+  .dark span[class*="text-gray"],
+  .dark p[class*="text-gray"] {
+    color: #ffffff !important;
+  }
+
+  html.dark,
+  .dark body,
+  .dark main,
+  .dark div[class*="min-h-screen"],
+  .dark div[class*="w-screen"],
+  .dark main > div {
+    background-color: #0f172a !important;
+    background-image: none !important;
+  }
+
+  .dark textarea,
+  .dark [contenteditable="true"],
+  .dark [contenteditable="true"] *,
+  .dark #editorjs,
+  .dark #editorjs * {
+    color: #ffffff !important;
+    caret-color: #ffffff !important;
+  }
+
+  .dark input {
+    color: #ffffff !important;
+  }
+
+html.dark, 
+body.dark, 
+div.dark,
+.dark {
+  background-color: #0f172a !important;
+}
+
+.dark .min-h-screen,
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-gray-50
+ {
+  background-color: #0f172a !important;
+}
+
+}

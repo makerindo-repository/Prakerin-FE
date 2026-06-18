@@ -3,7 +3,7 @@ import { ArrowLeft, Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { alertError, alertSuccess } from "@/libs/alert";

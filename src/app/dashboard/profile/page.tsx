@@ -13,7 +13,7 @@ import {
   UserSquare,
 } from "lucide-react";
 import { ChangeEvent, use, useEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { EditorProps } from "@/components/Editor";
 import dynamic from "next/dynamic";

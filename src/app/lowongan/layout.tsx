@@ -3,7 +3,7 @@ import ContactPage from "@/components/Contact";
 import FooterPage from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 
 export default function LowonganLayout({
   children,

@@ -11,7 +11,7 @@ import Image from "next/image";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Loader from "../loader";
 import TabsComponent from "../TabsCompenent";
 import PaginationComponent from "../PaginationComponent";

@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import Link from "next/link";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
 import { AxiosError } from "axios";

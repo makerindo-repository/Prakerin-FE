@@ -3,7 +3,7 @@ import { Search, UserCircle, UsersRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import Link from "next/link";
-import { API, ENDPOINTS } from "../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Image from "next/image";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";

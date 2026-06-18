@@ -10,7 +10,7 @@ import PieChartCompenent from "../Charts/PieChartCompenent";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RatingSummary } from "@/models/feedback";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { mapRatingToData } from "@/utils/mapRatingToData";
 import Loader from "../loader";

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
-import { createApiCall, ENDPOINTS } from "../../utils/config";
+import { createApiCall, ENDPOINTS } from "@/utils/config";
 import Loader from "@/components/loader";
 
 // Lazy load components

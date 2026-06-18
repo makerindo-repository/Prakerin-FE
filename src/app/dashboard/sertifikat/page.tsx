@@ -1,7 +1,7 @@
 "use client";
 import { CircleArrowRight, MapPin, MessageSquareText } from "lucide-react";
 import { useEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import UnderConstruction from "@/components/UnderConstruction";
 import { useRouter } from "next/navigation";

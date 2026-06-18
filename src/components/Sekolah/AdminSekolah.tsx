@@ -17,7 +17,7 @@ import { AxiosError } from "axios";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
 import LoaderData from "@/components/loader";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Link from "next/link";
 
 type ActiveTab = "Semua" | "Diterima" | "Belum Diterima";

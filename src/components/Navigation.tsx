@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import Link from "next/link";
 import { Menu } from "lucide-react";
+import DarkModeToggle from "./DarkModeToggle";
 
 interface NavigationProps {
   section: string;
@@ -109,7 +110,9 @@ export default function Navigation({ setSection }: NavigationProps) {
             </Link>
           </div>
 
-          <div className="hidden md:flex space-x-4">
+          <div className="hidden md:flex space-x-4 items-center">
+            {/* Tambahan: Toggle untuk versi Desktop */}
+            <DarkModeToggle />
             {!mounted ? null : isLoggedIn ? (
               <Link
                 href="/dashboard"
@@ -133,6 +136,11 @@ export default function Navigation({ setSection }: NavigationProps) {
                 </Link>
               </>
             )}
+          </div>
+
+          {/* Tambahan: Toggle untuk versi Mobile */}
+          <div className="flex items-center space-x-2 md:hidden">
+            <DarkModeToggle />
           </div>
 
           {/* Mobile menu button */}
