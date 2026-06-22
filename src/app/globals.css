@@ -59,6 +59,10 @@
   --background: #ffffff;
 }
 
+html {
+  scroll-snap-type: y mandatory;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
   color: var(--text-primary) !important;

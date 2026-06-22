@@ -56,7 +56,7 @@ export default function Navigation({ setSection }: NavigationProps) {
   const handleOtherNavClick = () => setCurrentHash("");
 
   return (
-    <nav className="bg-white/80 backdrop-blur-lg shadow-lg sticky top-0 z-50 transition-all duration-300">
+    <nav className="w-[85%] mx-auto bg-white mt-10 z-50 transition-all duration-300">
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
@@ -69,7 +69,7 @@ export default function Navigation({ setSection }: NavigationProps) {
             </Link>
           </div>
 
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex space-x-8 ml-auto mr-8">
             <Link
               href="/"
               onClick={handleBerandaClick}
@@ -78,15 +78,6 @@ export default function Navigation({ setSection }: NavigationProps) {
               }`}
             >
               Beranda
-            </Link>
-            <Link
-              href="/tentang-kami"
-              onClick={handleOtherNavClick}
-              className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                pathName === "/tentang-kami" ? "text-accent" : "text-gray-700"
-              }`}
-            >
-              Tentang Kami
             </Link>
             <Link
               href="/lowongan"
@@ -108,6 +99,15 @@ export default function Navigation({ setSection }: NavigationProps) {
             >
               Mitra
             </Link>
+            <Link
+              href="/tentang-kami"
+              onClick={handleOtherNavClick}
+              className={`font-semibold hover:text-accent transition-colors duration-300 ${
+                pathName === "/tentang-kami" ? "text-accent" : "text-gray-700"
+              }`}
+            >
+              Tentang Kami
+            </Link>
           </div>
 
           <div className="hidden md:flex space-x-4 items-center">
@@ -123,14 +123,8 @@ export default function Navigation({ setSection }: NavigationProps) {
             ) : (
               <>
                 <Link
-                  href="/daftar"
-                  className="px-4 py-2 font-semibold border border-accent text-accent text-prakerin rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300"
-                >
-                  Daftar
-                </Link>
-                <Link
                   href="/masuk"
-                  className="px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
+                  className="px-8 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
                 >
                   Login
                 </Link>

@@ -11,9 +11,6 @@ const Navigation = dynamic(() => import("@/components/Navigation"), {
 const LandingPage = dynamic(() => import("./Landingpage"), {
   loading: () => <Loader width={64} height={64} />,
 });
-const ContactPage = dynamic(() => import("@/components/Contact"), {
-  loading: () => <div className="h-32" />,
-});
 const FooterPage = dynamic(() => import("@/components/Footer"), {
   loading: () => <div className="h-16" />,
 });
@@ -38,12 +35,35 @@ interface CommentPrakerin {
   name: string;
   position: string;
   comment: string;
+  created_at: string;
 }
 
+interface JobOpening {
+  id: string;
+  title: string;
+  company: {
+    name: string;
+    logo?: string;
+  };
+  city_regency: {
+    name: string;
+  };
+  province: {
+    name: string;
+  };
+  is_paid: boolean;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    photo_profile: string;
+  };
+  save_job_opening?: boolean;
+}
 interface HomepageData {
   homepages: any;
   partners: Partner[];
   comment_prakerins: CommentPrakerin[];
+  job_openings: JobOpening[];
 }
 
 export default function HomePage() {
@@ -63,7 +83,7 @@ export default function HomePage() {
       ]);
 
       if (homepageResponse.status === 'fulfilled') {
-        setData(homepageResponse.value.data.data);
+        setData(homepageResponse.value.data);
       } else { //just a much more robust error handling, to know what went wrong
         console.error("Homepage API error:", homepageResponse.reason);
         throw homepageResponse.reason;
@@ -88,6 +108,7 @@ export default function HomePage() {
     homepages: data?.homepages,
     partners: data?.partners || [],
     comments: data?.comment_prakerins || [],
+    jobOpenings: data?.job_openings || [],
   }), [data]);
 
   if (error) {
@@ -124,10 +145,6 @@ export default function HomePage() {
         <>
           <Suspense fallback={<Loader width={64} height={64} />}>
             <LandingPage {...memoizedProps} />
-          </Suspense>
-          
-          <Suspense fallback={<div className="h-32" />}>
-            <ContactPage homepages={memoizedProps.homepages} />
           </Suspense>
           
           <Suspense fallback={null}>
