@@ -31,7 +31,6 @@ export default function LowonganLayout({
     <>
       <Navigation section="internship" setSection={() => null} />
       {children}
-      <ContactPage homepages={homepages} />
       <FooterPage />
     </>
   );

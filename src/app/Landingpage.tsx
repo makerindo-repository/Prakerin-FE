@@ -260,12 +260,11 @@ export default function LandingPage({
   const paginatedCompanyPartners = companyPartners.slice((companyPage - 1) * companyPerPage, companyPage * companyPerPage);
   const totalJobPages = Math.ceil(jobOpenings.length / jobsPerPage);
   const paginatedJobOpenings = jobOpenings.slice((jobPage - 1) * jobsPerPage, jobPage * jobsPerPage);
-  console.log(paginatedJobOpenings);
 
   return (
     <div className="snap-y snap-mandatory">
       {/* Beranda */}
-      <section id="beranda" className="w-[85%] mx-auto px-4 pt-4 snap-start">
+      <section id="beranda" className="w-[85%] mx-auto px-4 pt-4 snap-start scroll-mt-40">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6 animate-slide-in-left">
             <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent leading-tight">
@@ -738,7 +737,7 @@ export default function LandingPage({
           </div>
         </div>
         {/* CTA */}
-        <div className="bg-gradient-to-r from-accent to-accent-light md:m-15 md:rounded-3xl text-white md:py-8 py-2 snap-start">
+        <div className="bg-gradient-to-r from-accent to-accent-light md:m-15 md:rounded-3xl text-white md:py-8 py-2">
           <div className="container flex flex-col md:flex-row items-center justify-between mx-auto md:px-20 px-4 gap-6">
             <div className="text-center md:text-left">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -759,7 +758,7 @@ export default function LandingPage({
       </section>
 
       {/* FAQ */}
-      <section className="py-16 w-[85%] mx-auto">
+      <section className="py-16 w-[85%] mx-auto snap-start">
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 text-center">

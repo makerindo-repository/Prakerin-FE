@@ -52,13 +52,11 @@ export default function LoginPage() {
       recaptchaRef.current.reset();
       data.recaptcha_token = token;
 
-      const response = await API.post(`${ENDPOINTS.USERS}/login`, {
+      const response = await API.post(`${ENDPOINTS.LOGIN}`, {
         email: data.email,
         password: data.password,
         recaptcha_token: data.recaptcha_token,
       });
-
-      // console.log(response.data);
 
       Cookies.set("userToken", response.data.token, {
         expires: isRemember ? 30 : 1,
