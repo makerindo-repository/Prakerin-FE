@@ -91,10 +91,12 @@ export default function Navigation({ setSection }: NavigationProps) {
               Lowongan
             </Link>
             <Link
-              href="/#mitra-sekolah"
-              onClick={handleMitraClick}
+              href="/mitra"
+              onClick={handleOtherNavClick}
               className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                isMitraActive ? "text-accent" : "text-gray-700"
+                pathName === "/mitra" || pathName.startsWith("/mitra/")
+                  ? "text-accent"
+                  : "text-gray-700"
               }`}
             >
               Mitra
