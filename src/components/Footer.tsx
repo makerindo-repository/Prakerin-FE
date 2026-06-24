@@ -153,7 +153,7 @@ export default function FooterPage() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2025 Prakerin.ID. Semua hak dilindungi undang-undang.
+            © 2026 Prakerin.ID. Semua hak dilindungi undang-undang.
           </p>
         </div>
       </div>

@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";

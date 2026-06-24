@@ -25,7 +25,7 @@ import { CityRegency } from "@/models/cityRegency";
 import { Sector } from "@/models/sector";
 import Loader from "@/components/loader";
 import useDebounce from "@/hooks/useDebounce";
-import { API, createApiCall, ENDPOINTS } from "../../../../../../utils/config";
+import { API, createApiCall, ENDPOINTS } from "@/utils/config";
 
 // Lazy load heavy components
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {

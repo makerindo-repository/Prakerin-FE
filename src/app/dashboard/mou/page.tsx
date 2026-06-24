@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
-import { API, ENDPOINTS } from "../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import TabsComponent from "@/components/TabsCompenent";

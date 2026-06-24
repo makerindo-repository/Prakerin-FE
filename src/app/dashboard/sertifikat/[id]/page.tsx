@@ -7,7 +7,7 @@ import Link from "next/link";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/loader";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 
 interface FormData {
   name: string;

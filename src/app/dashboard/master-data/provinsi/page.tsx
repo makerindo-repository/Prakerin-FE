@@ -1,7 +1,7 @@
 "use client";
 import { Check, CirclePlus, Map, Pencil, Search, Trash, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import { Province } from "@/models/province";

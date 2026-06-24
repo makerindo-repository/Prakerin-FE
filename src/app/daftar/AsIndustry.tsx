@@ -2,7 +2,7 @@
 import React, { useState, ChangeEvent, useRef } from "react";
 import { Upload, Eye, EyeOff } from "lucide-react";
 import { AxiosError } from "axios";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import ReCAPTCHA from "react-google-recaptcha";
 import { alertError, alertSuccess } from "@/libs/alert";
 import Cookies from "js-cookie";

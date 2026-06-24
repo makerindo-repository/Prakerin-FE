@@ -12,7 +12,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { use, useEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";

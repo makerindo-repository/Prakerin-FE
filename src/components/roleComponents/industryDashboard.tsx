@@ -12,7 +12,7 @@ import BarChartComponent from "../Charts/BarChartCompenent";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import { RatingSummary } from "@/models/feedback";
 import { mapRatingToData } from "@/utils/mapRatingToData";
 import NotFoundComponent from "../NotFoundComponent";

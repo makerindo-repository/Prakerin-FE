@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
 import Image from "next/image";
-import { API, ENDPOINTS } from "../../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 
 interface Company {
   photo_profile?: string | null;

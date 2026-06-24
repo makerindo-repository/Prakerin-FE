@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
-import { API, ENDPOINTS } from "../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { profile } from "console";
 import Image from "next/image";
@@ -184,7 +184,7 @@ const PerusahaanPage: React.FC = () => {
         );
       } else if (editingCommentId) {
         await API.post(
-          `${ENDPOINTS.COMMENTPRAKERINS}/${editingCommentId}`,
+          `${ENDPOINTS.COMMENT_PRAKERINS}/${editingCommentId}`,
           FormCommentPrakerin,
           {
             params: {
@@ -207,7 +207,7 @@ const PerusahaanPage: React.FC = () => {
             });
             break;
           case "Ulasan":
-            await API.post(ENDPOINTS.COMMENTPRAKERINS, FormCommentPrakerin, {
+            await API.post(ENDPOINTS.COMMENT_PRAKERINS, FormCommentPrakerin, {
               headers: {
                 Authorization: `Bearer ${Cookies.get("userToken")}`,
                 "Content-Type": "multipart/form-data",
@@ -297,7 +297,7 @@ const PerusahaanPage: React.FC = () => {
     );
     if (!confirm) return;
     try {
-      await API.delete(`${ENDPOINTS.COMMENTPRAKERINS}/${comment.id}`, {
+      await API.delete(`${ENDPOINTS.COMMENT_PRAKERINS}/${comment.id}`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
@@ -406,9 +406,9 @@ const PerusahaanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative min-h-[200px]">
-          {partners.filter((p) => p.type === "school").length > 0 ? (
+          {partners.filter((p) => p.type !== "company").length > 0 ? (
             partners
-              .filter((p) => p.type === "school")
+              .filter((p) => p.type !== "company")
               .map((item) => (
                 <div
                   key={item.id}
@@ -736,6 +736,7 @@ const PerusahaanPage: React.FC = () => {
                         <option value="">Pilih tipe mitra</option>
                         <option value="company">Perusahaan</option>
                         <option value="school">Sekolah</option>
+                        <option value="university">Universitas</option>
                       </select>
                       {formError.type && (
                         <p className="text-sm text-red-500">{formError.type}</p>

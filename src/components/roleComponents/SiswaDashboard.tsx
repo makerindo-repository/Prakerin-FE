@@ -1,6 +1,6 @@
 import { BriefcaseBusiness, Building, MapPin } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
 import { alertError } from "@/libs/alert";
