@@ -43,6 +43,26 @@ interface JobOpening {
   updated_at: string;
 }
 
+interface ProvinceAndCityRegencyAndField {
+  id: string;
+  name: string;
+}
+
+interface Duration {
+  id: string;
+  duration_value: number;
+  duration_unit: string;
+}
+
+interface Filter {
+  province_id: string;
+  city_regency_id: string;
+  grade: string;
+  field_id: string;
+  duration_id: string;
+}
+
+
 export default function LandingPage({
   homepages,
   partners,
@@ -68,12 +88,30 @@ export default function LandingPage({
   const jobsPerPage = 6;
 
   const [inputSearch, setInputSearch] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
   const [partnerTab, setPartnerTab] = useState<"school" | "university">("school");
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(null);
   const [truncatedComments, setTruncatedComments] = useState<Record<string, boolean>>({});
   const commentRefs = useState<Map<string, HTMLParagraphElement>>(new Map())[0];
   const observers = useState<Map<string, ResizeObserver>>(new Map())[0];
+
+  const [filterData, setFilterData] = useState<Filter>({
+    province_id: "",
+    city_regency_id: "",
+    grade: "",
+    field_id: "",
+    duration_id: "",
+  });
+
+  const [provinces, setProvinces] = useState<ProvinceAndCityRegencyAndField[]>(
+    []
+  );
+  const [cityRegencies, setCityRegencies] = useState<
+    ProvinceAndCityRegencyAndField[]
+  >([]);
+  const [durations, setDurations] = useState<Duration[]>([]);
+  const [fields, setFields] = useState<ProvinceAndCityRegencyAndField[]>([]);
 
   const registerCommentRef = (el: HTMLParagraphElement | null
     , id: string) => {
@@ -111,6 +149,15 @@ export default function LandingPage({
     if (inputSearch.trim() !== "") {
       router.push(`/lowongan?search=${encodeURIComponent(inputSearch)}`);
     }
+  };
+  const handleFilterChange = (
+    key: keyof Filter,
+    value: string
+  ) => {
+    setFilterData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
   const schoolPartners = (partners || []).filter((p) => p.type === "school");
@@ -231,6 +278,7 @@ export default function LandingPage({
             <div className="relative animate-slide-in-right mt-8 md:mt-0">
               <div className="bg-white rounded-2xl shadow-2xl">
                 <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 overflow-hidden">
+                  <img src="/images/pengalaman.jpeg" alt="" />
                 </div>
               </div>
             </div>
@@ -386,7 +434,7 @@ export default function LandingPage({
           </p>
         </div>
         <div className="mb-4 flex justify-between items-center">
-          <p className="text-gray-600 text-sm font-semibold">X lowongan</p>
+          <p className="text-gray-600 text-sm font-semibold">{jobOpenings.length} lowongan</p>
           <Link href="/lowongan" className="font-semibold text-blue-600">Cari Lowongan →</Link>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 p-6 mb-4 rounded-xl">
@@ -402,33 +450,81 @@ export default function LandingPage({
           </div>
 
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] gap-4">
+            {/* Provinsi */}
             <div className="relative">
-              <select className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full">
-                <option>Lokasi</option>
+              <select
+              value={filterData.province_id} onChange={(e) => handleFilterChange("province_id", e.target.value)}
+              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+              >
+                <option value="">Provinsi</option>
+                {provinces.map((province) => (
+                  <option key={province.id} value={province.id}>
+                    {province.name}
+                  </option>
+                ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
+            {/* Kotkab */}
             <div className="relative">
-              <select className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full">
-                <option>Tingkat Pendidikan</option>
+              <select
+              value={filterData.city_regency_id} onChange={(e) => handleFilterChange("city_regency_id", e.target.value)} disabled={!filterData.province_id}
+              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+              >
+                <option value="">Kota / Kabupaten</option>
+                {cityRegencies.map((cityreg) => (
+                  <option key={cityreg.id} value={cityreg.id}>
+                    {cityreg.name}
+                  </option>
+                ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
+            {/* Tingkat */}
             <div className="relative">
-              <select className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full">
-                <option>Bidang Magang</option>
+              <select
+              value={filterData.grade} onChange={(e) => handleFilterChange("grade", e.target.value)}
+              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+              >
+                <option value="">Tingkat</option>
+                <option value="smk">Tingkat SMK</option>
+                <option value="mahasiswa">Tingkat Mahasiswa</option>
+                <option value="all">Semua Tingkat</option>
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
+            {/* Bidang */}
             <div className="relative">
-              <select className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full">
-                <option>Durasi Magang</option>
+              <select
+              value={filterData.field_id} onChange={(e) => handleFilterChange("field_id", e.target.value)}
+              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+              >
+                <option value="">Bidang</option>
+                {fields.map((field) => (
+                  <option key={field.id} value={field.id}>
+                    {field.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
+            {/* Durasi */}
+            <div className="relative">
+              <select value={filterData.duration_id} onChange={(e) => handleFilterChange("duration_id", e.target.value)}
+              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+              >
+                <option value="">Durasi</option>
+                {durations.map((duration) => (
+                  <option key={duration.id} value={duration.id}>
+                    {duration.duration_value} {duration.duration_unit}
+                  </option>
+                ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
             <button
-              onClick={handleSearch}
+              onClick={() => setSearch(inputSearch)}
               className="bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all px-6 py-3 rounded-xl"
             >
               <Search className="w-6 h-6 text-white-400" />

@@ -129,6 +129,15 @@ export default function Navigation({ setSection }: NavigationProps) {
             >
               Tentang Kami
             </Link>
+            <Link
+              href="/panduan"
+              onClick={handleOtherNavClick}
+              className={`font-semibold hover:text-accent transition-colors duration-300 ${
+                pathName === "/panduan" ? "text-accent" : "text-gray-700"
+              }`}
+            >
+              Panduan
+            </Link>
           </div>
 
           <div className="hidden md:flex space-x-4 items-center">
