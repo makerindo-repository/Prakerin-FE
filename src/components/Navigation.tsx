@@ -90,17 +90,36 @@ export default function Navigation({ setSection }: NavigationProps) {
             >
               Lowongan
             </Link>
-            <Link
-              href="/mitra"
-              onClick={handleOtherNavClick}
-              className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                pathName === "/mitra" || pathName.startsWith("/mitra/")
-                  ? "text-accent"
-                  : "text-gray-700"
-              }`}
-            >
-              Mitra
-            </Link>
+
+            {/* Mitra Dropdown */}
+            <div className="relative group">
+              <button
+                className={`font-semibold hover:text-accent transition-colors duration-300 ${
+                  pathName === "/mitra"
+                    ? "text-accent"
+                    : "text-gray-700"
+                }`}
+              >
+                Mitra
+              </button>
+
+              <div className="absolute hidden group-hover:block bg-white shadow-lg rounded-lg py-2 min-w-[260px] z-50">
+                <Link
+                  href="/mitra?type=company"
+                  className="block px-4 py-2 hover:bg-gray-50"
+                >
+                  Mitra Perusahaan
+                </Link>
+
+                <Link
+                  href="/mitra?type=education"
+                  className="block px-4 py-2 hover:bg-gray-50"
+                >
+                  Mitra Sekolah & Universitas
+                </Link>
+              </div>
+            </div>
+
             <Link
               href="/tentang-kami"
               onClick={handleOtherNavClick}

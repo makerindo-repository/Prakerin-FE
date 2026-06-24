@@ -60,33 +60,23 @@ export default function LandingPage({
   const commentsPerPage = 3;
   const [schoolPage, setSchoolPage] = useState(1);
   const schoolPerPage = 8;
+  const [universityPage, setUniversityPage] = useState(1);
+  const universityPerPage = 8;
   const [companyPage, setCompanyPage] = useState(1);
   const companyPerPage = 8;
   const [jobPage, setJobPage] = useState(1);
   const jobsPerPage = 6;
 
   const [inputSearch, setInputSearch] = useState<string>("");
+  const [partnerTab, setPartnerTab] = useState<"school" | "university">("school");
   const [showCommentModal, setShowCommentModal] = useState(false);
-  const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(
-    null
-  );
-  const [truncatedComments, setTruncatedComments] = useState<
-    Record<string, boolean>
-  >({});
+  const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(null);
+  const [truncatedComments, setTruncatedComments] = useState<Record<string, boolean>>({});
   const commentRefs = useState<Map<string, HTMLParagraphElement>>(new Map())[0];
   const observers = useState<Map<string, ResizeObserver>>(new Map())[0];
 
-  // Refs untuk scroll sections
-  const schoolScrollRef = useRef<HTMLDivElement>(null);
-  const companyScrollRef = useRef<HTMLDivElement>(null);
-  const commentScrollRef = useRef<HTMLDivElement>(null);
-
-  // State untuk pause scroll
-  const [schoolPaused, setSchoolPaused] = useState(false);
-  const [companyPaused, setCompanyPaused] = useState(false);
-  const [commentPaused, setCommentPaused] = useState(false);
-
-  const registerCommentRef = (el: HTMLParagraphElement | null, id: string) => {
+  const registerCommentRef = (el: HTMLParagraphElement | null
+    , id: string) => {
     const cleanup = () => {
       const existing = observers.get(id);
       if (existing) existing.disconnect();
@@ -117,131 +107,6 @@ export default function LandingPage({
     observers.set(id, ro);
   };
 
-  // Infinite scroll logic untuk auto scroll dan drag scroll
-  useEffect(() => {
-    const setupInfiniteScroll = (
-      ref: React.RefObject<HTMLDivElement>,
-      isPaused: boolean,
-      speed: number = 1
-    ) => {
-      const container = ref.current;
-      if (!container) return;
-
-      let animationId: number;
-      let isDragging = false;
-      let startX: number;
-      let scrollLeftStart: number;
-
-      // Auto scroll
-      const autoScroll = () => {
-        if (container && !isPaused && !isDragging) {
-          container.scrollLeft += speed;
-
-          // Reset infinite scroll - saat mencapai setengah, reset ke awal
-          const halfWidth = container.scrollWidth / 2;
-          if (container.scrollLeft >= halfWidth - 10) {
-            container.scrollLeft = 1;
-          }
-        }
-
-        animationId = requestAnimationFrame(autoScroll);
-      };
-
-      // Handle scroll event untuk infinite loop
-      const handleScrollEvent = () => {
-        const halfWidth = container.scrollWidth / 2;
-
-        // Jika scroll melewati setengah, reset ke awal
-        if (container.scrollLeft >= halfWidth - 10) {
-          container.scrollLeft = 1;
-        }
-        // Jika scroll ke kiri sampai mentok, lompat ke ujung kanan
-        else if (container.scrollLeft <= 1) {
-          container.scrollLeft = halfWidth - container.clientWidth - 10;
-        }
-      };
-
-      // Mouse drag handlers
-      const handleMouseDown = (e: MouseEvent) => {
-        isDragging = true;
-        startX = e.pageX - container.offsetLeft;
-        scrollLeftStart = container.scrollLeft;
-        container.style.cursor = "grabbing";
-        container.style.userSelect = "none";
-      };
-
-      const handleMouseMove = (e: MouseEvent) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const x = e.pageX - container.offsetLeft;
-        const walk = (x - startX) * 2; // Scroll speed multiplier
-        container.scrollLeft = scrollLeftStart - walk;
-      };
-
-      const handleMouseUp = () => {
-        isDragging = false;
-        container.style.cursor = "grab";
-        container.style.userSelect = "auto";
-      };
-
-      const handleMouseLeave = () => {
-        if (isDragging) {
-          isDragging = false;
-          container.style.cursor = "grab";
-          container.style.userSelect = "auto";
-        }
-      };
-
-      // Set initial cursor
-      container.style.cursor = "grab";
-
-      // Start auto scroll immediately
-      animationId = requestAnimationFrame(autoScroll);
-
-      // Add event listeners
-      container.addEventListener("scroll", handleScrollEvent, {
-        passive: true,
-      });
-      container.addEventListener("mousedown", handleMouseDown);
-      container.addEventListener("mousemove", handleMouseMove);
-      container.addEventListener("mouseup", handleMouseUp);
-      container.addEventListener("mouseleave", handleMouseLeave);
-
-      return () => {
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-        }
-        container.removeEventListener("scroll", handleScrollEvent);
-        container.removeEventListener("mousedown", handleMouseDown);
-        container.removeEventListener("mousemove", handleMouseMove);
-        container.removeEventListener("mouseup", handleMouseUp);
-        container.removeEventListener("mouseleave", handleMouseLeave);
-      };
-    };
-
-    const cleanupSchool = setupInfiniteScroll(
-      schoolScrollRef as React.RefObject<HTMLDivElement>,
-      schoolPaused,
-      1.5
-    );
-    const cleanupCompany = setupInfiniteScroll(
-      companyScrollRef as React.RefObject<HTMLDivElement>,
-      companyPaused,
-      1.8
-    );
-    const cleanupComment = setupInfiniteScroll(
-      commentScrollRef as React.RefObject<HTMLDivElement>,
-      commentPaused,
-      1.2
-    );
-
-    return () => {
-      cleanupSchool?.();
-      cleanupCompany?.();
-      cleanupComment?.();
-    };
-  }, [schoolPaused, companyPaused, commentPaused]);
-
   const handleSearch = () => {
     if (inputSearch.trim() !== "") {
       router.push(`/lowongan?search=${encodeURIComponent(inputSearch)}`);
@@ -249,6 +114,7 @@ export default function LandingPage({
   };
 
   const schoolPartners = (partners || []).filter((p) => p.type === "school");
+  const universityPartners = (partners || []).filter((p) => p.type === "university");
   const companyPartners = (partners || []).filter((p) => p.type === "company");
 
   // "sElAlU DuPlIcAtE UnTuK InFiNiTe eFfEcT YaNg sEaMlEsS" MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW
@@ -256,10 +122,27 @@ export default function LandingPage({
   const paginatedComments = comments.slice((currentCommentPage - 1) * commentsPerPage, currentCommentPage * commentsPerPage);
   const totalSchoolPages = Math.ceil(schoolPartners.length / schoolPerPage);
   const paginatedSchoolPartners = schoolPartners.slice((schoolPage - 1) * schoolPerPage, schoolPage * schoolPerPage);
+  const totalUniversityPages = Math.ceil(universityPartners.length / universityPerPage);
+  const paginatedUniversityPartners = universityPartners.slice((universityPage - 1) * universityPerPage, universityPage * universityPerPage);
   const totalCompanyPages = Math.ceil(companyPartners.length / companyPerPage);
   const paginatedCompanyPartners = companyPartners.slice((companyPage - 1) * companyPerPage, companyPage * companyPerPage);
   const totalJobPages = Math.ceil(jobOpenings.length / jobsPerPage);
   const paginatedJobOpenings = jobOpenings.slice((jobPage - 1) * jobsPerPage, jobPage * jobsPerPage);
+
+  const activePartners =
+    partnerTab === "school"
+      ? paginatedSchoolPartners
+      : paginatedUniversityPartners;
+
+  const activePage =
+    partnerTab === "school"
+      ? schoolPage
+      : universityPage;
+
+  const activeTotalPages =
+    partnerTab === "school"
+      ? totalSchoolPages
+      : totalUniversityPages;
 
   return (
     <div className="snap-y snap-mandatory">
@@ -364,8 +247,8 @@ export default function LandingPage({
             </h2>
           </div>
           <div className="mb-4 flex justify-between items-center">
-            <p className="text-gray-600 text-sm font-semibold">X ulasan</p>
-            <Link href="/lowongan" className="font-semibold text-blue-600">Lainnya →</Link>
+            <p className="text-gray-600 text-sm font-semibold">{comments.length} ulasan</p>
+            {/* <Link href="/" className="font-semibold text-blue-600">Lainnya →</Link> */}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {comments.length !== 0 ? (
@@ -607,11 +490,39 @@ export default function LandingPage({
               <p className="text-gray-600">
                 Bergabunglah dengan sekolah dan perguruan tinggi terbaik yang telah mempercayai kami dalam program magang siswa
               </p>
+              <Link
+                href="/mitra"
+                className="pb-3 font-semibold transition-colors duration-200 border-b-3 border-transparent ml-auto text-accent">
+                  Selengkapnya →
+              </Link>
             </div>
             {/* Right cards */}
             <div>
+              <div className="flex gap-8 mb-6 border-b border-gray-200">
+                <button
+                  onClick={() => setPartnerTab("school")}
+                  className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
+                    partnerTab === "school"
+                      ? "text-accent border-accent"
+                      : "text-gray-400 border-transparent hover:text-accent"
+                  }`}
+                >
+                  Sekolah
+                </button>
+
+                <button
+                  onClick={() => setPartnerTab("university")}
+                  className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
+                    partnerTab === "university"
+                      ? "text-accent border-accent"
+                      : "text-gray-400 border-transparent hover:text-accent"
+                  }`}
+                >
+                  Universitas
+                </button>
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {paginatedSchoolPartners.map((item) => (
+                {activePartners.map((item) => (
                   <div
                     key={item.id}
                     className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-center"
@@ -626,24 +537,34 @@ export default function LandingPage({
                   </div>
                 ))}
               </div>
-              {totalSchoolPages > 1 && (
+              {activeTotalPages > 1 && (
                 <div className="flex justify-end items-center gap-4 mt-8">
                   <button
-                    onClick={() =>
-                      setSchoolPage((prev) => Math.max(prev - 1, 1))
-                    }
+                    onClick={() => {
+                      if (partnerTab === "school") {
+                        setSchoolPage((prev) => Math.max(prev - 1, 1));
+                      } else {
+                        setUniversityPage((prev) => Math.max(prev - 1, 1));
+                      }
+                    }}
                     disabled={schoolPage === 1}
                     className="text-accent disabled:opacity-30"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
                   <div className="flex gap-2">
-                    {Array.from({ length: totalSchoolPages }).map((_, index) => (
+                    {Array.from({ length: activeTotalPages }).map((_, index) => (
                       <button
                         key={index}
-                        onClick={() => setSchoolPage(index + 1)}
+                        onClick={() => {
+                          if (partnerTab === "school") {
+                            setSchoolPage(index + 1);
+                          } else {
+                            setUniversityPage(index + 1);
+                          }
+                        }}
                         className={`h-3 rounded-full transition-all ${
-                          schoolPage === index + 1
+                          activePage === index + 1
                             ? "w-8 bg-accent"
                             : "w-3 bg-gray-300"
                         }`}
@@ -651,11 +572,17 @@ export default function LandingPage({
                     ))}
                   </div>
                   <button
-                    onClick={() =>
-                      setSchoolPage((prev) =>
-                        Math.min(prev + 1, totalSchoolPages)
-                      )
-                    }
+                    onClick={() => {
+                      if (partnerTab === "school") {
+                        setSchoolPage((prev) =>
+                          Math.min(prev + 1, totalSchoolPages)
+                        );
+                      } else {
+                        setUniversityPage((prev) =>
+                          Math.min(prev + 1, totalUniversityPages)
+                        );
+                      }
+                    }}
                     disabled={schoolPage === totalSchoolPages}
                     className="text-accent disabled:opacity-30"
                   >
@@ -733,6 +660,11 @@ export default function LandingPage({
               <p className="text-gray-600">
                 Wujudkan magang di perusahaan impian anda!
               </p>
+              <Link
+                href="/mitra"
+                className="pb-3 font-semibold transition-colors duration-200 border-b-3 border-transparent ml-auto text-accent">
+                  Selengkapnya →
+              </Link>
             </div>
           </div>
         </div>

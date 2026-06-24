@@ -244,7 +244,7 @@ export default function InternshipPage() {
     <>
       <section className="mt-15">
         <div className="w-[85%] mx-auto">
-          <h1 className="text-6xl font-bold text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">Lowongan Magang</h1>
+          <h1 className="text-6xl font-bold py-4 text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">Lowongan Magang</h1>
           <p className="text-black text-xl text-left mb-4">
             Temukan peluang magang dari berbagai perusahaan ternama. Daftar,
             lamar, dan mulai perjalanan kariermu bersama kami.

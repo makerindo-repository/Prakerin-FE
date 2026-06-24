@@ -31,9 +31,38 @@ export default function PartnerPage() {
   const searchParams = useSearchParams();
   const keyword = searchParams.get("search") || "";
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [educationTab, setEducationTab] = useState<"school" | "university">("school");
+
+  const schoolPartners = (partners || []).filter((p) => p.type === "school");
+  const universityPartners = (partners || []).filter((p) => p.type === "university");
+  const companyPartners = (partners || []).filter((p) => p.type === "company");
 
   const [currentPage, setCurrentPage] = useState(1);
   const partnerPerPage = 9;
+
+  const type = searchParams.get("type") || "company";
+  const displayedPartners =
+    type === "company"
+      ? companyPartners
+      : educationTab === "school"
+        ? schoolPartners
+        : universityPartners;
+
+  const filteredPartners = displayedPartners.filter((partner) => partner.name.toLowerCase().includes(search.toLowerCase()));
+  const pageContent = {
+    company: {
+      title: "Mitra Perusahaan",
+      description:
+        "Temukan peluang magang dari berbagai perusahaan ternama. Daftar, lamar, dan mulai perjalanan kariermu bersama kami.",
+    },
+
+    education: {
+      title: "Mitra Sekolah & Universitas",
+      description:
+        "Jelajahi jaringan sekolah dan universitas yang telah bekerja sama dengan Prakerin untuk mendukung pengembangan talenta muda Indonesia.",
+    },
+  };
+  const currentContent = pageContent[type as keyof typeof pageContent] ?? pageContent.company;
 
   const fetchData = async () => {
     try {
@@ -55,9 +84,12 @@ export default function PartnerPage() {
   useEffect(() => {
     fetchData();
   }, []);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [type, educationTab]);
 
-  const totalPartnerPages = Math.ceil(partners.length / partnerPerPage);
-  const paginatedPartners = partners.slice((currentPage - 1) * partnerPerPage, currentPage * partnerPerPage);
+const totalPartnerPages = Math.ceil(filteredPartners.length / partnerPerPage);
+const paginatedPartners = filteredPartners.slice((currentPage - 1) * partnerPerPage, currentPage * partnerPerPage);
 
   return (
     <>
@@ -70,10 +102,11 @@ export default function PartnerPage() {
       <section className="mt-15">
         <div className="w-[85%] mx-auto">
           <div>
-            <h1 className="text-6xl font-bold text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">Mitra Perusahaan</h1>
+            <h1 className="text-6xl font-bold text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">
+              {currentContent.title}
+            </h1>
             <p className="text-black text-xl text-left mb-4">
-            Temukan peluang magang dari berbagai perusahaan ternama. Daftar,
-            lamar, dan mulai perjalanan kariermu bersama kami.
+              {currentContent.description}
             </p>
           </div>
 
@@ -83,7 +116,7 @@ export default function PartnerPage() {
                 type="text"
                 onChange={(e) => setInputSearch(e.target.value)}
                 value={inputSearch}
-                placeholder="Cari lowongan magang impian anda..."
+                placeholder="Cari mitra disini..."
                 className="w-full pl-4 pr-4 py-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent rounded-xl"
               />
               <button
@@ -94,6 +127,32 @@ export default function PartnerPage() {
               </button>
             </div>
           </div>
+
+          {type === "education" && (
+            <div className="flex gap-4 mb-6">
+              <button
+                onClick={() => setEducationTab("school")}
+                className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
+                  educationTab === "school"
+                    ? "text-accent border-accent"
+                    : "text-gray-400 border-transparent hover:text-accent"
+                }`}
+              >
+                Sekolah
+              </button>
+
+              <button
+                onClick={() => setEducationTab("university")}
+                className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
+                  educationTab === "university"
+                    ? "text-accent border-accent"
+                    : "text-gray-400 border-transparent hover:text-accent"
+                }`}
+              >
+                Universitas
+              </button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedPartners.map((item) => (
