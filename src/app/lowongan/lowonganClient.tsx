@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import { API, ENDPOINTS } from "@/utils/config";
 import { useRouter, useSearchParams } from "next/navigation";
 import DescriptionRendererLite from "@/components/RenderBlocksLite";
@@ -74,6 +74,14 @@ const getLabel = (type: string, value: string) => {
 };
 
 export default function InternshipPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InternshipPageContent />
+    </Suspense>
+  )
+}
+
+export function InternshipPageContent() {
   const [openFilter, setOpenFilter] = useState<string | null>(null);
   const [data, setData] = useState<Lowongan[]>([]);
   const [search, setSearch] = useState<string>("");
