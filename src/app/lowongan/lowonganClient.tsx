@@ -81,7 +81,7 @@ export default function InternshipPage() {
   )
 }
 
-export function InternshipPageContent() {
+function InternshipPageContent() {
   const [openFilter, setOpenFilter] = useState<string | null>(null);
   const [data, setData] = useState<Lowongan[]>([]);
   const [search, setSearch] = useState<string>("");

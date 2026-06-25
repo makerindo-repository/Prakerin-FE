@@ -32,7 +32,7 @@ export default function PartnerPage() {
   )
 }
 
-export function PartnerPageContent() {
+function PartnerPageContent() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [inputSearch, setInputSearch] = useState<string>("");
   const [search, setSearch] = useState<string>("");
