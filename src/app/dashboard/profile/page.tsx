@@ -1153,7 +1153,7 @@ export default function ProfilePage() {
                       schoolForm.province_id === null ||
                       schoolForm.province_id === ""
                     }
-                    value={schoolForm.city_regency_id}
+                    value={schoolForm.city_regency_id ?? ""}
                     onChange={(e) => {
                       setSchoolForm({
                         ...schoolForm,

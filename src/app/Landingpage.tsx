@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, Inbox, Search, Users2, ChevronLeft, ChevronRight, ChevronDown, MapPin } from "lucide-react";
+import { ArrowRight, CheckCircle2, Inbox, Search, Users2, ChevronLeft, ChevronRight, ChevronDown, MapPin, Building } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -563,60 +563,96 @@ export default function LandingPage({
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedJobOpenings.map((job) => (
-            <div key={job.id} className="bg-white border border-gray-200 shadow-sm p-5 flex flex-col rounded-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-15 h-15 relative">
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/profile/${job.user.photo_profile}`}
-                    alt={job.company.name}
-                    fill
-                    className="object-contain"
-                  />
+          {paginatedJobOpenings.length > 0 ? (
+            paginatedJobOpenings.slice(0, 3).map((job) => (
+              <Link
+                key={job.id}
+                href={`/lowongan/${job.id}`}
+                className="bg-white border border-gray-200 shadow-sm p-5 flex flex-col rounded-xl hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-15 h-15 relative">
+                    {job.user?.photo_profile ? (
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
+                        alt={job.company?.name ?? "Company"}
+                        fill
+                        className="object-contain rounded-full"
+                      />
+                    ) : (
+                      <Building className="w-15 h-15 text-accent" />
+                    )}
+                  </div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Berakhir:{" "}
+                    <span className="text-red-500">
+                      {job.closing_date
+                        ? new Date(job.closing_date).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "-"}
+                    </span>
+                  </p>
                 </div>
-                <p className="text-sm font-medium text-gray-500">
-                  Berakhir:{" "}
-                  <span className="text-red-500">
-                    {new Date(job.closing_date).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </p>
-              </div>
-              <p className="text-sm text-blue-500 mb-4">{job.company.name}</p>
-              <h2 className="text-xl font-bold">{job.title}</h2>
-            <div className="flex items-center gap-2 text-gray-600 mb-6 mt-4 text-sm">
-                <MapPin className="w-4 h-4" /> {job.city_regency.name}, {job.province.name}
-            </div>
-              <div className="flex items-center gap-2 text-blue-600 mb-6 text-sm">
-                {job.qouta} Posisi
-              </div>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-full capitalize">
-                    {job.location}
-                </span>
-              </div>
-              <div className="border-t-4 border-gray-200 mb-4 mt-10"></div>
-              {/* Push footer down */}
-              <div className="mt-auto">
-                <p className="text-sm text-gray-500 mb-4">
+
+                <p className="text-sm text-blue-500 mb-4">{job.company?.name ?? "-"}</p>
+                <h2 className="text-xl font-bold">{job.title}</h2>
+
+                <div className="flex items-center text-gray-600 mb-6 mt-4 gap-2 text-sm">
+                  <MapPin className="w-4 h-4 shrink-0" />
+                  {job.city_regency?.name ?? "N/A"}, {job.province?.name ?? "N/A"}
+                </div>
+
+                <div className="flex items-center gap-2 text-blue-600 mb-6 text-sm">
+                  {job.qouta} Posisi
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {job.is_paid && (
+                    <span className="px-3 py-1 bg-green-50 text-green-600 text-sm rounded-3xl">
+                      Dibayar
+                    </span>
+                  )}
+                  {job.location && (
+                    <span className="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-3xl">
+                      {job.location === "remote"
+                        ? "Remote"
+                        : job.location === "onsite"
+                        ? "Onsite"
+                        : "Hybrid"}
+                    </span>
+                  )}
+                </div>
+
+                <div className="border-t-4 border-gray-200 mb-4 mt-10"></div>
+
+                {/* Push footer down */}
+                <div className="mt-auto">
+                  <p className="text-sm text-gray-500 mb-4">
                     Diposting{" "}
-                    {new Date(job.created_at).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                    })}
-                </p>
-                <button className="w-full rounded-xl bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all">
-                  Lihat Detail
-                </button>
-              </div>
+                    {job.created_at
+                      ? new Date(job.created_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-"}
+                  </p>
+                  <button className="w-full rounded-xl bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all">
+                    Lihat Detail
+                  </button>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500">Tidak ada lowongan magang tersedia saat ini.</p>
             </div>
-          ))}
+          )}
         </div>
-      </section>
+              </section>
 
       {/* Mitra Sekolah dan Perusahaan */}
       <section id="mitra" className="py-10 bg-gray-100 w-[90%] mx-auto rounded-2xl snap-start">
