@@ -7,6 +7,7 @@ import {
   Search,
   Trash2,
   UploadCloud,
+  FileText,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -582,6 +583,50 @@ const PerusahaanPage: React.FC = () => {
               <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Untuk bagian upload dokumen, kalo backendnya udah ada, tolong disambung agar bisa GET dan POST ke database (harus tambah tabel juga mungkin?) */}
+      <section id="dokumen-panduan" className="mt-10">
+        <h2 className="text-2xl font-semibold text-accent mb-6 flex items-center gap-2">
+          <span>Dokumen Panduan</span>
+          <div className="h-[2px] bg-accent/30 flex-1"></div>
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            "Siswa / Mahasiswa",
+            "Sekolah",
+            "Perusahaan",
+          ].map((role) => (
+            <div className="bg-white rounded-lg shadow-sm p-4 flex flex-col gap-4" key={role}>
+              <label className="font-medium text-lg">
+                {role}
+              </label>
+
+              <div className="border rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50">
+                <FileText className="w-12 h-12 text-blue-500" />
+                <p className="text-sm mt-2">GANTI AGAR PAS DENGAN NAMA FILE</p>
+              </div>
+
+              <input
+                type="file"
+                accept="application/pdf"
+                className="border rounded-lg p-2 cursor-pointer"
+              />
+              <a
+                href="/doc/placeholder.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-center border rounded-lg py-2 bg-accent text-white hover:bg-accent-hover"
+              >
+                Lihat PDF
+              </a>
+              <button className="bg-accent text-white rounded-lg py-2 hover:bg-accent-hover">
+                Upload
+              </button>
+            </div>
+          ))}
         </div>
       </section>
 
