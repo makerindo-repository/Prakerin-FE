@@ -8,7 +8,7 @@ export const ENDPOINTS = {
   LOGIN: '/api/v1/users/login',
   REGISTER: '/api/v1/users/register',
   LOGOUT: '/api/v1/users/logout',
-  USERS: '/api/v1/users/profile', 
+  USERS: '/api/v1/users', 
 
   // Dashboard Admin
   ADMIN: '/api/v1/admin',
