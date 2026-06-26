@@ -2,7 +2,7 @@ import { CircleArrowRight, FileText, Search } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import PieChartCompenent from "../Charts/PieChartCompenent";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import RatingSummaryCompenent from "../RatingSummaryCompenent";
 import { RatingSummary } from "@/models/feedback";

@@ -3,7 +3,7 @@
 import { Briefcase, Building, MapPin, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { EditorProps } from "@/components/Editor";

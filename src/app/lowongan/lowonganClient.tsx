@@ -1,24 +1,32 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
+import { API, ENDPOINTS } from "@/utils/config";
 import { useRouter, useSearchParams } from "next/navigation";
 import DescriptionRendererLite from "@/components/RenderBlocksLite";
 import LoaderData from "@/components/loader";
 import { getDurationUnit } from "@/utils/getDurationUnit";
+import { Lowongan } from "@/types/lowongan";
 import {
   ArrowRight,
   Bookmark,
   Building,
   ChevronDown,
-  CircleDollarSign,
   Search,
   UsersRound,
+  MapPin
 } from "lucide-react";
+import {
+  getGrade,
+  getType,
+  getLocation,
+  getTypeTest,
+} from "@/utils/lowonganLabel";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import Image from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import LowonganDetail from "@/components/LowonganDetail";
 
 interface ProvinceAndCityRegencyAndField {
   id: string;
@@ -26,11 +34,11 @@ interface ProvinceAndCityRegencyAndField {
 }
 
 interface Filter {
-  province_id: string[];
-  city_regency_id: string[];
-  grade: ("smk" | "mahasiswa" | "all" | "")[];
-  field_id: string[];
-  duration_id: string[];
+  province_id: string;
+  city_regency_id: string;
+  grade: string;
+  field_id: string;
+  duration_id: string;
 }
 
 interface Duration {
@@ -38,34 +46,7 @@ interface Duration {
   duration_value: number;
   duration_unit: string;
 }
-interface Lowongan {
-  id: string;
-  title: string;
-  description: any;
-  grade: Grade;
-  is_available: boolean;
-  duration: {
-    duration_value: number;
-    duration_unit: DurationUnit;
-  };
-  is_paid: boolean;
-  qouta: number;
-  type: Type;
-  location: Location;
-  save_job_opening: boolean;
-  company: {
-    address: string;
-  };
-  city_regency: {
-    name: string;
-  };
-  province: {
-    name: string;
-  };
-  user: {
-    photo_profile: string;
-  };
-}
+
 type DurationUnit = "year" | "month" | "day";
 type Type = "full_time" | "part_time";
 type Grade = "smk" | "mahasiswa" | "all";
@@ -93,12 +74,21 @@ const getLabel = (type: string, value: string) => {
 };
 
 export default function InternshipPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InternshipPageContent />
+    </Suspense>
+  )
+}
+
+function InternshipPageContent() {
   const [openFilter, setOpenFilter] = useState<string | null>(null);
   const [data, setData] = useState<Lowongan[]>([]);
   const [search, setSearch] = useState<string>("");
   const [inputSearch, setInputSearch] = useState<string>("");
   const searchParams = useSearchParams();
   const keyword = searchParams.get("search") || "";
+  const [selectedJob, setSelectedJob] = useState<Lowongan | null>(null);
 
   const [provinces, setProvinces] = useState<ProvinceAndCityRegencyAndField[]>(
     []
@@ -110,11 +100,11 @@ export default function InternshipPage() {
   const [fields, setFields] = useState<ProvinceAndCityRegencyAndField[]>([]);
 
   const [filterData, setFilterData] = useState<Filter>({
-    province_id: [],
-    city_regency_id: [],
-    grade: [],
-    field_id: [],
-    duration_id: [],
+    province_id: "",
+    city_regency_id: "",
+    grade: "",
+    field_id: "",
+    duration_id: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
   // Track which items have expanded descriptions
@@ -140,7 +130,7 @@ export default function InternshipPage() {
           city_regency_id: filterData.city_regency_id,
           grade: filterData.grade,
           search: search,
-          durasi: filterData.duration_id,
+          duration_id: filterData.duration_id,
           field_id: filterData.field_id,
         },
       });
@@ -178,6 +168,16 @@ export default function InternshipPage() {
     [router]
   );
 
+  const handleFilterChange = (
+    key: keyof Filter,
+    value: string
+  ) => {
+    setFilterData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
   const handleToggle = useCallback(
     (filter: string) => {
       setOpenFilter(openFilter === filter ? null : filter);
@@ -200,7 +200,9 @@ export default function InternshipPage() {
     });
     setLoading(false);
   }, [loading]);
-
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterData]);
   useEffect(() => {
     fetchJobOpenings();
   }, [filterData, search, fetchJobOpenings]);
@@ -211,7 +213,7 @@ export default function InternshipPage() {
   }, [keyword]);
 
   useEffect(() => {
-    if (filterData.province_id.length === 0) {
+    if (!filterData.province_id) {
       setCityRegencies([]);
       return;
     }
@@ -241,415 +243,267 @@ export default function InternshipPage() {
     [fields]
   );
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const paginatedData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <>
-      <section className="flex flex-col items-center text-center justify-center mt-15">
-        <h1 className="text-3xl font-bold text-accent mb-5">Lowongan Magang</h1>
-        <p className="text-gray-500 text-xl">
-          Temukan peluang magang dari berbagai perusahaan ternama. Daftar,
-          lamar, dan mulai perjalanan kariermu bersama kami.
-        </p>
-        <div className="w-3/4 relative items-center rounded-full shadow-md border border-gray-200 bg-gray-200/50 flex mt-8">
-          <input
-            type="text"
-            onChange={(e) => setInputSearch(e.target.value)}
-            value={inputSearch}
-            placeholder="Cari lowongan magang impian anda..."
-            className="w-full pl-12 pr-14 py-3 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300 rounded-full"
-          />
-          <Search className="absolute left-4 w-5 h-5 text-gray-400" />
-          <button
-            onClick={() => setSearch(inputSearch)}
-            className="absolute right-4 bg-accent-dark w-8 h-8  rounded-full text-white hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
-            <ArrowRight className=" w-6 h-6 m-auto" />
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-6">
-          <button
-            onClick={() => setInputSearch("Magang Popular")}
-            className="px-3 py-1 bg-white rounded-full text-sm text-gray-600 shadow-sm"
-          >
-            Magang Popular
-          </button>
-          {fieldButtons}
+      <section className="mt-15">
+        <div className="w-[85%] mx-auto">
+          <h1 className="text-6xl font-bold py-4 text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">Lowongan Magang</h1>
+          <p className="text-black text-xl text-left mb-4">
+            Temukan peluang magang dari berbagai perusahaan ternama. Daftar,
+            lamar, dan mulai perjalanan kariermu bersama kami.
+          </p>
+          <div className="bg-white shadow-sm border border-gray-200 p-6 mb-4 rounded-xl">
+            {/* Search */}
+            <div className="relative mb-4">
+              <input
+                type="text"
+                onChange={(e) => setInputSearch(e.target.value)}
+                value={inputSearch}
+                placeholder="Cari lowongan magang impian anda..."
+                className="w-full pl-4 pr-4 py-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent rounded-xl"
+              />
+            </div>
+
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] gap-4">
+              {/* Provinsi */}
+              <div className="relative">
+                <select
+                value={filterData.province_id} onChange={(e) => handleFilterChange("province_id", e.target.value)}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                >
+                  <option value="">Provinsi</option>
+                  {provinces.map((province) => (
+                    <option key={province.id} value={province.id}>
+                      {province.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              {/* Kotkab */}
+              <div className="relative">
+                <select
+                value={filterData.city_regency_id} onChange={(e) => handleFilterChange("city_regency_id", e.target.value)} disabled={!filterData.province_id}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                >
+                  <option value="">Kota / Kabupaten</option>
+                  {cityRegencies.map((cityreg) => (
+                    <option key={cityreg.id} value={cityreg.id}>
+                      {cityreg.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              {/* Tingkat */}
+              <div className="relative">
+                <select
+                value={filterData.grade} onChange={(e) => handleFilterChange("grade", e.target.value)}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                >
+                  <option value="">Tingkat</option>
+                  <option value="smk">Tingkat SMK</option>
+                  <option value="mahasiswa">Tingkat Mahasiswa</option>
+                  <option value="all">Semua Tingkat</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              {/* Bidang */}
+              <div className="relative">
+                <select
+                value={filterData.field_id} onChange={(e) => handleFilterChange("field_id", e.target.value)}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                >
+                  <option value="">Bidang</option>
+                  {fields.map((field) => (
+                    <option key={field.id} value={field.id}>
+                      {field.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              {/* Durasi */}
+              <div className="relative">
+                <select value={filterData.duration_id} onChange={(e) => handleFilterChange("duration_id", e.target.value)}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                >
+                  <option value="">Durasi</option>
+                  {durations.map((duration) => (
+                    <option key={duration.id} value={duration.id}>
+                      {duration.duration_value} {duration.duration_unit}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              <button
+                onClick={() => setSearch(inputSearch)}
+                className="bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all px-6 py-3 rounded-xl"
+              >
+                <Search className="w-6 h-6 text-white-400" />
+              </button>
+            </div>
+          </div>
         </div>
       </section>
-      <section className="px-4 md:px-10 lg:px-20 py-10">
+
+      <section className="px-4 md:px-10 lg:px-20 py-10 w-[95%] mx-auto">
         <h5 className="text-sm text-gray-600">
-          lowongan ditemukan:
-          <span className="text-gray-800 font-bold"> {data.length}</span>
+          Total Posisi: <span className="text-gray-800 font-bold">{data.length} </span>
+          Total Perusahaan: <span className="text-gray-800 font-bold">8</span>
         </h5>
-        <div className="flex flex-col lg:flex-row gap-8  min-h-screen items-stretch">
+        <div className="grid lg:grid-cols-[400px_1fr] gap-8">
           <div className="w-full lg:flex-1 flex flex-col gap-6 mt-3">
             {loading ? (
               <LoaderData />
             ) : data.length > 0 ? (
-              data.map((item, index) => (
-                <div
-                  key={index}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => router.push(`/lowongan/${item.id}`)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      router.push(`/lowongan/${item.id}`);
-                    }
-                  }}
-                  className="bg-white rounded-xl shadow-md p-6 space-y-4 grid grid-cols-1 md:grid-cols-10 gap-2 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-                  aria-label={`Lihat detail lowongan ${item.title}`}
-                >
-                  <div className="flex items-start gap-4 col-span-6">
-                    {item.user.photo_profile ? (
-                      <div className="w-15 h-15 relative rounded-full border-white border">
-                        <Image
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.user.photo_profile}`}
-                          alt="Logo Perusahaan"
-                          fill
-                          sizes="100%"
-                          className="object-cover rounded-full"
-                        />
+              <>
+                {paginatedData.map((item, index) => (
+                  <div
+                    key={index}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedJob(item)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        setSelectedJob(item);
+                      }
+                    }}
+                    className="bg-white border border-gray-200 shadow-sm p-5 flex flex-col rounded-xl hover:shadow-lg transition-all duration-200 cursor-pointer hover:border hover:border-cyan-500"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-15 h-15 relative rounded-full overflow-hidden">
+                        {item.user.photo_profile ? (
+                          <Image
+                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.user.photo_profile}`}
+                            alt="Company"
+                            fill
+                            sizes="100%"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <Building className="w-full h-full text-[var(--color-accent)]" />
+                        )}
                       </div>
-                    ) : (
-                      <Building className="w-15 h-15 text-[var(--color-accent)]" />
-                    )}
-                    <div>
-                      <h2 className="text-xl font-bold text-cyan-700">
-                        {item.title}
-                      </h2>
-                      {/* Collapsible description - shows a short preview on mobile and can be expanded */}
-                      <div className="mt-3 text-gray-600">
-                        <div
-                          className={`break-all whitespace-pre-wrap overflow-hidden transition-[max-height] duration-300 ease-in-out ${
-                            expandedItems[item.id]
-                              ? "max-h-[2000px]"
-                              : "max-h-20"
-                          }`}
-                        >
-                          <DescriptionRendererLite data={item.description} />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExpandedItems((prev) => ({
-                              ...prev,
-                              [item.id]: !prev[item.id],
-                            }));
-                          }}
-                          className="mt-2 text-sm text-cyan-700 hover:underline"
-                          aria-expanded={!!expandedItems[item.id]}
-                          aria-controls={`desc-${item.id}`}
-                        >
-                          {expandedItems[item.id]
-                            ? "Tutup"
-                            : "Baca Selengkapnya"}
-                        </button>
-                      </div>
+
+                      <p className="text-sm font-medium text-gray-500">
+                        Berakhir:{" "}
+                        <span className="text-red-500">
+                          {new Date(item.closing_date).toLocaleDateString("id-ID", {day: "numeric", month: "long", year: "numeric",})}
+                        </span>
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex col-span-4 items-center flex-wrap gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <UsersRound className="w-4 h-4" /> {item.qouta} -{" "}
-                      {getLabel("type", item.type)} -{" "}
-                      {getLabel("location", item.location)} -{" "}
-                      {getLabel("grade", item.grade)} -{" "}
-                      {item.duration?.duration_value}{" "}
-                      {getDurationUnit(item.duration?.duration_unit)}
+
+                    <p className="text-sm font-bold text-blue-500">
+                      {item.company.name}
+                    </p>
+
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {item.title}
+                    </h2>
+
+                    <div className="flex items-center text-gray-600 mb-2 gap-2 text-sm">
+                      <MapPin className="w-4 h-4" />
+                      {item.city_regency?.name ?? "N/A"},{" "}
+                      {item.province?.name ?? "N/A"}
                     </div>
-                    <div className="flex items-center gap-1">{`${item.company.address}, ${item.city_regency?.name ?? "N/A"}, ${item.province?.name ?? "N/A"}`}</div>
-                    {item.is_paid && (
-                      <div className="flex items-center gap-1 ">
-                        <CircleDollarSign className="w-4 h-4 " />
-                        Dibayar
-                      </div>
-                    )}
-                    {Cookies.get("authorization") === "student" && (
+
+                    <div className="flex items-center gap-2 text-blue-600 mb-2 text-sm">
+                      <UsersRound className="w-4 h-4" />
+                      {item.qouta} Posisi
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      <span className="px-3 py-1 border border-cyan-500 bg-cyan-50 text-blue-600 text-sm rounded-3xl">
+                        {getLabel("location", item.location)}
+                      </span>
+
+                      <span className="px-3 py-1 border border-cyan-500 bg-cyan-50 text-blue-600 text-sm rounded-3xl">
+                        {getLabel("type", item.type)}
+                      </span>
+
+                      {item.is_paid && (
+                        <span className="px-3 py-1 border border-cyan-500 bg-cyan-50 text-blue-600 text-sm rounded-3xl">
+                          Dibayar
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="border-t-4 border-gray-200 mb-4 mt-10"></div>
+
+                    <div className="mt-auto">
+                      <p className="text-sm text-gray-500 mb-4">
+                        Diposting {new Date(item.created_at).toLocaleDateString("id-ID", {day: "numeric", month: "long", year: "numeric",})}
+                      </p>
+
                       <button
                         type="button"
-                        onClick={(e) => handleClickFavorite(e, item.id)}
-                        className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedJob(item);
+                        }}
+                        className="w-full rounded-xl bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all"
                       >
-                        <Bookmark
-                          className={`w-4 h-4 ${
-                            item.save_job_opening
-                              ? "text-blue-500"
-                              : "text-gray-400"
-                          }`}
-                        />
-                        Simpan
+                        Lihat Detail
                       </button>
-                    )}
-                    <Link
-                      href={`/lowongan/${item.id}`}
-                      className="px-4 py-2 rounded-md bg-cyan-700 text-white hover:bg-cyan-800"
-                    >
-                      Lihat Detail
-                    </Link>
+                    </div>
                   </div>
+              ))}
+                <div className="flex justify-center items-center gap-2 mt-6">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                    className="px-3 py-2 rounded-lg border disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+
+                  {Array.from({ length: totalPages }).map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`px-3 py-2 rounded-lg ${
+                        currentPage === index + 1
+                          ? "bg-cyan-700 text-white"
+                          : "border"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    className="px-3 py-2 rounded-lg border disabled:opacity-40"
+                  >
+                    Next
+                  </button>
                 </div>
-              ))
+              </>
             ) : (
               <div className="text-center py-12 col-span-2 ">
                 <NotFoundComponent text="Tidak ada lowongan yang ditemukan." />
               </div>
             )}
           </div>
-          {/* Filter Box */}
-          <div className="w-full lg:w-1/4 mt-8 lg:mt-0">
-            <div className="bg-white rounded-lg shadow-sm p-6 lg:sticky lg:top-20">
-              <h3 className="text-lg font-semibold mb-4">Filter Lowongan</h3>
-
-              {/* Provinsi */}
-              <div className="mb-6">
-                <button
-                  type="button"
-                  onClick={() => handleToggle("provinsi")}
-                  className="w-full flex items-center justify-between text-left font-medium text-gray-700 mb-3"
-                >
-                  Provinsi
-                  <ChevronDown
-                    className={`w-4 h-4 transform transition-transform ${
-                      openFilter === "provinsi" ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {openFilter === "provinsi" && (
-                  <div className="filter-dropdown space-y-2">
-                    {provinces.map((prov) => (
-                      <label className="flex items-center" key={prov.id}>
-                        <input
-                          type="checkbox"
-                          className="mr-2"
-                          checked={filterData.province_id.includes(prov.id)}
-                          onChange={() => {
-                            setFilterData((prev) => ({
-                              ...prev,
-                              province_id: prev.province_id.includes(prov.id)
-                                ? prev.province_id.filter(
-                                    (id) => id !== prov.id
-                                  )
-                                : [...prev.province_id, prov.id],
-                            }));
-                          }}
-                        />
-                        {prov.name}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Kota */}
-              <div className="mb-6">
-                <button
-                  type="button"
-                  onClick={() => handleToggle("kota")}
-                  className="w-full flex items-center justify-between text-left font-medium text-gray-700 mb-3"
-                >
-                  Kabupaten / Kota
-                  <ChevronDown
-                    className={`w-4 h-4 transform transition-transform ${
-                      openFilter === "kota" ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {openFilter === "kota" && (
-                  <div className="filter-dropdown space-y-2">
-                    {cityRegencies.length === 0 ? (
-                      <div className="text-center py-12 col-span-2 ">
-                        <NotFoundComponent text="Tidak ada kota atau kabupaten yang ditemukan." />
-                      </div>
-                    ) : (
-                      <>
-                        {cityRegencies.map((cityRegency) => (
-                          <label
-                            className="flex items-center"
-                            key={cityRegency.id}
-                          >
-                            <input
-                              type="checkbox"
-                              className="mr-2"
-                              checked={filterData.city_regency_id.includes(
-                                cityRegency.id
-                              )}
-                              onChange={() => {
-                                setFilterData((prev) => ({
-                                  ...prev,
-                                  city_regency_id:
-                                    prev.city_regency_id.includes(
-                                      cityRegency.id
-                                    )
-                                      ? prev.city_regency_id.filter(
-                                          (id) => id !== cityRegency.id
-                                        )
-                                      : [
-                                          ...prev.city_regency_id,
-                                          cityRegency.id,
-                                        ],
-                                }));
-                              }}
-                            />
-                            {cityRegency.name}
-                          </label>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Pendidikan */}
-              <div className="mb-6">
-                <button
-                  type="button"
-                  onClick={() => handleToggle("pendidikan")}
-                  className="w-full flex items-center justify-between text-left font-medium text-gray-700 mb-3"
-                >
-                  Tingkat Pendidikan
-                  <ChevronDown
-                    className={`w-4 h-4 transform transition-transform ${
-                      openFilter === "pendidikan" ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {openFilter === "pendidikan" && (
-                  <div className="filter-dropdown space-y-2">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="mr-2"
-                        checked={filterData.grade.includes("smk")}
-                        onChange={() =>
-                          setFilterData((prev) => ({
-                            ...prev,
-                            grade: prev.grade.includes("smk")
-                              ? prev.grade.filter((g) => g !== "smk")
-                              : [...prev.grade, "smk"],
-                          }))
-                        }
-                      />
-                      SMK
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="mr-2"
-                        checked={filterData.grade.includes("mahasiswa")}
-                        onChange={() =>
-                          setFilterData((prev) => ({
-                            ...prev,
-                            grade: prev.grade.includes("mahasiswa")
-                              ? prev.grade.filter((g) => g !== "mahasiswa")
-                              : [...prev.grade, "mahasiswa"],
-                          }))
-                        }
-                      />
-                      Mahasiswa
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="mr-2"
-                        checked={filterData.grade.includes("all")}
-                        onChange={() =>
-                          setFilterData((prev) => ({
-                            ...prev,
-                            grade: prev.grade.includes("all")
-                              ? prev.grade.filter((g) => g !== "all")
-                              : [...prev.grade, "all"],
-                          }))
-                        }
-                      />
-                      Semua
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              {/* Bidang */}
-              <div className="mb-6">
-                <button
-                  type="button"
-                  onClick={() => handleToggle("field")}
-                  className="w-full flex items-center justify-between text-left font-medium text-gray-700 mb-3"
-                >
-                  Bidang Magang
-                  <ChevronDown
-                    className={`w-4 h-4 transform transition-transform ${
-                      openFilter === "field" ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {openFilter === "field" && (
-                  <div className="filter-dropdown space-y-2">
-                    {fields.map((field) => (
-                      <label className="flex items-center" key={field.id}>
-                        <input
-                          type="checkbox"
-                          className="mr-2"
-                          checked={filterData.field_id.includes(field.id)}
-                          onChange={() =>
-                            setFilterData((prev) => ({
-                              ...prev,
-                              field_id: prev.field_id.includes(field.id)
-                                ? prev.field_id.filter((id) => id !== field.id)
-                                : [...prev.field_id, field.id],
-                            }))
-                          }
-                        />
-                        {field.name}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Durasi */}
-              <div className="mb-6">
-                <button
-                  type="button"
-                  onClick={() => handleToggle("durasi")}
-                  className="w-full flex items-center justify-between text-left font-medium text-gray-700 mb-3"
-                >
-                  Durasi Magang
-                  <ChevronDown
-                    className={`w-4 h-4 transform transition-transform ${
-                      openFilter === "durasi" ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {openFilter === "durasi" && (
-                  <div className="filter-dropdown space-y-2">
-                    {durations.map((duration) => (
-                      <label className="flex items-center" key={duration.id}>
-                        <input
-                          type="checkbox"
-                          className="mr-2"
-                          checked={filterData.duration_id.includes(duration.id)}
-                          onChange={() =>
-                            setFilterData((prev) => ({
-                              ...prev,
-                              duration_id: prev.duration_id.includes(
-                                duration.id
-                              )
-                                ? prev.duration_id.filter(
-                                    (id) => id !== duration.id
-                                  )
-                                : [...prev.duration_id, duration.id],
-                            }))
-                          }
-                        />
-                        {duration.duration_value}{" "}
-                        {getDurationUnit(duration.duration_unit)}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+          <div className="bg-white rounded-xl shadow-md p-8 min-h-[700px] mt-3">
+              <LowonganDetail
+                data={selectedJob}
+                handleClickFavorite={handleClickFavorite}
+                getGrade={getGrade}
+                getLocation={getLocation}
+                getType={getType}
+                getDurationUnit={getDurationUnit}
+                getTypeTest={getTypeTest}
+              />
           </div>
         </div>
       </section>

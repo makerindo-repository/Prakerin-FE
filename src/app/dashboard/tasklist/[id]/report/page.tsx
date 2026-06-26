@@ -5,7 +5,7 @@ import React, { use, useState } from "react"; // 'useState' sudah benar diimpor
 import ChatBubble from "@/components/ChatBubble";
 import Link from "next/link";
 import { alertConfirm } from "@/libs/alert";
-import { API, ENDPOINTS } from "../../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import UnderConstruction from "@/components/UnderConstruction";
 

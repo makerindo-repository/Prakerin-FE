@@ -18,7 +18,7 @@ import { use, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import UnderConstruction from "@/components/UnderConstruction";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { getDateIndonesia } from "@/utils/getDateIndonesia";
 import Loader from "@/components/loader";

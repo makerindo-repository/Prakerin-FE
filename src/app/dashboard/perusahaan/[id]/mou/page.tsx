@@ -12,7 +12,7 @@ import {
 import Cookies from "js-cookie";
 import Link from "next/link";
 import Image from "next/image";
-import { API, ENDPOINTS } from "../../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import dynamic from "next/dynamic";
 import { EditorProps } from "@/components/Editor";

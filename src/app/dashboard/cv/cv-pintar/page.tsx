@@ -7,7 +7,7 @@ import CVAts from "@/components/cv-templates/CVAts";
 import CVProfessional from "@/components/cv-templates/CVProfessional";
 import CVModern from "@/components/cv-templates/CVModern";
 import { CVData } from "@/types/cv";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import { CVResult } from "@/models/CV";
 import Cookies from "js-cookie";
 

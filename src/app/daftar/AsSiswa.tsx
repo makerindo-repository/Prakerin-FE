@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, ChangeEvent, useRef, useEffect } from "react";
 import { Upload, User, Mail, Lock, School, Eye, EyeOff } from "lucide-react";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import axios, { AxiosError } from "axios";
 import ReCAPTCHA from "react-google-recaptcha";
 import { json } from "stream/consumers";

@@ -12,7 +12,7 @@ import PieChartCompenent from "../Charts/PieChartCompenent";
 import BarChartCompenent from "../Charts/BarChartCompenent";
 import { useEffect, useState } from "react";
 import Loader from "../loader";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import cookies from "js-cookie";
 
 // Interfaces (sesuai struktur data API)

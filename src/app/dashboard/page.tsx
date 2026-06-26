@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { UserCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import Cookies from "js-cookie";
-import { createApiCall, ENDPOINTS } from "../../../utils/config";
+import { createApiCall, ENDPOINTS } from "@/utils/config";
 import { getGreeting } from "@/utils/getGreeting";
 import Image from "next/image";
 import { alertSuccess } from "@/libs/alert";

@@ -1,7 +1,7 @@
 "use client";
 import { ClipboardCheck, FileText, FileTextIcon } from "lucide-react";
 import { ChangeEvent, use, useEffect, useState } from "react";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import Link from "next/link";

@@ -7,13 +7,14 @@ import {
   Search,
   Trash2,
   UploadCloud,
+  FileText,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
-import { API, ENDPOINTS } from "../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { profile } from "console";
 import Image from "next/image";
@@ -184,7 +185,7 @@ const PerusahaanPage: React.FC = () => {
         );
       } else if (editingCommentId) {
         await API.post(
-          `${ENDPOINTS.COMMENTPRAKERINS}/${editingCommentId}`,
+          `${ENDPOINTS.COMMENT_PRAKERINS}/${editingCommentId}`,
           FormCommentPrakerin,
           {
             params: {
@@ -207,7 +208,7 @@ const PerusahaanPage: React.FC = () => {
             });
             break;
           case "Ulasan":
-            await API.post(ENDPOINTS.COMMENTPRAKERINS, FormCommentPrakerin, {
+            await API.post(ENDPOINTS.COMMENT_PRAKERINS, FormCommentPrakerin, {
               headers: {
                 Authorization: `Bearer ${Cookies.get("userToken")}`,
                 "Content-Type": "multipart/form-data",
@@ -297,7 +298,7 @@ const PerusahaanPage: React.FC = () => {
     );
     if (!confirm) return;
     try {
-      await API.delete(`${ENDPOINTS.COMMENTPRAKERINS}/${comment.id}`, {
+      await API.delete(`${ENDPOINTS.COMMENT_PRAKERINS}/${comment.id}`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
@@ -406,9 +407,9 @@ const PerusahaanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative min-h-[200px]">
-          {partners.filter((p) => p.type === "school").length > 0 ? (
+          {partners.filter((p) => p.type !== "company").length > 0 ? (
             partners
-              .filter((p) => p.type === "school")
+              .filter((p) => p.type !== "company")
               .map((item) => (
                 <div
                   key={item.id}
@@ -585,6 +586,50 @@ const PerusahaanPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Untuk bagian upload dokumen, kalo backendnya udah ada, tolong disambung agar bisa GET dan POST ke database (harus tambah tabel juga mungkin?) */}
+      <section id="dokumen-panduan" className="mt-10">
+        <h2 className="text-2xl font-semibold text-accent mb-6 flex items-center gap-2">
+          <span>Dokumen Panduan</span>
+          <div className="h-[2px] bg-accent/30 flex-1"></div>
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            "Siswa / Mahasiswa",
+            "Sekolah",
+            "Perusahaan",
+          ].map((role) => (
+            <div className="bg-white rounded-lg shadow-sm p-4 flex flex-col gap-4" key={role}>
+              <label className="font-medium text-lg">
+                {role}
+              </label>
+
+              <div className="border rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50">
+                <FileText className="w-12 h-12 text-blue-500" />
+                <p className="text-sm mt-2">GANTI AGAR PAS DENGAN NAMA FILE</p>
+              </div>
+
+              <input
+                type="file"
+                accept="application/pdf"
+                className="border rounded-lg p-2 cursor-pointer"
+              />
+              <a
+                href="/doc/placeholder.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-center border rounded-lg py-2 bg-accent text-white hover:bg-accent-hover"
+              >
+                Lihat PDF
+              </a>
+              <button className="bg-accent text-white rounded-lg py-2 hover:bg-accent-hover">
+                Upload
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section id="isi-halaman" className="mt-10">
         <h2 className="text-2xl font-semibold text-accent mb-6 flex items-center gap-2">
           <span>Isi Halaman</span>
@@ -736,6 +781,7 @@ const PerusahaanPage: React.FC = () => {
                         <option value="">Pilih tipe mitra</option>
                         <option value="company">Perusahaan</option>
                         <option value="school">Sekolah</option>
+                        <option value="university">Universitas</option>
                       </select>
                       {formError.type && (
                         <p className="text-sm text-red-500">{formError.type}</p>

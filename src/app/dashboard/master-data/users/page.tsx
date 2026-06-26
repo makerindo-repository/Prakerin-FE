@@ -9,7 +9,7 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
 import LoaderData from "@/components/loader";
 import Link from "next/link";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import { useRouter } from "next/navigation";
 
 type ActiveTab = "Semua" | "Sekolah" | "Perusahaan" | "Siswa / Mahasiswa";

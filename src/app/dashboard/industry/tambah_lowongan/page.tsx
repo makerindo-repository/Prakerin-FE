@@ -4,7 +4,7 @@ import { Briefcase, BriefcaseBusiness, CirclePlus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EditorProps } from "@/components/Editor";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import { getDurationUnit } from "@/utils/getDurationUnit";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";

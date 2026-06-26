@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { createApiCall, ENDPOINTS } from "../../../utils/config";
+import { createApiCall, ENDPOINTS } from "@/utils/config";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { alertConfirm } from "@/libs/alert";

@@ -6,7 +6,7 @@ import Navigation from "@/components/Navigation";
 import { useEffect, useState } from "react";
 import Loader from "@/components/loader";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { API, ENDPOINTS } from "../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 
 const cards = [
   {
@@ -80,30 +80,39 @@ export default function AboutPage() {
       )}
 
       {/* Section 1: Tentang Kami */}
+      <section className="grid grid-cols-1 md:grid-cols-10 gap-6 mt-10 w-[85%] mx-auto">
+        {/* Title row */}
+        <h1 className="md:col-span-10 py-4 text-6xl font-bold text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">
+          Tentang kami
+        </h1>
 
-      <section className="grid grid-cols-1 md:grid-cols-10 gap-6 mx-4 md:mx-20 mt-10">
-        <div className="md:col-span-4">
-          <h5 className="text-accent mb-3 md:mb-5">Tentang kami</h5>
-          <h1 className="text-gray-700 text-2xl md:text-3xl font-bold">
-            Solusi Magang Terpercaya bagi Mahasiswa dan Talenta Muda
-          </h1>
-        </div>
-        <div className="text-gray-600 flex items-center md:col-span-6 mt-4 md:mt-0">
-          <p>
-            Prakerin adalah sebuah platform magang digital yang dibuat untuk
-            memudahkan mahasiswa dan talenta muda Indonesia dalam menemukan
-            pengalaman kerja nyata. Kami menyediakan berbagai peluang magang
-            terverifikasi dari perusahaan terpercaya, lengkap dengan bimbingan,
-            pelatihan, dan dukungan untuk membangun karier profesionalmu sejak
-            dini.
-          </p>
+        {/* Content row */}
+        <div className="md:col-span-10 grid grid-cols-1 md:grid-cols-10 gap-10">
+          {/* Heading */}
+          <div className="md:col-span-4">
+            <h3 className="text-gray-700 text-xl md:text-2xl font-bold mt-6">
+              Solusi Magang Terpercaya bagi Mahasiswa dan Talenta Muda
+            </h3>
+          </div>
+
+          {/* Description */}
+          <div className="md:col-span-6 text-gray-600 flex items-center">
+            <p>
+              Prakerin adalah sebuah platform magang digital yang dibuat untuk
+              memudahkan mahasiswa dan talenta muda Indonesia dalam menemukan
+              pengalaman kerja nyata. Kami menyediakan berbagai peluang magang
+              terverifikasi dari perusahaan terpercaya, lengkap dengan bimbingan,
+              pelatihan, dan dukungan untuk membangun karier profesionalmu sejak
+              dini.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* Section 2: Our Story & Mission */}
-      <section className="grid grid-cols-1 md:grid-cols-10 md:grid-rows-2 md:max-h-100 gap-4 mx-4 md:mx-20 mt-10">
+      <section className="grid grid-cols-1 md:grid-cols-10 md:grid-rows-2 md:max-h-100 gap-4 mt-10 w-[85%] mx-auto">
         <div
-          className="md:col-span-6 row-span-2 relative overflow-hidden rounded-2xl shadow-xl"
+          className="md:col-span-4 row-span-2 relative overflow-hidden rounded-2xl shadow-xl"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
@@ -187,21 +196,20 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
-
-        <div className="bg-blue-400 hover:bg-blue-500 col-span-1 md:col-span-4 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
-          <div className="col-span-2 p-5 row-span-3 text-white">
-            <h1 className="text-xl md:text-2xl font-bold">Visi</h1>
-            <p className="text-xs md:text-xs">
+        <div className="bg-cyan-200 border border-cyan-400 hover:bg-cyan-300 col-span-1 md:col-span-6 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
+          <div className="col-span-2 p-5 row-span-3">
+            <h1 className="text-xl md:text-2xl font-bold text-blue-500">Visi</h1>
+            <p className="text-s md:text-s text-gray-600">
               Menjadi platform magang digital terpercaya yang menjadi jembatan
               utama antara mahasiswa, talenta muda, dan dunia kerja profesional
               di Indonesia.
             </p>
           </div>
         </div>
-        <div className="bg-accent hover:bg-accent-hover col-span-1 md:col-span-4 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
-          <div className="col-span-2 p-5 row-span-3 text-white">
-            <h1 className="text-xl md:text-2xl font-bold">Our Mission</h1>
-            <p className="text-xs md:text-xs">
+        <div className="bg-blue-200 border border-blue-400 hover:bg-blue-300 col-span-1 md:col-span-6 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
+          <div className="col-span-2 p-5 row-span-3">
+            <h1 className="text-xl md:text-2xl font-bold text-blue-500">Our Mission</h1>
+            <p className="text-s md:text-s text-gray-600">
               1. Menyediakan peluang magang terverifikasi dari perusahaan
               terpercaya di berbagai bidang industri.
               <br />
