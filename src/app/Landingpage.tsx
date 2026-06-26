@@ -29,18 +29,49 @@ interface CommentPrakerin {
 interface JobOpening {
   id: string;
   title: string;
-  company: {
-    name: string;
-  };
-  city_regency: {
-    name: string;
-  };
-  province: {
-    name: string;
-  };
+  grade: string;
+  location: "onsite" | "remote" | "hybrid";
   is_paid: boolean;
+  is_available: boolean;
+  qouta: number;
+
+  start_date: string;
+  closing_date: string;
   created_at: string;
   updated_at: string;
+
+  company: {
+    id: string;
+    name: string;
+  };
+
+  province: {
+    id: string;
+    name: string;
+  };
+
+  city_regency: {
+    id: string;
+    name: string;
+  };
+
+  field: {
+    id: string;
+    name: string;
+  };
+
+  duration: {
+    id: string;
+    duration_value: number;
+    duration_unit: string;
+  };
+
+  user: {
+    id: string;
+    username: string;
+    photo_profile: string | null;
+    email: string;
+  };
 }
 
 interface ProvinceAndCityRegencyAndField {
@@ -537,32 +568,46 @@ export default function LandingPage({
               <div className="flex items-center justify-between mb-4">
                 <div className="w-15 h-15 relative">
                   <Image
-                    src="/makerindo_PS.png"
-                    alt="Company"
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/profile/${job.user.photo_profile}`}
+                    alt={job.company.name}
                     fill
                     className="object-contain"
                   />
                 </div>
-                <p className="text-sm font-medium text-gray-500">Berakhir: <span className="text-red-500">30 Jun 2026</span></p>
+                <p className="text-sm font-medium text-gray-500">
+                  Berakhir:{" "}
+                  <span className="text-red-500">
+                    {new Date(job.closing_date).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </p>
               </div>
-              <p className="text-sm text-blue-500 mb-4">PT Maju Mundur Sejahtera</p>
-              <h2 className="text-xl font-bold">Frontend Developer Intern</h2>
-              <div className="flex items-center text-gray-600 mb-6 mt-4 gap-2 text-sm">
-                <MapPin /> Bandung, Jawa Barat
-              </div>
+              <p className="text-sm text-blue-500 mb-4">{job.company.name}</p>
+              <h2 className="text-xl font-bold">{job.title}</h2>
+            <div className="flex items-center gap-2 text-gray-600 mb-6 mt-4 text-sm">
+                <MapPin className="w-4 h-4" /> {job.city_regency.name}, {job.province.name}
+            </div>
               <div className="flex items-center gap-2 text-blue-600 mb-6 text-sm">
-                X Posisi - Y Pelamar
+                {job.qouta} Posisi
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-3xl">
-                  Remote
+                <span className="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-full capitalize">
+                    {job.location}
                 </span>
               </div>
               <div className="border-t-4 border-gray-200 mb-4 mt-10"></div>
               {/* Push footer down */}
               <div className="mt-auto">
                 <p className="text-sm text-gray-500 mb-4">
-                  Diposting 12 Juni 2026
+                    Diposting{" "}
+                    {new Date(job.created_at).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                    })}
                 </p>
                 <button className="w-full rounded-xl bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all">
                   Lihat Detail
