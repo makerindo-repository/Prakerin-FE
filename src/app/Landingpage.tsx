@@ -786,7 +786,7 @@ export default function LandingPage({
       </section>
 
       {/* FAQ */}
-      <section className="py-16 w-[85%] mx-auto snap-start">
+      <section className="py-16 w-[85%] mx-auto">
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 text-center">
