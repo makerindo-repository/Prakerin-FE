@@ -1,6 +1,6 @@
 "use client";
 
-import ContactPage from "@/components/Contact";
+import { Suspense } from "react";
 import FooterPage from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useEffect, useState } from "react";
@@ -25,6 +25,14 @@ interface Partner {
 }
 
 export default function PartnerPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PartnerPageContent />
+    </Suspense>
+  )
+}
+
+function PartnerPageContent() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [inputSearch, setInputSearch] = useState<string>("");
   const [search, setSearch] = useState<string>("");
