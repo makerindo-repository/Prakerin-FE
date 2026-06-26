@@ -1,108 +1,56 @@
-import axios from 'axios';
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.prakerin.id';
-const TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000;
-
-export const ENDPOINTS = {
-  // Authentication & User
-  LOGIN: '/api/v1/users/login',
-  REGISTER: '/api/v1/users/register',
-  LOGOUT: '/api/v1/users/logout',
-  USERS: '/api/v1/users/profile', 
-
-  // Dashboard Admin
-  ADMIN: '/api/v1/admin',
-  DASHBOARD: '/api/v1/admin/dashboard',
-
-  // Landing Page Components
-  HOMEPAGES: '/api/v1/homepages',
-  PARTNERS: '/api/v1/partners',
-  COMMENT_PRAKERINS: '/api/v1/comment-prakerins',
-  CONTACT_US: '/api/v1/contact-us',
-
-  // Core Features
-  JOB_OPENINGS: '/api/v1/job-openings',
-  SAVE_JOB_OPENINGS: '/api/v1/save-job-openings',
-  INTERNSHIP_APPLICATIONS: '/api/v1/internship-applications',
-  INTERNSHIPS: '/api/v1/internships',
-  TASKS: '/api/v1/tasks',
-  REPORT_TASKS: '/api/v1/report-tasks',
-  CURRICULUM_VITAE: '/api/v1/curriculum-vitaes',
-  CERTIFICATES: '/api/v1/certificates',
-  FEEDBACKS: '/api/v1/feedbacks',
-
-  // Master & Supporting Data
-  MAJORS: '/api/v1/majors',
-  TESTS: '/api/v1/tests',
-  DURATIONS: '/api/v1/durations',
-  MOUS: '/api/v1/mous',
-  ROLES: '/api/v1/roles',
-  ACHIEVEMENTS: '/api/v1/achievements',
-  SECTORS: '/api/v1/sectors',
-  PROVINCES: '/api/v1/provinces',
-  CITY_REGENCIES: '/api/v1/city-regencies',
-  FIELDS: '/api/v1/fields',
-  STUDENTS: '/api/v1/students',
-  COMPANIES: '/api/v1/companies',
-};
+import axios from "axios";
 
 export const API = axios.create({
-  baseURL: BASE_URL,
-  timeout: TIMEOUT,
-  withCredentials: true, // WAJIB TRUE untuk session & cookie Laravel Sanctum lokal
+  baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1`,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-// Interceptor Token bearer otomatis
-API.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
+export const ENDPOINTS = {
+  USERS: "/users",
+  HOMEPAGES: "/homepages",
+//   PRODUCTS: "/products",
+//   ORDERS: "/orders",
+//   CATEGORIES: "/categories",
+//   DASHBOARD: "/dashboard",
+  CURRICULUM_VITAE: "/curriculum-vitaes",
+  INTERNSHIP_APPLICATIONS: "/internship-applications",
+  JOB_OPENINGS: "/job-openings",
+  FIELDS: "/fields",
+  DURATIONS: "/durations",
+  TESTS: "/tests",
+  PARTNERS: "/partners",
+  COMMENTPRAKERINS: "/comment-prakerins",
+  SAVE_JOB_OPENINGS: "/save-job-openings",
+  MAJORS: "/majors",
+  CITY_REGENCIES: "/city-regencies",
+  PROVINCES: "/provinces",
+  ROLES: "/roles",
+  SECTORS: "/sectors",
+  MOUS: "/mous",
+  CERTIFICATES: "/certificates",
+  TASKS: "/tasks",
+  ADMIN: "/admin",
+  DEV: "/dev",
+  CONTACT_US: "/contact-us",
+  REPORT_TASKS: "/report-tasks",
+  FEEDBACKS: "/feedbacks",
+  INTERNSHIPS: "/internships",
+  ACHIEVEMENTS: "/achievements",
+  STUDENTS: "/students"
 
-export const createApiCall = async (arg1: any, arg2: any = {}) => {
-  try {
-    let config: any = {};
-
-    // 1. Satukan format argumen (Object atau String) ke dalam satu objek config
-    if (typeof arg1 === 'object' && arg1 !== null) {
-      const { url, endpoint, method = 'get', data, ...rest } = arg1;
-      config = { url: endpoint || url || '', method, data, ...rest, ...arg2 };
-    } else {
-      config = { url: arg1, method: arg2.method || 'get', ...arg2 };
-    }
-
-    let targetUrl = config.url;
-
-    // 2. Normalisasi URL Rute pencegah double prefix / salah ketik
-    if (targetUrl && targetUrl.includes('sanctum/csrf-cookie')) {
-      targetUrl = '/sanctum/csrf-cookie'; // Bersihkan jika ada api/v1 nempel di cookie
-    } else if (targetUrl && !targetUrl.startsWith('/api/v1')) {
-      if (targetUrl.startsWith('/api')) {
-        // Kasus jika tertulis /api/users/login (kurang v1)
-        targetUrl = targetUrl.replace('/api', '/api/v1');
-      } else {
-        // Kasus jika tertulis rute pendek /users/login
-        targetUrl = targetUrl.startsWith('/') ? `/api/v1${targetUrl}` : `/api/v1/${targetUrl}`;
-      }
-    }
-
-    config.url = targetUrl;
-    config.method = config.method.toLowerCase();
-
-    // 3. Eksekusi Request
-    const response = await API(config);
-    
-    // 4. Selalu kembalikan .data agar konsisten di komponen Frontend kamu
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || error.message || 'API Error');
-  }
 };
+
+export const createApiCall = async (options: { url: string; method?: string; data?: any ; headers?: any ; params?: any }, signal?: AbortSignal) => {
+  const { url, method = "GET", data, headers, params } = options;
+  return API.request({
+    url,
+    method,
+    data,
+    headers,
+    params,
+    signal,
+  });
+};
+// export default API;
