@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, Inbox, Search, Users2, ChevronLeft, ChevronRight, ChevronDown, MapPin, Building } from "lucide-react";
+import { ArrowRight, CheckCircle2, Inbox, Search, Users2, ChevronLeft, ChevronRight, ChevronDown, MapPin, Building, GraduationCap, School, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -38,7 +38,7 @@ interface JobOpening {
   company: {
     name: string;
   };
-    user?: {
+  user?: {
     photo_profile: string | null;
   };
   city_regency: {
@@ -74,11 +74,13 @@ export default function LandingPage({
   partners,
   comments,
   jobOpenings,
+  footer,
 }: {
   homepages: any;
   partners: Partner[];
   comments: CommentPrakerin[];
-  jobOpenings: JobOpening[]
+  jobOpenings: JobOpening[];
+  footer?: React.ReactNode;
 }) {
   const router = useRouter();
 
@@ -110,17 +112,12 @@ export default function LandingPage({
     duration_id: "",
   });
 
-  const [provinces, setProvinces] = useState<ProvinceAndCityRegencyAndField[]>(
-    []
-  );
-  const [cityRegencies, setCityRegencies] = useState<
-    ProvinceAndCityRegencyAndField[]
-  >([]);
+  const [provinces, setProvinces] = useState<ProvinceAndCityRegencyAndField[]>([]);
+  const [cityRegencies, setCityRegencies] = useState<ProvinceAndCityRegencyAndField[]>([]);
   const [durations, setDurations] = useState<Duration[]>([]);
   const [fields, setFields] = useState<ProvinceAndCityRegencyAndField[]>([]);
 
-  const registerCommentRef = (el: HTMLParagraphElement | null
-    , id: string) => {
+  const registerCommentRef = (el: HTMLParagraphElement | null, id: string) => {
     const cleanup = () => {
       const existing = observers.get(id);
       if (existing) existing.disconnect();
@@ -156,10 +153,8 @@ export default function LandingPage({
       router.push(`/lowongan?search=${encodeURIComponent(inputSearch)}`);
     }
   };
-  const handleFilterChange = (
-    key: keyof Filter,
-    value: string
-  ) => {
+
+  const handleFilterChange = (key: keyof Filter, value: string) => {
     setFilterData((prev) => ({
       ...prev,
       [key]: value,
@@ -170,7 +165,6 @@ export default function LandingPage({
   const universityPartners = (partners || []).filter((p) => p.type === "university");
   const companyPartners = (partners || []).filter((p) => p.type === "company");
 
-  // "sElAlU DuPlIcAtE UnTuK InFiNiTe eFfEcT YaNg sEaMlEsS" MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW MEOW
   const totalCommentPages = Math.ceil(comments.length / commentsPerPage);
   const paginatedComments = comments.slice((currentCommentPage - 1) * commentsPerPage, currentCommentPage * commentsPerPage);
   const totalSchoolPages = Math.ceil(schoolPartners.length / schoolPerPage);
@@ -182,20 +176,9 @@ export default function LandingPage({
   const totalJobPages = Math.ceil(jobOpenings.length / jobsPerPage);
   const paginatedJobOpenings = jobOpenings.slice((jobPage - 1) * jobsPerPage, jobPage * jobsPerPage);
 
-  const activePartners =
-    partnerTab === "school"
-      ? paginatedSchoolPartners
-      : paginatedUniversityPartners;
-
-  const activePage =
-    partnerTab === "school"
-      ? schoolPage
-      : universityPage;
-
-  const activeTotalPages =
-    partnerTab === "school"
-      ? totalSchoolPages
-      : totalUniversityPages;
+  const activePartners = partnerTab === "school" ? paginatedSchoolPartners : paginatedUniversityPartners;
+  const activePage = partnerTab === "school" ? schoolPage : universityPage;
+  const activeTotalPages = partnerTab === "school" ? totalSchoolPages : totalUniversityPages;
 
   return (
     <div className="snap-y snap-mandatory">
@@ -302,7 +285,6 @@ export default function LandingPage({
           </div>
           <div className="mb-4 flex justify-between items-center">
             <p className="text-gray-600 text-sm font-semibold">{comments.length} ulasan</p>
-            {/* <Link href="/" className="font-semibold text-blue-600">Lainnya →</Link> */}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {comments.length !== 0 ? (
@@ -326,19 +308,22 @@ export default function LandingPage({
                           p-6 transition-all duration-300 
                           hover:shadow-xl hover:-translate-y-1 overflow-hidden"
                       >
-                        {/* Profile header */}
                         <div className="flex items-center gap-4 mb-6">
                           <div
                             className="w-16 h-16 bg-gradient-to-br from-accent/10 to-blue-100 
-                              rounded-full relative overflow-hidden shadow-inner shrink-0"
+                              rounded-full relative overflow-hidden shadow-inner shrink-0 flex items-center justify-center"
                           >
-                            <Image
-                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.user?.photo_profile || item.photo_profile}`}
-                              alt={item.name}
-                              fill
-                              sizes="64px"
-                              className="object-cover rounded-full bg-white"
-                            />
+                            {(item.user?.photo_profile || item.photo_profile) ? (
+                              <Image
+                                src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.user?.photo_profile || item.photo_profile}`}
+                                alt={item.name}
+                                fill
+                                sizes="64px"
+                                className="object-cover rounded-full bg-white"
+                              />
+                            ) : (
+                              <User className="w-8 h-8 text-accent/50" />
+                            )}
                           </div>
 
                           <div className="text-left">
@@ -349,12 +334,11 @@ export default function LandingPage({
                               {item.position}
                             </p>
                             <p className="text-xs text-gray-500 break-words">
-                                {new Date(item.created_at).toLocaleDateString("id-ID", {day: "numeric", month: "long", year: "numeric",})}
+                              {new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                             </p>
                           </div>
                         </div>
 
-                        {/* Review */}
                         <p
                           ref={(el) => registerCommentRef(el, item.id)}
                           className="text-gray-700 italic leading-relaxed break-words whitespace-pre-wrap overflow-hidden line-clamp-3 text-left"
@@ -381,18 +365,14 @@ export default function LandingPage({
               </>
             ) : (
               <div className="flex flex-col justify-center items-center w-full h-[320px]">
-                <p className="text-gray-500">
-                  Tidak ada ulasan yang ditemukan.
-                </p>
+                <p className="text-gray-500">Tidak ada ulasan yang ditemukan.</p>
               </div>
             )}
           </div>
           {totalCommentPages > 1 && (
             <div className="flex justify-center items-center gap-4 mt-10">
               <button
-                onClick={() =>
-                  setCurrentCommentPage((prev) => Math.max(prev - 1, 1))
-                }
+                onClick={() => setCurrentCommentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentCommentPage === 1}
                 className="text-accent disabled:opacity-30 transition cursor-pointer"
               >
@@ -405,20 +385,14 @@ export default function LandingPage({
                     key={index}
                     onClick={() => setCurrentCommentPage(index + 1)}
                     className={`w-3 h-3 rounded-full transition ${
-                      currentCommentPage === index + 1
-                        ? "bg-accent"
-                        : "bg-gray-300"
+                      currentCommentPage === index + 1 ? "bg-accent" : "bg-gray-300"
                     }`}
                   />
                 ))}
               </div>
 
               <button
-                onClick={() =>
-                  setCurrentCommentPage((prev) =>
-                    Math.min(prev + 1, totalCommentPages)
-                  )
-                }
+                onClick={() => setCurrentCommentPage((prev) => Math.min(prev + 1, totalCommentPages))}
                 disabled={currentCommentPage === totalCommentPages}
                 className="text-accent disabled:opacity-30 transition cursor-pointer"
               >
@@ -444,7 +418,6 @@ export default function LandingPage({
           <Link href="/lowongan" className="font-semibold text-blue-600">Cari Lowongan →</Link>
         </div>
         <div className="bg-white shadow-sm border border-gray-200 p-6 mb-4 rounded-xl">
-          {/* Search */}
           <div className="relative mb-4">
             <input
               type="text"
@@ -455,43 +428,39 @@ export default function LandingPage({
             />
           </div>
 
-          {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] gap-4">
-            {/* Provinsi */}
             <div className="relative">
               <select
-              value={filterData.province_id} onChange={(e) => handleFilterChange("province_id", e.target.value)}
-              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                value={filterData.province_id}
+                onChange={(e) => handleFilterChange("province_id", e.target.value)}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
               >
                 <option value="">Provinsi</option>
                 {provinces.map((province) => (
-                  <option key={province.id} value={province.id}>
-                    {province.name}
-                  </option>
+                  <option key={province.id} value={province.id}>{province.name}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
-            {/* Kotkab */}
             <div className="relative">
               <select
-              value={filterData.city_regency_id} onChange={(e) => handleFilterChange("city_regency_id", e.target.value)} disabled={!filterData.province_id}
-              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                value={filterData.city_regency_id}
+                onChange={(e) => handleFilterChange("city_regency_id", e.target.value)}
+                disabled={!filterData.province_id}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
               >
                 <option value="">Kota / Kabupaten</option>
                 {cityRegencies.map((cityreg) => (
-                  <option key={cityreg.id} value={cityreg.id}>
-                    {cityreg.name}
-                  </option>
+                  <option key={cityreg.id} value={cityreg.id}>{cityreg.name}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
-            {/* Tingkat */}
             <div className="relative">
               <select
-              value={filterData.grade} onChange={(e) => handleFilterChange("grade", e.target.value)}
-              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                value={filterData.grade}
+                onChange={(e) => handleFilterChange("grade", e.target.value)}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
               >
                 <option value="">Tingkat</option>
                 <option value="smk">Tingkat SMK</option>
@@ -500,25 +469,24 @@ export default function LandingPage({
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
-            {/* Bidang */}
             <div className="relative">
               <select
-              value={filterData.field_id} onChange={(e) => handleFilterChange("field_id", e.target.value)}
-              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                value={filterData.field_id}
+                onChange={(e) => handleFilterChange("field_id", e.target.value)}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
               >
                 <option value="">Bidang</option>
                 {fields.map((field) => (
-                  <option key={field.id} value={field.id}>
-                    {field.name}
-                  </option>
+                  <option key={field.id} value={field.id}>{field.name}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
-            {/* Durasi */}
             <div className="relative">
-              <select value={filterData.duration_id} onChange={(e) => handleFilterChange("duration_id", e.target.value)}
-              className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+              <select
+                value={filterData.duration_id}
+                onChange={(e) => handleFilterChange("duration_id", e.target.value)}
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
               >
                 <option value="">Durasi</option>
                 {durations.map((duration) => (
@@ -546,7 +514,7 @@ export default function LandingPage({
                 className="bg-white border border-gray-200 shadow-sm p-5 flex flex-col rounded-xl hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-15 h-15 relative">
+                  <div className="w-12 h-12 relative flex items-center justify-center bg-gray-100 rounded-full overflow-hidden">
                     {job.user?.photo_profile ? (
                       <Image
                         src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
@@ -555,18 +523,14 @@ export default function LandingPage({
                         className="object-contain rounded-full"
                       />
                     ) : (
-                      <Building className="w-15 h-15 text-accent" />
+                      <Building className="w-6 h-6 text-accent/50" />
                     )}
                   </div>
                   <p className="text-sm font-medium text-gray-500">
                     Berakhir:{" "}
                     <span className="text-red-500">
                       {job.closing_date
-                        ? new Date(job.closing_date).toLocaleDateString("id-ID", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })
+                        ? new Date(job.closing_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
                         : "-"}
                     </span>
                   </p>
@@ -586,33 +550,22 @@ export default function LandingPage({
 
                 <div className="flex flex-wrap gap-2 mb-4">
                   {job.is_paid && (
-                    <span className="px-3 py-1 bg-green-50 text-green-600 text-sm rounded-3xl">
-                      Dibayar
-                    </span>
+                    <span className="px-3 py-1 bg-green-50 text-green-600 text-sm rounded-3xl">Dibayar</span>
                   )}
                   {job.location && (
                     <span className="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-3xl">
-                      {job.location === "remote"
-                        ? "Remote"
-                        : job.location === "onsite"
-                        ? "Onsite"
-                        : "Hybrid"}
+                      {job.location === "remote" ? "Remote" : job.location === "onsite" ? "Onsite" : "Hybrid"}
                     </span>
                   )}
                 </div>
 
                 <div className="border-t-4 border-gray-200 mb-4 mt-10"></div>
 
-                {/* Push footer down */}
                 <div className="mt-auto">
                   <p className="text-sm text-gray-500 mb-4">
                     Diposting{" "}
                     {job.created_at
-                      ? new Date(job.created_at).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })
+                      ? new Date(job.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
                       : "-"}
                   </p>
                   <button className="w-full rounded-xl bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all">
@@ -627,14 +580,13 @@ export default function LandingPage({
             </div>
           )}
         </div>
-              </section>
+      </section>
 
       {/* Mitra Sekolah dan Perusahaan */}
       <section id="mitra" className="py-10 bg-gray-100 w-[90%] mx-auto rounded-2xl snap-start">
         {/* School */}
         <div className="w-[85%] mx-auto mb-6">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-8">
-            {/* Left text */}
             <div className="w-[50%]">
               <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
                 Mitra Sekolah dan Perguruan Tinggi Kami
@@ -642,32 +594,24 @@ export default function LandingPage({
               <p className="text-gray-600">
                 Bergabunglah dengan sekolah dan perguruan tinggi terbaik yang telah mempercayai kami dalam program magang siswa
               </p>
-              <Link
-                href="/mitra"
-                className="pb-3 font-semibold transition-colors duration-200 border-b-3 border-transparent ml-auto text-accent">
-                  Selengkapnya →
+              <Link href="/mitra" className="pb-3 font-semibold transition-colors duration-200 border-b-3 border-transparent ml-auto text-accent">
+                Selengkapnya →
               </Link>
             </div>
-            {/* Right cards */}
             <div>
               <div className="flex gap-8 mb-6 border-b border-gray-200">
                 <button
                   onClick={() => setPartnerTab("school")}
                   className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
-                    partnerTab === "school"
-                      ? "text-accent border-accent"
-                      : "text-gray-400 border-transparent hover:text-accent"
+                    partnerTab === "school" ? "text-accent border-accent" : "text-gray-400 border-transparent hover:text-accent"
                   }`}
                 >
                   Sekolah
                 </button>
-
                 <button
                   onClick={() => setPartnerTab("university")}
                   className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
-                    partnerTab === "university"
-                      ? "text-accent border-accent"
-                      : "text-gray-400 border-transparent hover:text-accent"
+                    partnerTab === "university" ? "text-accent border-accent" : "text-gray-400 border-transparent hover:text-accent"
                   }`}
                 >
                   Universitas
@@ -675,17 +619,20 @@ export default function LandingPage({
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {activePartners.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-center"
-                  >
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                      alt={item.name}
-                      width={120}
-                      height={80}
-                      className="object-contain"
-                    />
+                  <div key={item.id} className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-center min-h-[80px]">
+                    {item.logo ? (
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                        alt={item.name}
+                        width={120}
+                        height={80}
+                        className="object-contain"
+                      />
+                    ) : partnerTab === "school" ? (
+                      <School className="w-12 h-12 text-accent/40" />
+                    ) : (
+                      <GraduationCap className="w-12 h-12 text-accent/40" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -693,11 +640,8 @@ export default function LandingPage({
                 <div className="flex justify-end items-center gap-4 mt-8">
                   <button
                     onClick={() => {
-                      if (partnerTab === "school") {
-                        setSchoolPage((prev) => Math.max(prev - 1, 1));
-                      } else {
-                        setUniversityPage((prev) => Math.max(prev - 1, 1));
-                      }
+                      if (partnerTab === "school") setSchoolPage((prev) => Math.max(prev - 1, 1));
+                      else setUniversityPage((prev) => Math.max(prev - 1, 1));
                     }}
                     disabled={schoolPage === 1}
                     className="text-accent disabled:opacity-30"
@@ -709,31 +653,17 @@ export default function LandingPage({
                       <button
                         key={index}
                         onClick={() => {
-                          if (partnerTab === "school") {
-                            setSchoolPage(index + 1);
-                          } else {
-                            setUniversityPage(index + 1);
-                          }
+                          if (partnerTab === "school") setSchoolPage(index + 1);
+                          else setUniversityPage(index + 1);
                         }}
-                        className={`h-3 rounded-full transition-all ${
-                          activePage === index + 1
-                            ? "w-8 bg-accent"
-                            : "w-3 bg-gray-300"
-                        }`}
+                        className={`h-3 rounded-full transition-all ${activePage === index + 1 ? "w-8 bg-accent" : "w-3 bg-gray-300"}`}
                       />
                     ))}
                   </div>
                   <button
                     onClick={() => {
-                      if (partnerTab === "school") {
-                        setSchoolPage((prev) =>
-                          Math.min(prev + 1, totalSchoolPages)
-                        );
-                      } else {
-                        setUniversityPage((prev) =>
-                          Math.min(prev + 1, totalUniversityPages)
-                        );
-                      }
+                      if (partnerTab === "school") setSchoolPage((prev) => Math.min(prev + 1, totalSchoolPages));
+                      else setUniversityPage((prev) => Math.min(prev + 1, totalUniversityPages));
                     }}
                     disabled={schoolPage === totalSchoolPages}
                     className="text-accent disabled:opacity-30"
@@ -745,33 +675,32 @@ export default function LandingPage({
             </div>
           </div>
         </div>
+
         {/* Company */}
         <div className="w-[85%] mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-8">
-            {/* Left cards */}
             <div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {paginatedCompanyPartners.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-center"
-                  >
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                      alt={item.name}
-                      width={120}
-                      height={80}
-                      className="object-contain"
-                    />
+                  <div key={item.id} className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-center min-h-[80px]">
+                    {item.logo ? (
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                        alt={item.name}
+                        width={120}
+                        height={80}
+                        className="object-contain"
+                      />
+                    ) : (
+                      <Building className="w-12 h-12 text-accent/40" />
+                    )}
                   </div>
                 ))}
               </div>
               {totalCompanyPages > 1 && (
                 <div className="flex justify-start items-center gap-4 mt-8">
                   <button
-                    onClick={() =>
-                      setCompanyPage((prev) => Math.max(prev - 1, 1))
-                    }
+                    onClick={() => setCompanyPage((prev) => Math.max(prev - 1, 1))}
                     disabled={companyPage === 1}
                     className="text-accent disabled:opacity-30"
                   >
@@ -782,20 +711,12 @@ export default function LandingPage({
                       <button
                         key={index}
                         onClick={() => setCompanyPage(index + 1)}
-                        className={`h-3 rounded-full transition-all ${
-                          companyPage === index + 1
-                            ? "w-8 bg-accent"
-                            : "w-3 bg-gray-300"
-                        }`}
+                        className={`h-3 rounded-full transition-all ${companyPage === index + 1 ? "w-8 bg-accent" : "w-3 bg-gray-300"}`}
                       />
                     ))}
                   </div>
                   <button
-                    onClick={() =>
-                      setCompanyPage((prev) =>
-                        Math.min(prev + 1, totalCompanyPages)
-                      )
-                    }
+                    onClick={() => setCompanyPage((prev) => Math.min(prev + 1, totalCompanyPages))}
                     disabled={companyPage === totalCompanyPages}
                     className="text-accent disabled:opacity-30"
                   >
@@ -804,22 +725,18 @@ export default function LandingPage({
                 </div>
               )}
             </div>
-            {/* Right text */}
             <div className="w-[50%] text-right ml-auto">
               <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
                 Mitra Perusahaan Kami
               </h2>
-              <p className="text-gray-600">
-                Wujudkan magang di perusahaan impian anda!
-              </p>
-              <Link
-                href="/mitra"
-                className="pb-3 font-semibold transition-colors duration-200 border-b-3 border-transparent ml-auto text-accent">
-                  Selengkapnya →
+              <p className="text-gray-600">Wujudkan magang di perusahaan impian anda!</p>
+              <Link href="/mitra" className="pb-3 font-semibold transition-colors duration-200 border-b-3 border-transparent ml-auto text-accent">
+                Selengkapnya →
               </Link>
             </div>
           </div>
         </div>
+
         {/* CTA */}
         <div className="bg-gradient-to-r from-accent to-accent-light md:m-15 md:rounded-3xl text-white md:py-8 py-2">
           <div className="container flex flex-col md:flex-row items-center justify-between mx-auto md:px-20 px-4 gap-6">
@@ -841,74 +758,75 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-16 w-[85%] mx-auto">
-        <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 text-center">
-              {homepages?.["title-landing-6"] ?? "-"}
-            </h2>
-            <p className="text-gray-600 text-center">
-              {homepages?.["subtitle-landing-7"] ?? "-"}
-            </p>
-          </div>
-        </div>
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  Bagaimana cara mendaftar magang di Prakerin?
-                </h3>
-                <p className="text-gray-600">
-                  Anda dapat mendaftar melalui website kami dengan mengisi
-                  formulir pendaftaran dan melengkapi dokumen yang diperlukan.
-                </p>
-              </div>
-              <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  Apa saja syarat untuk mendaftar magang?
-                </h3>
-                <p className="text-gray-600">
-                  Syarat umum meliputi usia minimal 18 tahun, memiliki KTP, dan
-                  sedang menempuh pendidikan di perguruan tinggi atau sekolah
-                  menengah.
-                </p>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  Berapa lama durasi magang di Prakerin?
-                </h3>
-                <p className="text-gray-600">
-                  Durasi magang bervariasi tergantung program, mulai dari 1
-                  bulan hingga 6 bulan.
-                </p>
-              </div>
-              <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  Apakah ada biaya untuk mendaftar magang?
-                </h3>
-                <p className="text-gray-600">
-                  Tidak ada biaya pendaftaran. Semua layanan kami gratis bagi
-                  peserta magang.
-                </p>
-              </div>
+      {/* FAQ + Footer — digabung dalam satu snap section agar footer bisa di-reach */}
+      <section className="snap-start flex flex-col">
+        <div className="py-16 w-[85%] mx-auto">
+          <div className="container mx-auto px-4">
+            <div className="mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4 text-center">
+                {homepages?.["title-landing-6"] ?? "-"}
+              </h2>
+              <p className="text-gray-600 text-center">
+                {homepages?.["subtitle-landing-7"] ?? "-"}
+              </p>
             </div>
           </div>
+          <div className="container mx-auto px-4">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    Bagaimana cara mendaftar magang di Prakerin?
+                  </h3>
+                  <p className="text-gray-600">
+                    Anda dapat mendaftar melalui website kami dengan mengisi
+                    formulir pendaftaran dan melengkapi dokumen yang diperlukan.
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    Apa saja syarat untuk mendaftar magang?
+                  </h3>
+                  <p className="text-gray-600">
+                    Syarat umum meliputi usia minimal 18 tahun, memiliki KTP, dan
+                    sedang menempuh pendidikan di perguruan tinggi atau sekolah menengah.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    Berapa lama durasi magang di Prakerin?
+                  </h3>
+                  <p className="text-gray-600">
+                    Durasi magang bervariasi tergantung program, mulai dari 1
+                    bulan hingga 6 bulan.
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    Apakah ada biaya untuk mendaftar magang?
+                  </h3>
+                  <p className="text-gray-600">
+                    Tidak ada biaya pendaftaran. Semua layanan kami gratis bagi peserta magang.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mx-auto container px-4 text-center mt-8">
+            <p className="mb-4">Punya pertanyaan lebih lanjut?</p>
+            <Link
+              href="#"
+              className="inline-block px-8 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
+            >
+              Hubungi Kami
+            </Link>
+          </div>
         </div>
-        <div className="mx-auto container px-4 text-center mt-8">
-          <p className="mb-4">
-            Punya pertanyaan lebih lanjut?
-          </p>
-          <Link
-            href="#"
-            className="inline-block px-8 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
-          >
-            Hubungi Kami
-          </Link>
-        </div>
+
+        {/* Footer di dalam snap section yang sama dengan FAQ */}
+        {footer}
       </section>
 
       {/* Modal Ulasan Penuh */}
@@ -924,8 +842,8 @@ export default function LandingPage({
             </button>
 
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-100 shadow bg-white">
-                {(activeComment.user?.photo_profile || activeComment.photo_profile) && (
+              <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-100 shadow bg-gradient-to-br from-accent/10 to-blue-100 flex items-center justify-center">
+                {(activeComment.user?.photo_profile || activeComment.photo_profile) ? (
                   <Image
                     src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${activeComment.user?.photo_profile || activeComment.photo_profile}`}
                     alt={activeComment.name}
@@ -933,15 +851,13 @@ export default function LandingPage({
                     height={96}
                     className="object-cover"
                   />
+                ) : (
+                  <User className="w-12 h-12 text-accent/50" />
                 )}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {activeComment.name}
-                </h3>
-                <p className="text-sm text-accent mb-2">
-                  {activeComment.position}
-                </p>
+                <h3 className="text-lg font-semibold text-gray-800">{activeComment.name}</h3>
+                <p className="text-sm text-accent mb-2">{activeComment.position}</p>
               </div>
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                 "{activeComment.comment}"

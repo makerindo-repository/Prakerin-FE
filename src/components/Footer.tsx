@@ -10,7 +10,7 @@ export default function FooterPage() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-prakerin rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
+                <span className="text-white font-bold text-sm"></span>
               </div>
               <span className="text-xl font-bold">PRAKERIN.ID</span>
             </div>
