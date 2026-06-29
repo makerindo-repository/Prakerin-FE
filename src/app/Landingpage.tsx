@@ -531,7 +531,7 @@ export default function LandingPage({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginatedJobOpenings.length > 0 ? (
-            paginatedJobOpenings.slice(0, 3).map((job) => (
+            paginatedJobOpenings.slice(0, 6).map((job) => (
               <Link
                 key={job.id}
                 href={`/lowongan/${job.id}`}
