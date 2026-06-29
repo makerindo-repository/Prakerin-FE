@@ -29,23 +29,47 @@ interface CommentPrakerin {
 interface JobOpening {
   id: string;
   title: string;
-  qouta: number;
+  grade: string;
   location: "onsite" | "remote" | "hybrid";
   is_paid: boolean;
+  is_available: boolean;
+  qouta: number;
+
+  start_date: string;
   closing_date: string;
   created_at: string;
   updated_at: string;
+
   company: {
-    name: string;
-  };
-  user?: {
-    photo_profile: string | null;
-  };
-  city_regency: {
+    id: string;
     name: string;
   };
   province: {
+    id: string;
     name: string;
+  };
+
+  city_regency: {
+    id: string;
+    name: string;
+  };
+
+  field: {
+    id: string;
+    name: string;
+  };
+
+  duration: {
+    id: string;
+    duration_value: number;
+    duration_unit: string;
+  };
+
+  user: {
+    id: string;
+    username: string;
+    photo_profile: string | null;
+    email: string;
   };
 }
 
