@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { API, ENDPOINTS } from "@/utils/config";
 
 interface Partner {
   id: string;
@@ -141,6 +142,67 @@ export default function LandingPage({
   const [durations, setDurations] = useState<Duration[]>([]);
   const [fields, setFields] = useState<ProvinceAndCityRegencyAndField[]>([]);
 
+  // FIX: sebelumnya tidak ada fetch sama sekali untuk provinces/fields/durations,
+  // jadi keempat dropdown filter ini selalu kosong. Sekarang di-fetch sekali saat mount.
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      try {
+        const response = await API.get(ENDPOINTS.PROVINCES);
+        if (response.status === 200) {
+          setProvinces(response.data.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const fetchFields = async () => {
+      try {
+        const response = await API.get(ENDPOINTS.FIELDS);
+        if (response.status === 200) {
+          setFields(response.data.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const fetchDurations = async () => {
+      try {
+        const response = await API.get(ENDPOINTS.DURATIONS);
+        if (response.status === 200) {
+          setDurations(response.data.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchProvinces();
+    fetchFields();
+    fetchDurations();
+  }, []);
+
+  // FIX: fetch kota/kabupaten berdasarkan provinsi yang dipilih.
+  // Sebelumnya tidak ada fungsi ini sama sekali, jadi cityRegencies tidak pernah terisi.
+  const fetchCityRegencies = async (provinceId: string) => {
+    if (!provinceId) {
+      setCityRegencies([]);
+      return;
+    }
+    try {
+      const response = await API.get(ENDPOINTS.CITY_REGENCIES, {
+        params: { province_id: provinceId },
+      });
+      if (response.status === 200) {
+        setCityRegencies(response.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+      setCityRegencies([]);
+    }
+  };
+
   const registerCommentRef = (el: HTMLParagraphElement | null, id: string) => {
     const cleanup = () => {
       const existing = observers.get(id);
@@ -172,17 +234,54 @@ export default function LandingPage({
     observers.set(id, ro);
   };
 
+  // FIX: reset ke halaman 1 setiap kali hasil filter/pencarian berubah,
+  // supaya tidak nyangkut di halaman yang sudah tidak ada datanya.
+  useEffect(() => {
+    setJobPage(1);
+  }, [search, filterData]);
+
+  // FIX: sebelumnya handleSearch hanya membawa "search" ke /lowongan dan tidak
+  // dipakai sama sekali oleh tombol Search (tombolnya cuma setSearch lokal).
+  // Sekarang semua filter (provinsi, kota, tingkat, bidang, durasi) ikut dibawa
+  // lewat query string, dan ini yang dipanggil saat tombol Search diklik.
   const handleSearch = () => {
+    const params = new URLSearchParams();
+
     if (inputSearch.trim() !== "") {
-      router.push(`/lowongan?search=${encodeURIComponent(inputSearch)}`);
+      params.set("search", inputSearch.trim());
     }
+    if (filterData.province_id) {
+      params.set("province_id", filterData.province_id);
+    }
+    if (filterData.city_regency_id) {
+      params.set("city_regency_id", filterData.city_regency_id);
+    }
+    if (filterData.grade) {
+      params.set("grade", filterData.grade);
+    }
+    if (filterData.field_id) {
+      params.set("field_id", filterData.field_id);
+    }
+    if (filterData.duration_id) {
+      params.set("duration_id", filterData.duration_id);
+    }
+
+    const queryString = params.toString();
+    router.push(queryString ? `/lowongan?${queryString}` : "/lowongan");
   };
 
+  // FIX: saat ganti provinsi, reset city_regency_id supaya tidak ada
+  // filter kota yang nyangkut dari provinsi sebelumnya, dan trigger fetch kota baru.
   const handleFilterChange = (key: keyof Filter, value: string) => {
     setFilterData((prev) => ({
       ...prev,
       [key]: value,
+      ...(key === "province_id" ? { city_regency_id: "" } : {}),
     }));
+
+    if (key === "province_id") {
+      fetchCityRegencies(value);
+    }
   };
 
   const schoolPartners = (partners || []).filter((p) => p.type === "school");
@@ -197,8 +296,44 @@ export default function LandingPage({
   const paginatedUniversityPartners = universityPartners.slice((universityPage - 1) * universityPerPage, universityPage * universityPerPage);
   const totalCompanyPages = Math.ceil(companyPartners.length / companyPerPage);
   const paginatedCompanyPartners = companyPartners.slice((companyPage - 1) * companyPerPage, companyPage * companyPerPage);
-  const totalJobPages = Math.ceil(jobOpenings.length / jobsPerPage);
-  const paginatedJobOpenings = jobOpenings.slice((jobPage - 1) * jobsPerPage, jobPage * jobsPerPage);
+  // FIX: sebelumnya search & filterData di-set tapi tidak pernah dipakai untuk
+  // menyaring jobOpenings — jadi tombol cari/filter tidak berpengaruh apa-apa
+  // ke daftar lowongan yang tampil. Sekarang difilter di sini sebelum pagination.
+  const filteredJobOpenings = jobOpenings.filter((job) => {
+    const matchesSearch =
+      search.trim() === "" ||
+      job.title.toLowerCase().includes(search.trim().toLowerCase());
+
+    const matchesProvince =
+      !filterData.province_id || job.province?.id === filterData.province_id;
+
+    const matchesCity =
+      !filterData.city_regency_id ||
+      job.city_regency?.id === filterData.city_regency_id;
+
+    const matchesGrade =
+      !filterData.grade ||
+      filterData.grade === "all" ||
+      job.grade === filterData.grade;
+
+    const matchesField =
+      !filterData.field_id || job.field?.id === filterData.field_id;
+
+    const matchesDuration =
+      !filterData.duration_id || job.duration?.id === filterData.duration_id;
+
+    return (
+      matchesSearch &&
+      matchesProvince &&
+      matchesCity &&
+      matchesGrade &&
+      matchesField &&
+      matchesDuration
+    );
+  });
+
+  const totalJobPages = Math.ceil(filteredJobOpenings.length / jobsPerPage);
+  const paginatedJobOpenings = filteredJobOpenings.slice((jobPage - 1) * jobsPerPage, jobPage * jobsPerPage);
 
   const activePartners = partnerTab === "school" ? paginatedSchoolPartners : paginatedUniversityPartners;
   const activePage = partnerTab === "school" ? schoolPage : universityPage;
@@ -441,14 +576,14 @@ export default function LandingPage({
           <p className="text-gray-600 text-sm font-semibold">{jobOpenings.length} lowongan</p>
           <Link href="/lowongan" className="font-semibold text-blue-600">Cari Lowongan →</Link>
         </div>
-        <div className="bg-white shadow-sm border border-gray-200 p-6 mb-4 rounded-xl">
+        <div className="bg-white shadow-sm border border-gray-600 p-6 mb-4 rounded-xl">
           <div className="relative mb-4">
             <input
               type="text"
               value={inputSearch}
               onChange={(e) => setInputSearch(e.target.value)}
               placeholder="Cari posisi..."
-              className="w-full pl-4 pr-4 py-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent rounded-xl"
+              className="w-full pl-4 pr-4 py-4 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-accent rounded-xl"
             />
           </div>
 
@@ -457,60 +592,62 @@ export default function LandingPage({
               <select
                 value={filterData.province_id}
                 onChange={(e) => handleFilterChange("province_id", e.target.value)}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
               >
                 <option value="">Provinsi</option>
                 {provinces.map((province) => (
                   <option key={province.id} value={province.id}>{province.name}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
             </div>
             <div className="relative">
               <select
                 value={filterData.city_regency_id}
                 onChange={(e) => handleFilterChange("city_regency_id", e.target.value)}
                 disabled={!filterData.province_id}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <option value="">Kota / Kabupaten</option>
+                <option value="">
+                  {filterData.province_id ? "Kota / Kabupaten" : "Pilih provinsi dahulu"}
+                </option>
                 {cityRegencies.map((cityreg) => (
                   <option key={cityreg.id} value={cityreg.id}>{cityreg.name}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
             </div>
             <div className="relative">
               <select
                 value={filterData.grade}
                 onChange={(e) => handleFilterChange("grade", e.target.value)}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
               >
                 <option value="">Tingkat</option>
                 <option value="smk">Tingkat SMK</option>
                 <option value="mahasiswa">Tingkat Mahasiswa</option>
                 <option value="all">Semua Tingkat</option>
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
             </div>
             <div className="relative">
               <select
                 value={filterData.field_id}
                 onChange={(e) => handleFilterChange("field_id", e.target.value)}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
               >
                 <option value="">Bidang</option>
                 {fields.map((field) => (
                   <option key={field.id} value={field.id}>{field.name}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
             </div>
             <div className="relative">
               <select
                 value={filterData.duration_id}
                 onChange={(e) => handleFilterChange("duration_id", e.target.value)}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
               >
                 <option value="">Durasi</option>
                 {durations.map((duration) => (
@@ -519,10 +656,10 @@ export default function LandingPage({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
             </div>
             <button
-              onClick={() => setSearch(inputSearch)}
+              onClick={handleSearch}
               className="bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all px-6 py-3 rounded-xl"
             >
               <Search className="w-6 h-6 text-white-400" />
@@ -535,7 +672,7 @@ export default function LandingPage({
               <Link
                 key={job.id}
                 href={`/lowongan/${job.id}`}
-                className="bg-white border border-gray-200 shadow-sm p-5 flex flex-col rounded-xl hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
+                className="bg-white border border-gray-600 shadow-sm p-5 flex flex-col rounded-xl hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 relative flex items-center justify-center bg-gray-100 rounded-full overflow-hidden">
@@ -583,7 +720,7 @@ export default function LandingPage({
                   )}
                 </div>
 
-                <div className="border-t-4 border-gray-200 mb-4 mt-10"></div>
+                <div className="border-t-4 border-gray-600 mb-4 mt-10"></div>
 
                 <div className="mt-auto">
                   <p className="text-sm text-gray-500 mb-4">
@@ -623,11 +760,11 @@ export default function LandingPage({
               </Link>
             </div>
             <div>
-              <div className="flex gap-8 mb-6 border-b border-gray-200">
+              <div className="flex gap-8 mb-6 border-b border-gray-600">
                 <button
                   onClick={() => setPartnerTab("school")}
                   className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
-                    partnerTab === "school" ? "text-accent border-accent" : "text-gray-400 border-transparent hover:text-accent"
+                    partnerTab === "school" ? "text-accent border-accent" : "text-gray-600 border-transparent hover:text-accent"
                   }`}
                 >
                   Sekolah
@@ -635,7 +772,7 @@ export default function LandingPage({
                 <button
                   onClick={() => setPartnerTab("university")}
                   className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
-                    partnerTab === "university" ? "text-accent border-accent" : "text-gray-400 border-transparent hover:text-accent"
+                    partnerTab === "university" ? "text-accent border-accent" : "text-gray-600 border-transparent hover:text-accent"
                   }`}
                 >
                   Universitas

@@ -251,7 +251,13 @@ const StudentFeedback = () => {
     <>
       <div className=" w-full h-full relative">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-black">
-          {perusahaan.length !== 0 && loading !== true ? (
+          {/* FIX: kondisi diubah supaya tidak stuck loading saat data kosong.
+              Sebelumnya: perusahaan.length !== 0 && loading !== true
+              -> kalau data kosong (length 0), kondisi ini SELALU jatuh ke LoaderData,
+              walaupun loading sudah false (request sudah selesai). */}
+          {loading ? (
+            <LoaderData />
+          ) : perusahaan.length !== 0 ? (
             perusahaan.map((data, index) => (
               <div
                 className="bg-white flex flex-col md:flex-row space-x-5 p-5 px-10 md:px-5 rounded-2xl justify-between items-end md:items-center"
@@ -292,7 +298,10 @@ const StudentFeedback = () => {
               </div>
             ))
           ) : (
-            <LoaderData />
+            // FIX: tampilan baru untuk kondisi data kosong (bukan loading)
+            <div className="col-span-1 md:col-span-2 text-center py-12 text-gray-400">
+              Belum ada perusahaan yang perlu diberi ulasan.
+            </div>
           )}
         </div>
         <PaginationComponent

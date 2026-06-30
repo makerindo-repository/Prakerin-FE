@@ -88,6 +88,16 @@ function InternshipPageContent() {
   const [inputSearch, setInputSearch] = useState<string>("");
   const searchParams = useSearchParams();
   const keyword = searchParams.get("search") || "";
+
+  // FIX: sebelumnya hanya "search" yang dibaca dari query string, jadi filter
+  // (provinsi, kota, tingkat, bidang, durasi) yang dikirim dari landing page
+  // tidak pernah sampai ke state filterData di halaman ini.
+  const provinceIdParam = searchParams.get("province_id") || "";
+  const cityRegencyIdParam = searchParams.get("city_regency_id") || "";
+  const gradeParam = searchParams.get("grade") || "";
+  const fieldIdParam = searchParams.get("field_id") || "";
+  const durationIdParam = searchParams.get("duration_id") || "";
+
   const [selectedJob, setSelectedJob] = useState<Lowongan | null>(null);
 
   const [provinces, setProvinces] = useState<ProvinceAndCityRegencyAndField[]>(
@@ -207,10 +217,28 @@ function InternshipPageContent() {
     fetchJobOpenings();
   }, [filterData, search, fetchJobOpenings]);
 
+  // FIX: sebelumnya effect ini hanya menyinkronkan keyword (search) dari URL.
+  // Sekarang sekaligus menyinkronkan seluruh filterData dari query string,
+  // supaya filter yang sudah dipilih user di landing page otomatis ter-apply
+  // di halaman lowongan ini tanpa perlu dipilih ulang manual.
   useEffect(() => {
     setInputSearch(keyword);
     setSearch(keyword);
-  }, [keyword]);
+    setFilterData({
+      province_id: provinceIdParam,
+      city_regency_id: cityRegencyIdParam,
+      grade: gradeParam,
+      field_id: fieldIdParam,
+      duration_id: durationIdParam,
+    });
+  }, [
+    keyword,
+    provinceIdParam,
+    cityRegencyIdParam,
+    gradeParam,
+    fieldIdParam,
+    durationIdParam,
+  ]);
 
   useEffect(() => {
     if (!filterData.province_id) {
@@ -257,7 +285,7 @@ function InternshipPageContent() {
             Temukan peluang magang dari berbagai perusahaan ternama. Daftar,
             lamar, dan mulai perjalanan kariermu bersama kami.
           </p>
-          <div className="bg-white shadow-sm border border-gray-200 p-6 mb-4 rounded-xl">
+          <div className="bg-white shadow-sm border border-gray-600 p-6 mb-4 rounded-xl">
             {/* Search */}
             <div className="relative mb-4">
               <input
@@ -265,7 +293,7 @@ function InternshipPageContent() {
                 onChange={(e) => setInputSearch(e.target.value)}
                 value={inputSearch}
                 placeholder="Cari lowongan magang impian anda..."
-                className="w-full pl-4 pr-4 py-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent rounded-xl"
+                className="w-full pl-4 pr-4 py-4 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-accent rounded-xl"
               />
             </div>
 
@@ -275,7 +303,7 @@ function InternshipPageContent() {
               <div className="relative">
                 <select
                 value={filterData.province_id} onChange={(e) => handleFilterChange("province_id", e.target.value)}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Provinsi</option>
                   {provinces.map((province) => (
@@ -284,13 +312,13 @@ function InternshipPageContent() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
               </div>
               {/* Kotkab */}
               <div className="relative">
                 <select
                 value={filterData.city_regency_id} onChange={(e) => handleFilterChange("city_regency_id", e.target.value)} disabled={!filterData.province_id}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Kota / Kabupaten</option>
                   {cityRegencies.map((cityreg) => (
@@ -299,26 +327,26 @@ function InternshipPageContent() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
               </div>
               {/* Tingkat */}
               <div className="relative">
                 <select
                 value={filterData.grade} onChange={(e) => handleFilterChange("grade", e.target.value)}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Tingkat</option>
                   <option value="smk">Tingkat SMK</option>
                   <option value="mahasiswa">Tingkat Mahasiswa</option>
                   <option value="all">Semua Tingkat</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
               </div>
               {/* Bidang */}
               <div className="relative">
                 <select
                 value={filterData.field_id} onChange={(e) => handleFilterChange("field_id", e.target.value)}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Bidang</option>
                   {fields.map((field) => (
@@ -327,12 +355,12 @@ function InternshipPageContent() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
               </div>
               {/* Durasi */}
               <div className="relative">
                 <select value={filterData.duration_id} onChange={(e) => handleFilterChange("duration_id", e.target.value)}
-                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-400 rounded-xl w-full"
+                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Durasi</option>
                   {durations.map((duration) => (
@@ -341,7 +369,7 @@ function InternshipPageContent() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
               </div>
               <button
                 onClick={() => setSearch(inputSearch)}
@@ -376,7 +404,7 @@ function InternshipPageContent() {
                         setSelectedJob(item);
                       }
                     }}
-                    className="bg-white border border-gray-200 shadow-sm p-5 flex flex-col rounded-xl hover:shadow-lg transition-all duration-200 cursor-pointer hover:border hover:border-cyan-500"
+                    className="bg-white border border-gray-600 shadow-sm p-5 flex flex-col rounded-xl hover:shadow-lg transition-all duration-200 cursor-pointer hover:border hover:border-cyan-500"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-15 h-15 relative rounded-full overflow-hidden">
@@ -436,7 +464,7 @@ function InternshipPageContent() {
                       )}
                     </div>
 
-                    <div className="border-t-4 border-gray-200 mb-4 mt-10"></div>
+                    <div className="border-t-4 border-gray-600 mb-4 mt-10"></div>
 
                     <div className="mt-auto">
                       <p className="text-sm text-gray-500 mb-4">

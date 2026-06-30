@@ -16,11 +16,14 @@ import UnderConstruction from "@/components/UnderConstruction";
 
 const FeedbackPage: React.FC = () => {
   const [authorization, setAuthorization] = useState<string>();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     setAuthorization(Cookies.get("authorization"));
+    setIsReady(true);
   }, []);
 
+  if (!isReady) return null;
   // return <UnderConstruction />;
 
   return (
