@@ -110,121 +110,130 @@ export default function AboutPage() {
       </section>
 
       {/* Section 2: Our Story & Mission */}
-      <section className="grid grid-cols-1 md:grid-cols-10 md:grid-rows-2 md:max-h-100 gap-4 mt-10 w-[85%] mx-auto">
-        <div
-          className="md:col-span-4 row-span-2 relative overflow-hidden rounded-2xl shadow-xl"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          {/* Carousel container - ShadCN style */}
+        <section className="grid grid-cols-1 md:grid-cols-10 gap-4 mt-10 w-[85%] mx-auto items-stretch">
 
-          <div className="relative w-full h-80 md:h-full">
-            {/* All slides container */}
-            <div
-              className="flex transition-transform duration-500 ease-out h-full"
-              style={{ transform: `translateX(-${active * 100}%)` }}
-            >
-              {cards.map((card, index) => (
-                <div key={index} className="relative flex-none w-full h-full">
-                  {/* Background image */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{
-                      backgroundImage: `url(${card.bgImage})`,
-                    }}
-                  />
+          {/* Carousel */}
+          <div
+            className="md:col-span-4 relative overflow-hidden rounded-2xl shadow-xl min-h-[500px]"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
+            <div className="relative w-full h-full">
+              <div
+                className="flex transition-transform duration-500 ease-out h-full"
+                style={{ transform: `translateX(-${active * 100}%)` }}
+              >
+                {cards.map((card, index) => (
+                  <div key={index} className="relative flex-none w-full h-full">
+                    <div
+                      className="absolute inset-0 bg-cover bg-center"
+                      style={{
+                        backgroundImage: `url(${card.bgImage})`,
+                      }}
+                    />
 
-                  {/* Content overlay */}
-                  <div className="relative z-10 flex flex-col h-full text-white">
-                    {/* Content area */}
-                    <div className={`${card.gradient} p-5 pb-12 mt-auto`}>
-                      <h1 className="text-xl md:text-2xl font-bold mb-3">
-                        {card.title}
-                      </h1>
-                      <p className="text-sm md:text-base leading-relaxed">
-                        {card.desc}
-                      </p>
+                    <div className="relative z-10 flex flex-col h-full text-white">
+                      <div className={`${card.gradient} p-5 pb-12 mt-auto`}>
+                        <h1 className="text-2xl font-bold mb-3">
+                          {card.title}
+                        </h1>
+
+                        <p className="leading-relaxed">
+                          {card.desc}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-            {/* Fixed arrows (di luar track agar tidak ikut geser) */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-5 z-2">
-              <button
-                onClick={() => {
-                  setIsPaused(true);
-                  prev();
-                  setTimeout(() => setIsPaused(false), 5000);
-                }}
-                className="pointer-events-auto p-2 rounded-full w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/50 text-white transition-colors duration-200 backdrop-blur-sm cursor-pointer"
-                aria-label="Sebelumnya"
-              >
-                <ArrowLeft />
-              </button>
-              <button
-                onClick={() => {
-                  setIsPaused(true);
-                  next();
-                  setTimeout(() => setIsPaused(false), 5000);
-                }}
-                className="pointer-events-auto p-2 rounded-full w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/50 text-white transition-colors duration-200 backdrop-blur-sm cursor-pointer"
-                aria-label="Berikutnya"
-              >
-                <ArrowRight />
-              </button>
+                ))}
+              </div>
+
+              {/* Arrow */}
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-5">
+                <button
+                  onClick={() => {
+                    setIsPaused(true);
+                    prev();
+                    setTimeout(() => setIsPaused(false), 5000);
+                  }}
+                  className="pointer-events-auto w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center text-white"
+                >
+                  <ArrowLeft />
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsPaused(true);
+                    next();
+                    setTimeout(() => setIsPaused(false), 5000);
+                  }}
+                  className="pointer-events-auto w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center text-white"
+                >
+                  <ArrowRight />
+                </button>
+              </div>
+
+              {/* Indicator */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                {cards.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActive(index)}
+                    className={`h-2 rounded-full transition-all ${
+                      active === index ? "w-8 bg-white" : "w-2 bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Dots indicator */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-            {cards.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setIsPaused(true);
-                  setActive(index);
-                  setTimeout(() => setIsPaused(false), 3000); // Resume after 3 seconds
-                }}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                  index === active
-                    ? "bg-white w-8"
-                    : "bg-white/50 hover:bg-white/75"
-                }`}
-                aria-label={`Slide ${index + 1}`}
-              />
-            ))}
+          {/* Right Side */}
+          <div className="md:col-span-6 flex flex-col gap-4">
+
+            {/* Visi */}
+            <div className="bg-cyan-200 border border-cyan-400 rounded-2xl p-6">
+              <h2 className="text-2xl font-bold text-blue-500 mb-3">
+                Visi
+              </h2>
+
+              <p className="leading-relaxed text-gray-700">
+                Menjadi platform magang digital terpercaya yang menjadi
+                jembatan utama antara mahasiswa, talenta muda,
+                dan dunia kerja profesional di Indonesia.
+              </p>
+            </div>
+
+            {/* Mission */}
+            <div className="bg-blue-200 border border-blue-400 rounded-2xl p-6 flex-1">
+              <h2 className="text-2xl font-bold text-blue-500 mb-3">
+                Our Mission
+              </h2>
+
+              <ol className="list-decimal pl-5 space-y-3 leading-relaxed text-gray-700">
+                <li>
+                  Menyediakan peluang magang terverifikasi dari perusahaan
+                  terpercaya di berbagai bidang industri.
+                </li>
+
+                <li>
+                  Membekali mahasiswa dan talenta muda dengan pelatihan,
+                  bimbingan, dan pengalaman kerja nyata.
+                </li>
+
+                <li>
+                  Membangun ekosistem karier digital yang mendukung
+                  pertumbuhan profesional sejak dini.
+                </li>
+
+                <li>
+                  Menjadi mitra strategis perusahaan dalam menemukan
+                  talenta muda potensial.
+                </li>
+              </ol>
+            </div>
+
           </div>
-        </div>
-        <div className="bg-cyan-200 border border-cyan-400 hover:bg-cyan-300 col-span-1 md:col-span-6 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
-          <div className="col-span-2 p-5 row-span-3">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-500">Visi</h1>
-            <p className="text-s md:text-s text-gray-600">
-              Menjadi platform magang digital terpercaya yang menjadi jembatan
-              utama antara mahasiswa, talenta muda, dan dunia kerja profesional
-              di Indonesia.
-            </p>
-          </div>
-        </div>
-        <div className="bg-blue-200 border border-blue-400 hover:bg-blue-300 col-span-1 md:col-span-6 rounded-2xl grid grid-flow-col grid-rows-5 min-h-[150px] mt-4 md:mt-0">
-          <div className="col-span-2 p-5 row-span-3">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-500">Our Mission</h1>
-            <p className="text-s md:text-s text-gray-600">
-              1. Menyediakan peluang magang terverifikasi dari perusahaan
-              terpercaya di berbagai bidang industri.
-              <br />
-              2. Membekali mahasiswa dan talenta muda dengan pelatihan,
-              bimbingan, dan pengalaman kerja nyata.
-              <br />
-              3. Membangun ekosistem karier digital yang mendukung pertumbuhan
-              profesional sejak dini.
-              <br />
-              4. Menjadi mitra strategis perusahaan dalam menemukan talenta muda
-              potensial.
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
       <ContactPage homepages={homepages} />
       <FooterPage />
     </>

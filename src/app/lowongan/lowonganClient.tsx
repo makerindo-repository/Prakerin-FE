@@ -475,7 +475,7 @@ function InternshipPageContent() {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedJob(item);
+                          router.push(`/lowongan/${item.id}`);
                         }}
                         className="w-full rounded-xl bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all"
                       >
