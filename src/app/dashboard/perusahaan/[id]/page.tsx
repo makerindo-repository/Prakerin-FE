@@ -20,6 +20,10 @@ import Image from "next/image";
 import RenderBlocks from "@/components/RenderBlocks";
 import Loader from "@/components/loader";
 
+// PENTING: field relasi (city_regency, province, sector) bisa null
+// kalau datanya belum diisi di sisi perusahaan/backend. `company` (detail
+// perusahaan itu sendiri) juga dibuat optional untuk jaga-jaga kalau
+// backend pernah mengirim payload tak lengkap.
 interface Company {
   email: string;
   photo_profile?: string | null;
@@ -30,16 +34,16 @@ interface Company {
     address: string;
     phone_number: string | null;
     website: string | null;
-  };
+  } | null;
   city_regency: {
     name: string;
-  };
+  } | null;
   province: {
     name: string;
-  };
+  } | null;
   sector: {
     name: string;
-  };
+  } | null;
   job_openings: {
     id: string;
     title: string;
@@ -53,28 +57,7 @@ const DetailPerusahaanPage = ({
   params: Promise<{ id: string }>;
 }) => {
   const { id } = use(params);
-  const [company, setCompany] = useState<Company>({
-    email: "",
-    photo_profile: null,
-    mou: false,
-    company: {
-      name: "",
-      description: null,
-      address: "",
-      phone_number: "",
-      website: "",
-    },
-    city_regency: {
-      name: "",
-    },
-    province: {
-      name: "",
-    },
-    sector: {
-      name: "",
-    },
-    job_openings: [],
-  });
+  const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fetchCompanyDetail = async () => {
@@ -101,6 +84,7 @@ const DetailPerusahaanPage = ({
     console.log("Id:", id);
     fetchCompanyDetail();
   }, []);
+
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">
@@ -121,7 +105,7 @@ const DetailPerusahaanPage = ({
 
       {/* Description Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        {isLoading ? (
+        {isLoading || !company ? (
           <div className="flex justify-center items-center h-96">
             <Loader height={64} width={64} />
           </div>
@@ -144,17 +128,18 @@ const DetailPerusahaanPage = ({
                 )}
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                    {company.company.name}
+                    {company.company?.name ?? "-"}
                   </h2>
                   <div className="flex items-center space-x-2 text-gray-600 mb-1">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm">
-                      {company.city_regency.name}, {company.province.name}
+                      {company.city_regency?.name ?? "-"},{" "}
+                      {company.province?.name ?? "-"}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Globe className="w-4 h-4 flex-shrink-0" />
-                    {company.company.website ? (
+                    {company.company?.website ? (
                       <Link
                         href={company.company.website}
                         className="text-sm text-blue-600 hover:underline"
@@ -206,7 +191,7 @@ const DetailPerusahaanPage = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 {/* Alamat */}
-                {company.company.address && (
+                {company.company?.address && (
                   <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
                     <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
@@ -219,7 +204,7 @@ const DetailPerusahaanPage = ({
                 )}
 
                 {/* Sektor */}
-                {company.sector.name && (
+                {company.sector?.name && (
                   <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
                     <Factory className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
@@ -232,7 +217,7 @@ const DetailPerusahaanPage = ({
                 )}
 
                 {/* Telepon */}
-                {company.company.phone_number && (
+                {company.company?.phone_number && (
                   <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
                     <Phone className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
@@ -250,13 +235,13 @@ const DetailPerusahaanPage = ({
               Deskripsi
             </h3>
             <div className="text-gray-700 text-sm leading-relaxed mb-10">
-              <RenderBlocks data={company.company.description} />
+              <RenderBlocks data={company.company?.description ?? null} />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-6">
               Lowongan Magang di Perusahaan ini
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {company.job_openings.length !== 0 ? (
+              {company.job_openings?.length ? (
                 company.job_openings.map((jobOpening) => (
                   <Link
                     href={`/dashboard/lowongan/${jobOpening.id}`}
