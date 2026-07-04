@@ -26,7 +26,7 @@ interface CommentPrakerin {
   created_at: string;
 }
 
-interface JobOpening {
+interface JobOpeningg {
   id: string;
   title: string;
   grade: string;
@@ -103,7 +103,7 @@ export default function LandingPage({
   homepages: any;
   partners: Partner[];
   comments: CommentPrakerin[];
-  jobOpenings: JobOpening[]
+  jobOpenings: JobOpeningg[]
 }) {
   const router = useRouter();
 

@@ -109,7 +109,7 @@ export default function HomePage() {
     partners: data?.partners || [],
     comments: data?.comment_prakerins || [],
     jobOpenings: data?.job_openings || [],
-  }), [data]);
+  }) as any, [data]);
 
   if (error) {
     return (
