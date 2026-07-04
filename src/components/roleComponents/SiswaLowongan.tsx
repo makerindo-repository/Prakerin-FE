@@ -38,10 +38,10 @@ interface JobOpening {
   };
   city_regency: {
     name: string;
-  };
+  } | null;
   province: {
     name: string;
-  };
+  } | null;
   is_paid: boolean;
   updated_at: string;
   save_job_opening: boolean;
@@ -51,6 +51,11 @@ interface JobOpening {
 }
 
 interface Province {
+  id: string;
+  name: string;
+}
+
+interface CityRegency {
   id: string;
   name: string;
 }
@@ -92,6 +97,7 @@ export default function SiswaLowongan() {
     });
   const [jobOpenings, setJobOpenings] = useState<JobOpening[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
+  const [cityRegencies, setCityRegencies] = useState<CityRegency[]>([]);
   const [fields, setFields] = useState<Field[]>([]);
   const [durations, setDurations] = useState<Duration[]>([]);
   const [inputSearch, setInputSearch] = useState<string>("");
@@ -200,16 +206,23 @@ export default function SiswaLowongan() {
     }
   };
 
+  // FIX: sebelumnya setCityRegencies di-comment, jadi data kota tidak pernah
+  // tersimpan ke state. Sekarang diaktifkan, plus reset list saat provinceId kosong.
   const fetchCityRegencies = async (provinceId: string) => {
+    if (!provinceId) {
+      setCityRegencies([]);
+      return;
+    }
     try {
       const response = await API.get(ENDPOINTS.CITY_REGENCIES, {
         params: { province_id: provinceId },
       });
       if (response.status === 200) {
-        // setCityRegencies(response.data.data);
+        setCityRegencies(response.data.data);
       }
     } catch (error) {
       console.log(error);
+      setCityRegencies([]);
     }
   };
 
@@ -263,6 +276,7 @@ export default function SiswaLowongan() {
       field_id: "",
       duration_id: "",
     });
+    setCityRegencies([]);
   };
 
   const handlePageChange = (selectedPage: number) => {
@@ -352,11 +366,14 @@ export default function SiswaLowongan() {
             name="province_id"
             value={filterData.province_id}
             onChange={(e) => {
+              const newProvinceId = e.target.value;
               setFilterData({
                 ...filterData,
-                province_id: e.target.value,
+                province_id: newProvinceId,
+                // supaya tidak ada filter kota yang nyangkut dari provinsi lama
+                city_regency_id: "",
               });
-              fetchCityRegencies(e.target.value);
+              fetchCityRegencies(newProvinceId);
             }}
             className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black"
           >
@@ -376,10 +393,20 @@ export default function SiswaLowongan() {
                 city_regency_id: e.target.value,
               })
             }
-            className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black"
+            // opsi dari state cityRegencies hasil fetch, bukan hardcode
+            disabled={!filterData.province_id}
+            className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">Kota/Kabupaten</option>
-            <option value="id">Jakarta</option>
+            <option value="">
+              {filterData.province_id
+                ? "Kota/Kabupaten"
+                : "Pilih provinsi dahulu"}
+            </option>
+            {cityRegencies.map((city) => (
+              <option key={city.id} value={city.id}>
+                {city.name}
+              </option>
+            ))}
           </select>
           <select
             name="grade"
@@ -444,7 +471,11 @@ export default function SiswaLowongan() {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-0 sm:p-6">
-        {jobOpenings && loading !== true ? (
+        {loading ? (
+          <div className="lg:col-span-2">
+            <LoaderData />
+          </div>
+        ) : (
           jobOpenings.map((job) => (
             <Link
               key={job.id}
@@ -476,7 +507,7 @@ export default function SiswaLowongan() {
                     <div className="flex text-sm text-gray-500 space-x-2">
                       <MapPin className="w-4 h-4 my-auto" />
                       <p className="">
-                        {job.city_regency.name}, {job.province.name}
+                        {job.city_regency?.name ?? "Kota tidak tersedia"}, {job.province?.name ?? "Provinsi tidak tersedia"}
                       </p>
                     </div>
                   </div>
@@ -492,7 +523,7 @@ export default function SiswaLowongan() {
                 <span className="text-gray-500 text-sm">
                   {timeAgo(job.updated_at)}
                 </span>
-                
+
                 <button
                   type="button"
                   onClick={(e) => handleClickFavorite(e, job.id)}
@@ -508,10 +539,6 @@ export default function SiswaLowongan() {
               </div>
             </Link>
           ))
-        ) : (
-          <div className="lg:col-span-2">
-            <LoaderData />
-          </div>
         )}
       </div>
       {!loading && jobOpenings.length === 0 && (

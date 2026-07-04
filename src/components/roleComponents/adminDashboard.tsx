@@ -21,6 +21,7 @@ interface Summary {
   total_schools: number;
   total_companies: number;
   total_students: number;
+  total_college_students: number;
   total_job_openings: number;
   total_achievements: number;
   active_internships: number;
@@ -170,9 +171,26 @@ export default function AdminDashboard({
             legend=""
             tooltip="Total per Tipe Pengguna"
             dataList={[
-              { name: "Siswa/Mahasiswa", value: summary.total_students, color: "#4f46e5" },
-              { name: "Perusahaan", value: summary.total_companies, color: "#22c55e" },
-              { name: "Sekolah", value: summary.total_schools, color: "#eab308" },
+              {
+                name: "Siswa",
+                value: summary.total_students,
+                color: "#4f46e5",
+              },
+              {
+                name: "Mahasiswa",
+                value: summary.total_college_students,
+                color: "#06b6d4",
+              },
+              {
+                name: "Perusahaan",
+                value: summary.total_companies,
+                color: "#22c55e",
+              },
+              {
+                name: "Sekolah",
+                value: summary.total_schools,
+                color: "#eab308",
+              },
             ]}
           />
         </div>

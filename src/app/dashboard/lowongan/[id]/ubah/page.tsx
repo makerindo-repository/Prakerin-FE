@@ -240,7 +240,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         closing_date: formatDateTime(new Date(formData.closing_date)),
       };
 
-      await API.put(`${ENDPOINTS.JOB_OPENINGS}/${id}`, payload, {
+      await API.patch(`${ENDPOINTS.JOB_OPENINGS}/${id}`, payload, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
@@ -251,11 +251,12 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       fetchJobOpening();
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
+        console.log("Response data:", error.response?.data);
         const responseError = error.response?.data.errors;
         if (typeof responseError === "string") {
           await alertError(responseError);
         } else {
-          setErrors(responseError);
+          setErrors(responseError ?? {});
         }
       }
       console.error(error);
@@ -401,6 +402,14 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   }, []);
 
   const isCompanyOwner = userRole === "company";
+
+  if (isLoadingDuration) {
+    return (
+      <main className="p-6 flex justify-center items-center min-h-[400px]">
+        <p className="text-gray-400">Memuat data...</p>
+      </main>
+    );
+  }
 
   // Render mode tampilan detail
   if (!isEditMode) {

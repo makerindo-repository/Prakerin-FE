@@ -59,11 +59,12 @@ interface JobOpening {
   };
   save_job_opening?: boolean;
 }
+
 interface HomepageData {
   homepages: any;
   partners: Partner[];
   comment_prakerins: CommentPrakerin[];
-  job_openings: JobOpening[];
+  job_openings: any[];
 }
 
 export default function HomePage() {
@@ -75,21 +76,20 @@ export default function HomePage() {
   const fetchData = useCallback(async (signal?: AbortSignal) => {
     try {
       setError(null);
-      
-      // Parallel requests with timeout
+
       const [csrfResponse, homepageResponse] = await Promise.allSettled([
         createApiCall({ url: "/sanctum/csrf-cookie" }, signal),
         createApiCall({ url: ENDPOINTS.HOMEPAGES }, signal),
       ]);
 
-      if (homepageResponse.status === 'fulfilled') {
+      if (homepageResponse.status === "fulfilled") {
         setData(homepageResponse.value.data);
-      } else { //just a much more robust error handling, to know what went wrong
+      } else {
         console.error("Homepage API error:", homepageResponse.reason);
         throw homepageResponse.reason;
       }
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
+      if (err.name !== "AbortError") {
         console.error("Error fetching data:", err);
         setError("Gagal memuat data. Silakan refresh halaman.");
       }
@@ -104,19 +104,29 @@ export default function HomePage() {
     return () => controller.abort();
   }, [fetchData]);
 
-  const memoizedProps = useMemo(() => ({
-    homepages: data?.homepages,
-    partners: data?.partners || [],
-    comments: data?.comment_prakerins || [],
-    jobOpenings: data?.job_openings || [],
-  }) as any, [data]);
+  const memoizedProps = useMemo(
+    () => ({
+      homepages: data?.homepages,
+      partners: data?.partners || [],
+      comments: data?.comment_prakerins || [],
+      jobOpenings: data?.job_openings || [],
+      // FooterPage di-pass sebagai prop ReactNode ke LandingPage
+      // agar footer berada di dalam snap container yang sama
+      footer: (
+        <Suspense fallback={<div className="h-16" />}>
+          <FooterPage />
+        </Suspense>
+      ),
+    }),
+    [data]
+  );
 
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
-          <button 
+          <button
             onClick={() => {
               setLoading(true);
               setError(null);
@@ -136,7 +146,7 @@ export default function HomePage() {
       <Suspense fallback={<div className="h-16 bg-white" />}>
         <Navigation section={activeSection} setSection={setActiveSection} />
       </Suspense>
-      
+
       {loading ? (
         <div className="fixed w-full inset-0 flex justify-center items-center h-screen z-10 bg-white">
           <Loader width={64} height={64} />
@@ -144,15 +154,12 @@ export default function HomePage() {
       ) : (
         <>
           <Suspense fallback={<Loader width={64} height={64} />}>
+            {/* Footer sudah di-pass sebagai prop, tidak perlu render FooterPage di sini lagi */}
             <LandingPage {...memoizedProps} />
           </Suspense>
-          
+
           <Suspense fallback={null}>
             <ServiceButton />
-          </Suspense>
-          
-          <Suspense fallback={<div className="h-16" />}>
-            <FooterPage />
           </Suspense>
         </>
       )}

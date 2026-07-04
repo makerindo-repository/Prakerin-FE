@@ -81,8 +81,8 @@ const NonAdminSekolah: React.FC = () => {
         id: item.id,
         photo_profile: item.photo_profile,
         name: item.name,
-        city_regency: item.city_regency.name,
-        province: item.province.name,
+        city_regency: item.city_regency?.name ?? null,
+        province: item.province?.name ?? null,
         mou: item.mou,
       }));
 
