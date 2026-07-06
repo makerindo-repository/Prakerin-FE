@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { API, ENDPOINTS } from "../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import TabsComponent from "@/components/TabsCompenent";
 import Link from "next/link";

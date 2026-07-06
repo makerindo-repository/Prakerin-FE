@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { use, useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { API, ENDPOINTS } from "../../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import useDebounce from "@/hooks/useDebounce";
 import TabsComponent from "@/components/TabsCompenent";
 import PaginationComponent from "@/components/PaginationComponent";

@@ -8,7 +8,7 @@ import {
   Linkedin,
 } from "lucide-react";
 import { useRef, useState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
+// import ReCAPTCHA from "react-google-recaptcha"; // CAPTCHA disabled for local dev
 
 interface contactFormData {
   name: string;
@@ -18,19 +18,18 @@ interface contactFormData {
 
 export default function ContactPage({ homepages }: { homepages?: any }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  // const recaptchaRef = useRef<ReCAPTCHA>(null); // CAPTCHA disabled for local dev
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recaptchaRef.current) return;
-
-    // Jalankan reCAPTCHA invisible
-    const token = await recaptchaRef.current.executeAsync();
-    if (!token) {
-      recaptchaRef.current.reset();
-      alert("Please complete the reCAPTCHA.");
-      return;
-    }
+    // CAPTCHA disabled for local dev
+    // if (!recaptchaRef.current) return;
+    // const token = await recaptchaRef.current.executeAsync();
+    // if (!token) {
+    //   recaptchaRef.current.reset();
+    //   alert("Please complete the reCAPTCHA.");
+    //   return;
+    // }
 
     if (!formRef.current) return;
 
@@ -87,11 +86,11 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
                   rows={3}
                 ></textarea>
               </div>
-              <ReCAPTCHA
+              {/* <ReCAPTCHA
                 sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
                 size="invisible"
                 ref={recaptchaRef}
-              />
+              /> */}
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-accent to-accent-light text-white py-3 rounded-lg font-medium hover:bg-prakerin-dark transition-all duration-300 transform hover:scale-105"

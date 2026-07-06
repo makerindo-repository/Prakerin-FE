@@ -5,15 +5,21 @@ import {
   GraduationCap,
   Building,
   Activity,
-  Crown
+  Crown,
+  UserPlus,
+  TrendingUp,
+  Briefcase,
+  ShieldCheck,
 } from "lucide-react";
-import RatingSummaryCompenent from "../RatingSummaryCompenent";
 import PieChartCompenent from "../Charts/PieChartCompenent";
 import BarChartCompenent from "../Charts/BarChartCompenent";
 import { useEffect, useState } from "react";
 import Loader from "../loader";
 import { API, ENDPOINTS } from "@/utils/config";
 import cookies from "js-cookie";
+import KPICard from "../dashboard/KPICard";
+import InsightCard from "../dashboard/InsightCard";
+import SectionHeader from "../dashboard/SectionHeader";
 
 // Interfaces (sesuai struktur data API)
 interface Summary {
@@ -77,7 +83,6 @@ export default function AdminDashboard({
         });
 
         const data: DashboardData = response.data;
-        console.log ("Dashboard Data:", response.data);
         setSummary(data.summary);
         setSystemMetrics(data.system_metrics);
         setRegionalData(data.regional_data);
@@ -103,11 +108,11 @@ export default function AdminDashboard({
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen">
+      <div className="flex flex-col items-center justify-center h-64">
         <p className="text-red-600 font-semibold">{error}</p>
         <button
           onClick={() => location.reload()}
-          className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg"
+          className="mt-3 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors"
         >
           Muat Ulang
         </button>
@@ -117,171 +122,232 @@ export default function AdminDashboard({
 
   if (!summary || !systemMetrics) return null;
 
+  const totalStudents = (summary.total_students ?? 0) + (summary.total_college_students ?? 0);
+
   return (
-    <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
-      {/* === Top Statistics Cards === */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-        <StatCard
-          title="Total Pengguna"
-          value={summary.total_users}
-          icon={<Users className="text-accent w-6 h-6 sm:w-7 sm:h-7" />}
+    <div className="flex flex-col gap-6">
+      {/* === KPI Cards === */}
+      <section>
+        <SectionHeader
+          title="Ringkasan Platform"
+          subtitle="Statistik keseluruhan pengguna dan aktivitas"
         />
-        <StatCard
-          title="Sekolah & Universitas"
-          value={summary.total_schools}
-          icon={<GraduationCap className="text-accent w-6 h-6 sm:w-7 sm:h-7" />}
-        />
-        <StatCard
-          title="Perusahaan Terdaftar"
-          value={summary.total_companies}
-          icon={<Building className="text-accent w-6 h-6 sm:w-7 sm:h-7" />}
-        />
-        <StatCard
-          title="Magang Aktif"
-          value={summary.active_internships}
-          icon={<Activity className="text-accent w-6 h-6 sm:w-7 sm:h-7" />}
-        />
-        <StatCard
-          title="User Premium"
-          value={summary.total_users_with_pro_account}
-          icon={<Crown className="text-accent w-6 h-6 sm:w-7 sm:h-7" />}
-        />
-      </div>
-
-      {/* === System Metrics === */}
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5">
-        <h3 className="font-bold text-base sm:text-lg mb-2">Metrik Sistem</h3>
-        <p className="text-xs sm:text-sm text-gray-600 mb-4">
-          Statistik performa dan aktivitas platform
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricBox label="Registrasi Baru (30 hari)" value={systemMetrics.new_registrations} color="bg-blue-50" />
-          <MetricBox label="Pengguna Aktif" value={systemMetrics.active_users} color="bg-green-50" />
-          <MetricBox label="Total Penempatan" value={systemMetrics.total_placements} color="bg-yellow-50" />
-          <MetricBox label="Tingkat Keberhasilan" value={`${systemMetrics.success_rate}%`} color="bg-purple-50" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <KPICard
+            title="Total Pengguna"
+            value={summary.total_users}
+            icon={<Users className="w-5 h-5" />}
+            iconBg="bg-teal-100"
+            iconColor="text-teal-600"
+            description="Semua pengguna terdaftar"
+          />
+          <KPICard
+            title="Sekolah & Universitas"
+            value={summary.total_schools}
+            icon={<GraduationCap className="w-5 h-5" />}
+            iconBg="bg-blue-100"
+            iconColor="text-blue-600"
+            description="Institusi pendidikan mitra"
+          />
+          <KPICard
+            title="Perusahaan Terdaftar"
+            value={summary.total_companies}
+            icon={<Building className="w-5 h-5" />}
+            iconBg="bg-purple-100"
+            iconColor="text-purple-600"
+            description="Perusahaan partner aktif"
+          />
+          <KPICard
+            title="Magang Aktif"
+            value={summary.active_internships}
+            icon={<Activity className="w-5 h-5" />}
+            iconBg="bg-green-100"
+            iconColor="text-green-600"
+            description="Saat ini sedang berjalan"
+          />
+          <KPICard
+            title="User Premium"
+            value={summary.total_users_with_pro_account}
+            icon={<Crown className="w-5 h-5" />}
+            iconBg="bg-amber-100"
+            iconColor="text-amber-600"
+            description="Akun berbayar aktif"
+          />
         </div>
-      </div>
+      </section>
+
+      {/* === Insight Cards === */}
+      <section>
+        <SectionHeader
+          title="Insights Sistem"
+          subtitle="Metrik performa dan aktivitas platform terkini"
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <InsightCard
+            icon={<UserPlus className="w-5 h-5" />}
+            title="Registrasi Baru (30 Hari)"
+            metric={systemMetrics.new_registrations}
+            description="Pengguna baru yang mendaftar dalam 30 hari terakhir"
+            status="neutral"
+          />
+          <InsightCard
+            icon={<Users className="w-5 h-5" />}
+            title="Pengguna Aktif"
+            metric={systemMetrics.active_users}
+            description="Pengguna yang login dalam periode aktif"
+            status="positive"
+          />
+          <InsightCard
+            icon={<Briefcase className="w-5 h-5" />}
+            title="Total Penempatan"
+            metric={systemMetrics.total_placements}
+            description="Penempatan magang yang berhasil dilakukan"
+            status="positive"
+          />
+          <InsightCard
+            icon={<TrendingUp className="w-5 h-5" />}
+            title="Tingkat Keberhasilan"
+            metric={systemMetrics.success_rate}
+            metricUnit="%"
+            description="Persentase penempatan yang berhasil"
+            status={systemMetrics.success_rate >= 70 ? "positive" : "warning"}
+          />
+        </div>
+      </section>
 
       {/* === Charts Section === */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5">
-          <h3 className="font-bold text-base sm:text-lg mb-2">Distribusi Pengguna</h3>
-          <PieChartCompenent
-            legend=""
-            tooltip="Total per Tipe Pengguna"
-            dataList={[
-              {
-                name: "Siswa",
-                value: summary.total_students,
-                color: "#4f46e5",
-              },
-              {
-                name: "Mahasiswa",
-                value: summary.total_college_students,
-                color: "#06b6d4",
-              },
-              {
-                name: "Perusahaan",
-                value: summary.total_companies,
-                color: "#22c55e",
-              },
-              {
-                name: "Sekolah",
-                value: summary.total_schools,
-                color: "#eab308",
-              },
-            ]}
-          />
-        </div>
+      <section>
+        <SectionHeader
+          title="Distribusi & Analitik"
+          subtitle="Visualisasi data pengguna dan wilayah"
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* User Distribution */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h4 className="font-semibold text-sm text-gray-700 mb-4">Distribusi Pengguna</h4>
+            <PieChartCompenent
+              legend=""
+              tooltip="Total per Tipe Pengguna"
+              hideCardStyle={true}
+              dataList={[
+                { name: "Siswa", value: summary.total_students ?? 0, color: "#4f46e5" },
+                { name: "Mahasiswa", value: summary.total_college_students ?? 0, color: "#06b6d4" },
+                { name: "Perusahaan", value: summary.total_companies ?? 0, color: "#22c55e" },
+                { name: "Sekolah/Univ", value: summary.total_schools ?? 0, color: "#eab308" },
+              ]}
+            />
+          </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5">
-          <h3 className="font-bold text-base sm:text-lg mb-2">Distribusi Regional</h3>
-          <BarChartCompenent
-            legend="Distribusi Regional - Siswa"
-            dataList={regionalData.map((d) => ({
-              name: d.province,
-              value: d.student_count,
-            }))}
-          />
-        </div>
-        {/* User Premium */}
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5">
-          <h3 className="font-bold text-base sm:text-lg mb-2">User Premium</h3>
-          <PieChartCompenent
-            legend=""
-            tooltip="Total per Tipe Pengguna"
-            dataList={[
-              { name: "Non Pro", value: summary.total_users_without_pro_account, color: "#e2e600ff" },
-              { name: "Perusahaan", value: summary.total_companies_with_pro_account, color: "#4f46e5" },
-              { name: "Sekolah", value: summary.total_schools_with_pro_account, color: "#22c55e" },
-            ]}
-          />
-        </div>
+          {/* Regional Distribution */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h4 className="font-semibold text-sm text-gray-700 mb-4">Distribusi Regional — Siswa</h4>
+            <BarChartCompenent
+              legend=""
+              hideCardStyle={true}
+              dataList={regionalData.map((d) => ({
+                name: d.province,
+                value: d.student_count,
+              }))}
+            />
+          </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5">
-        <h3 className="font-bold text-base sm:text-lg mb-2">Metrik Sistem</h3>
-        <p className="text-xs sm:text-sm text-gray-600 mb-4">
-          Statistik performa dan aktivitas platform
-        </p>
+          {/* Premium Users */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h4 className="font-semibold text-sm text-gray-700 mb-4">Distribusi User Premium</h4>
+            <PieChartCompenent
+              legend=""
+              tooltip="Total per Tipe Pengguna"
+              hideCardStyle={true}
+              dataList={[
+                { name: "Non Pro", value: summary.total_users_without_pro_account ?? 0, color: "#e2e600ff" },
+                { name: "Perusahaan", value: summary.total_companies_with_pro_account ?? 0, color: "#4f46e5" },
+                { name: "Sekolah", value: summary.total_schools_with_pro_account ?? 0, color: "#22c55e" },
+              ]}
+            />
+          </div>
 
-        <div className="grid grid-cols-1 gap-4">
-          <MetricBox label="Sekolah" value={summary.total_schools_with_pro_account} color="bg-blue-50" />
-          <MetricBox label="Perusahaan" value={summary.total_companies_with_pro_account} color="bg-green-50" />
-          <MetricBox label="Non Pro" value={summary.total_users_without_pro_account} color="bg-yellow-50" />
+          {/* Platform Activity */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h4 className="font-semibold text-sm text-gray-700 mb-4">Aktivitas Platform</h4>
+            <p className="text-xs text-gray-500 mb-4">Statistik lowongan dan penempatan</p>
+            <div className="grid grid-cols-1 gap-3">
+              <ActivityBox
+                title="Lowongan Aktif"
+                value={summary.total_job_openings ?? 0}
+                desc={
+                  (summary.total_companies ?? 0) > 0
+                    ? `${((summary.total_job_openings ?? 0) / summary.total_companies).toFixed(2)} rata-rata per perusahaan`
+                    : "Belum ada data perusahaan"
+                }
+                color="bg-teal-50"
+                textColor="text-teal-700"
+              />
+              <ActivityBox
+                title="Total Penghargaan"
+                value={summary.total_achievements ?? 0}
+                desc="Diberikan kepada siswa & perusahaan"
+                color="bg-purple-50"
+                textColor="text-purple-700"
+              />
+              <ActivityBox
+                title="Ulasan Platform"
+                value={summary.total_feedback ?? 0}
+                desc="Dari pengguna aktif"
+                color="bg-blue-50"
+                textColor="text-blue-700"
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
+      </section>
 
-      {/* === Recent Activity === */}
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5">
-        <h3 className="font-bold text-base sm:text-lg mb-2">Aktivitas Platform</h3>
-        <p className="text-xs sm:text-sm text-gray-600 mb-4">
-          Statistik lowongan dan penempatan
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <ActivityBox
-            title="Lowongan Aktif"
-            value={summary.total_job_openings}
-            desc={`${(summary.total_job_openings / summary.total_companies).toFixed(2)} rata-rata per perusahaan`}
-          />
-          <ActivityBox title="Total Penghargaan" value={summary.total_achievements} desc="Diberikan kepada siswa & perusahaan" />
-          <ActivityBox title="Ulasan Platform" value={summary.total_feedback} desc="Dari pengguna aktif" />
+      {/* === Summary Stats Bar === */}
+      <section>
+        <div className="bg-gradient-to-r from-accent to-accent-light rounded-2xl p-6 text-white">
+          <h3 className="font-bold text-lg mb-4">Ringkasan Siswa & Mahasiswa</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="bg-white/15 rounded-xl p-4">
+              <p className="text-2xl font-extrabold">{(summary.total_students ?? 0).toLocaleString("id-ID")}</p>
+              <p className="text-sm text-white/80 mt-1">Total Siswa (SMK)</p>
+            </div>
+            <div className="bg-white/15 rounded-xl p-4">
+              <p className="text-2xl font-extrabold">{(summary.total_college_students ?? 0).toLocaleString("id-ID")}</p>
+              <p className="text-sm text-white/80 mt-1">Total Mahasiswa</p>
+            </div>
+            <div className="bg-white/15 rounded-xl p-4 col-span-2 sm:col-span-1">
+              <p className="text-2xl font-extrabold">{totalStudents.toLocaleString("id-ID")}</p>
+              <p className="text-sm text-white/80 mt-1">Total Pelajar</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
 
 // === Sub-components ===
-function StatCard({ title, value, icon }: { title: string; value: number; icon: React.ReactNode }) {
+function ActivityBox({
+  title,
+  value,
+  desc,
+  color = "bg-gray-50",
+  textColor = "text-accent-dark",
+}: {
+  title: string;
+  value: number;
+  desc: string;
+  color?: string;
+  textColor?: string;
+}) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 flex justify-between items-center gap-2">
-      <div className="text-accent-dark min-w-0 flex-1">
-        <h1 className="font-extrabold text-xl sm:text-2xl whitespace-nowrap">{value}</h1>
-        <h3 className="text-xs sm:text-sm leading-tight break-words">{title}</h3>
+    <div className={`${color} rounded-xl p-4 flex items-center justify-between gap-4`}>
+      <div>
+        <h4 className="text-sm font-semibold text-gray-700">{title}</h4>
+        <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
       </div>
-      {icon}
-    </div>
-  );
-}
-
-function MetricBox({ label, value, color }: { label: string; value: any; color: string }) {
-  return (
-    <div className={`${color} rounded-lg p-4`}>
-      <p className="text-sm text-gray-600">{label}</p>
-      <p className="text-2xl font-bold text-accent-dark mt-2">{value}</p>
-    </div>
-  );
-}
-
-function ActivityBox({ title, value, desc }: { title: string; value: number; desc: string }) {
-  return (
-    <div className="border rounded-lg p-4">
-      <h4 className="text-sm font-semibold mb-2">{title}</h4>
-      <p className="text-2xl font-bold text-accent-dark">{value}</p>
-      <p className="text-xs text-gray-500 mt-1">{desc}</p>
+      <p className={`text-2xl font-extrabold ${textColor} flex-shrink-0`}>
+        {value.toLocaleString("id-ID")}
+      </p>
     </div>
   );
 }

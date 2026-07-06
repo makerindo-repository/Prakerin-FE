@@ -3,7 +3,7 @@ import React, { useState, ChangeEvent, useRef } from "react";
 import { Upload, User, Mail, Lock, School, Eye, EyeOff } from "lucide-react";
 import axios, { AxiosError } from "axios";
 import { API, ENDPOINTS } from "@/utils/config";
-import ReCAPTCHA from "react-google-recaptcha";
+// import ReCAPTCHA from "react-google-recaptcha"; // CAPTCHA disabled for local dev
 import { alertError, alertSuccess } from "@/libs/alert";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
@@ -58,7 +58,7 @@ const PrakerinRegistrationSekolahForm: React.FC<
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const recaptchaRef = useRef<any>(null);
+  // const recaptchaRef = useRef<any>(null); // CAPTCHA disabled for local dev
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -113,9 +113,9 @@ const PrakerinRegistrationSekolahForm: React.FC<
     setShowConfirmPassword(false);
     setIsSubmitting(true);
 
-    const token = await recaptchaRef.current.executeAsync();
-    recaptchaRef.current.reset();
-    formData.recaptcha_token = token;
+    // const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
+    // recaptchaRef.current.reset();
+    // formData.recaptcha_token = token;
 
 
     try {
@@ -428,12 +428,12 @@ const PrakerinRegistrationSekolahForm: React.FC<
               disabled={isSubmitting}
               className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 cursor-pointer  disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ReCAPTCHA
+              {/* <ReCAPTCHA
                 sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
                 size="invisible"
                 className="mb-4"
                 ref={recaptchaRef}
-              />
+              /> */}
               <span>{isSubmitting ? "Mendaftar..." : "Daftar"}</span>
               {!isSubmitting && (
                 <svg

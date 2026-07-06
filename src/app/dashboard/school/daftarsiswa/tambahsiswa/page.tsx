@@ -3,7 +3,7 @@ import { ClipboardCheck, Eye, EyeOff, Upload, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
-import { API, ENDPOINTS } from "../../../../../../utils/config";
+import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
 import { alertError, alertSuccess } from "@/libs/alert";

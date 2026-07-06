@@ -3,7 +3,7 @@ import React, { useState, ChangeEvent, useRef, useEffect } from "react";
 import { Upload, User, Mail, Lock, School, Eye, EyeOff } from "lucide-react";
 import { API, ENDPOINTS } from "@/utils/config";
 import axios, { AxiosError } from "axios";
-import ReCAPTCHA from "react-google-recaptcha";
+// import ReCAPTCHA from "react-google-recaptcha"; // CAPTCHA disabled for local dev
 import { json } from "stream/consumers";
 import { alertError, alertSuccess } from "@/libs/alert";
 import Cookies from "js-cookie";
@@ -61,7 +61,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const recaptchaRef = useRef<any>(null);
+  // const recaptchaRef = useRef<any>(null); // CAPTCHA disabled for local dev
 
 
   const handleInputChange = (
@@ -109,9 +109,9 @@ const PrakerinRegistrationSiswaForm: React.FC<
     setShowPassword(false);
     setShowpasswordConfirmation(false);
     setIsSubmitting(true);
-    const token = await recaptchaRef.current.executeAsync();
-    recaptchaRef.current.reset();
-    formData.recaptcha_token = token;
+    // const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
+    // recaptchaRef.current.reset();
+    // formData.recaptcha_token = token;
     try {
 
       // const data = new FormData(); //Penambahan const data untuk melewati format FormData
@@ -495,12 +495,12 @@ const PrakerinRegistrationSiswaForm: React.FC<
             >
               Kembali
             </button>
-            <ReCAPTCHA
+            {/* <ReCAPTCHA
               sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
               size="invisible"
               className="mb-4"
               ref={recaptchaRef}
-            />
+            /> */}
             <button
               type="button"
               onClick={handleSubmit}

@@ -91,32 +91,48 @@ const Dashboard: React.FC = () => {
     return () => controller.abort();
   }, [fetchProfile]);
 
+  // Role-specific subtitle for the welcome banner
+  const getRoleSubtitle = (r: string) => {
+    switch (r) {
+      case "student":
+        return "Pantau lamaranmu dan temukan magang impianmu";
+      case "company":
+        return "Kelola pemagang dan lowongan perusahaanmu";
+      case "school":
+        return "Monitor perkembangan dan penempatan siswa/mahasiswa";
+      case "super_admin":
+        return "Pantau statistik dan performa platform secara keseluruhan";
+      default:
+        return "Selamat datang di Prakerin ID";
+    }
+  };
+
   return (
     <main className="p-6 relative">
       {/* Welcome Section */}
       {!isLoading && (
         <>
-          <h1 className="text-accent-dark mb-5 font-medium">Dashboard</h1>
-
-          <div className="bg-gradient-to-r from-accent-light to-accent rounded-lg p-6 text-white mb-8">
-            <div className="flex items-center space-x-4">
+          <div className="bg-gradient-to-r from-accent to-accent-light rounded-2xl p-6 text-white mb-6 shadow-sm">
+            <div className="flex items-center gap-4">
               {profile.photo_profile ? (
-                <div className="w-16 h-16 relative rounded-full border-white border">
+                <div className="w-14 h-14 relative rounded-full border-2 border-white/50 flex-shrink-0 overflow-hidden shadow-md">
                   <Image
                     src={`${BASE_URL}/storage/photo-profile/${profile.photo_profile}`}
                     alt="Photo Profile"
                     fill
                     sizes="100%"
-                    className="object-cover rounded-full"
+                    className="object-cover"
                   />
                 </div>
               ) : (
-                <UserCircle className="w-16 h-16 text-white" />
+                <UserCircle className="w-14 h-14 text-white/80 flex-shrink-0" />
               )}
-              {/*There should be something that made a random text appear, with the content of current page name / username if in profile page*/}
-              <div>
-                <p className="text-sm opacity-90">{getGreeting()}</p>
-                <h1 className="text-xl font-semibold">{profile.name ? profile.name : profile?.username}</h1>
+              <div className="min-w-0">
+                <p className="text-sm text-white/75 font-medium">{getGreeting()}</p>
+                <h1 className="text-xl font-bold truncate">
+                  {profile.name ? profile.name : profile?.username}
+                </h1>
+                <p className="text-xs text-white/60 mt-0.5">{getRoleSubtitle(role)}</p>
               </div>
             </div>
           </div>

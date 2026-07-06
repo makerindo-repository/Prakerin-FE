@@ -41,6 +41,7 @@ import {
   Stamp,
   Medal,
   LayoutDashboard,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -189,11 +190,6 @@ const MENU_MAP: Record<string, MenuItem[]> = { //every part that commented is do
           label: "Bidang Magang",
           href: "/dashboard/master-data/bidang",
         },
-        {
-          icon: UsersRound,
-          label: "User",
-          href: "/dashboard/master-data/users",
-        },
       ],
     },
     {
@@ -208,7 +204,14 @@ const MENU_MAP: Record<string, MenuItem[]> = { //every part that commented is do
       href: "/dashboard/sekolah",
     },
     //{ icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" }, //due to it still in construction, I commented it
-    { icon: User, label: "Profil", href: "/dashboard/profile" },
+    {
+      icon: Settings,
+      label: "Setting",
+      children: [
+        { icon: User, label: "Profil", href: "/dashboard/profile" },
+        { icon: UsersRound, label: "User", href: "/dashboard/master-data/users" },
+      ],
+    },
   ],
 };
 
