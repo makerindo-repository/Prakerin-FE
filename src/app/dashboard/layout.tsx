@@ -618,13 +618,6 @@ export default function DashboardLayout({
                     </Link>
                     <div className="border-t border-gray-100 my-1"></div>
                     <button
-                      onClick={handleBack}
-                      className="flex items-center w-full px-4 py-2 text-sm text-[#035a70] hover:bg-gray-50"
-                    >
-                      <CircleArrowLeft className="w-4 h-4 mr-2" />
-                      Kembali
-                    </button>
-                    <button
                       onClick={handleLogout}
                       className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                     >

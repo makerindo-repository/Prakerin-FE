@@ -329,7 +329,7 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
                   Kembali
                 </Link>
                 <Link
-                  href={`/dashboard/siswa-magang/${data.internship?.id}/penempatan`}
+                  href={`/dashboard/siswa-magang/${id}/penempatan`}
                   className="px-6 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg font-medium transition-colors"
                 >
                   Ubah
