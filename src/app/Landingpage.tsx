@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, Inbox, Search, Users2, ChevronLeft, ChevronRi
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
+import Image, { ImageProps } from "next/image";
 import { API, ENDPOINTS } from "@/utils/config";
 
 interface Partner {
@@ -93,6 +93,34 @@ interface Filter {
   duration_id: string;
 }
 
+// ====== Helper: Image dengan fallback otomatis saat gagal dimuat (403/forbidden/404/dll) ======
+interface ImageWithFallbackProps extends Omit<ImageProps, "src" | "alt" | "onError"> {
+  src: string | null | undefined;
+  alt: string;
+  fallback: React.ReactNode;
+}
+
+function ImageWithFallback({ src, alt, fallback, ...imageProps }: ImageWithFallbackProps) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (!src || hasError) {
+    return <>{fallback}</>;
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      onError={() => setHasError(true)}
+      {...imageProps}
+    />
+  );
+}
+// ================================================================================================
 
 export default function LandingPage({
   homepages,
@@ -142,8 +170,6 @@ export default function LandingPage({
   const [durations, setDurations] = useState<Duration[]>([]);
   const [fields, setFields] = useState<ProvinceAndCityRegencyAndField[]>([]);
 
-  // FIX: sebelumnya tidak ada fetch sama sekali untuk provinces/fields/durations,
-  // jadi keempat dropdown filter ini selalu kosong. Sekarang di-fetch sekali saat mount.
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
@@ -183,8 +209,6 @@ export default function LandingPage({
     fetchDurations();
   }, []);
 
-  // FIX: fetch kota/kabupaten berdasarkan provinsi yang dipilih.
-  // Sebelumnya tidak ada fungsi ini sama sekali, jadi cityRegencies tidak pernah terisi.
   const fetchCityRegencies = async (provinceId: string) => {
     if (!provinceId) {
       setCityRegencies([]);
@@ -234,16 +258,10 @@ export default function LandingPage({
     observers.set(id, ro);
   };
 
-  // FIX: reset ke halaman 1 setiap kali hasil filter/pencarian berubah,
-  // supaya tidak nyangkut di halaman yang sudah tidak ada datanya.
   useEffect(() => {
     setJobPage(1);
   }, [search, filterData]);
 
-  // FIX: sebelumnya handleSearch hanya membawa "search" ke /lowongan dan tidak
-  // dipakai sama sekali oleh tombol Search (tombolnya cuma setSearch lokal).
-  // Sekarang semua filter (provinsi, kota, tingkat, bidang, durasi) ikut dibawa
-  // lewat query string, dan ini yang dipanggil saat tombol Search diklik.
   const handleSearch = () => {
     const params = new URLSearchParams();
 
@@ -270,8 +288,6 @@ export default function LandingPage({
     router.push(queryString ? `/lowongan?${queryString}` : "/lowongan");
   };
 
-  // FIX: saat ganti provinsi, reset city_regency_id supaya tidak ada
-  // filter kota yang nyangkut dari provinsi sebelumnya, dan trigger fetch kota baru.
   const handleFilterChange = (key: keyof Filter, value: string) => {
     setFilterData((prev) => ({
       ...prev,
@@ -296,9 +312,7 @@ export default function LandingPage({
   const paginatedUniversityPartners = universityPartners.slice((universityPage - 1) * universityPerPage, universityPage * universityPerPage);
   const totalCompanyPages = Math.ceil(companyPartners.length / companyPerPage);
   const paginatedCompanyPartners = companyPartners.slice((companyPage - 1) * companyPerPage, companyPage * companyPerPage);
-  // FIX: sebelumnya search & filterData di-set tapi tidak pernah dipakai untuk
-  // menyaring jobOpenings — jadi tombol cari/filter tidak berpengaruh apa-apa
-  // ke daftar lowongan yang tampil. Sekarang difilter di sini sebelum pagination.
+
   const filteredJobOpenings = jobOpenings.filter((job) => {
     const matchesSearch =
       search.trim() === "" ||
@@ -472,17 +486,18 @@ export default function LandingPage({
                             className="w-16 h-16 bg-gradient-to-br from-accent/10 to-blue-100 
                               rounded-full relative overflow-hidden shadow-inner shrink-0 flex items-center justify-center"
                           >
-                            {(item.user?.photo_profile || item.photo_profile) ? (
-                              <Image
-                                src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.user?.photo_profile || item.photo_profile}`}
-                                alt={item.name}
-                                fill
-                                sizes="64px"
-                                className="object-cover rounded-full bg-white"
-                              />
-                            ) : (
-                              <User className="w-8 h-8 text-accent/50" />
-                            )}
+                            <ImageWithFallback
+                              src={
+                                (item.user?.photo_profile || item.photo_profile)
+                                  ? `${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.user?.photo_profile || item.photo_profile}`
+                                  : null
+                              }
+                              alt={item.name}
+                              fill
+                              sizes="64px"
+                              className="object-cover rounded-full bg-white"
+                              fallback={<User className="w-8 h-8 text-accent/50" />}
+                            />
                           </div>
 
                           <div className="text-left">
@@ -676,16 +691,17 @@ export default function LandingPage({
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 relative flex items-center justify-center bg-gray-100 rounded-full overflow-hidden">
-                    {job.user?.photo_profile ? (
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
-                        alt={job.company?.name ?? "Company"}
-                        fill
-                        className="object-contain rounded-full"
-                      />
-                    ) : (
-                      <Building className="w-6 h-6 text-accent/50" />
-                    )}
+                    <ImageWithFallback
+                      src={
+                        job.user?.photo_profile
+                          ? `${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`
+                          : null
+                      }
+                      alt={job.company?.name ?? "Company"}
+                      fill
+                      className="object-contain rounded-full"
+                      fallback={<Building className="w-6 h-6 text-accent/50" />}
+                    />
                   </div>
                   <p className="text-sm font-medium text-gray-500">
                     Berakhir:{" "}
@@ -781,19 +797,20 @@ export default function LandingPage({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {activePartners.map((item) => (
                   <div key={item.id} className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-center min-h-[80px]">
-                    {item.logo ? (
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                        alt={item.name}
-                        width={120}
-                        height={80}
-                        className="object-contain"
-                      />
-                    ) : partnerTab === "school" ? (
-                      <School className="w-12 h-12 text-accent/40" />
-                    ) : (
-                      <GraduationCap className="w-12 h-12 text-accent/40" />
-                    )}
+                    <ImageWithFallback
+                      src={item.logo ? `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}` : null}
+                      alt={item.name}
+                      width={120}
+                      height={80}
+                      className="object-contain"
+                      fallback={
+                        partnerTab === "school" ? (
+                          <School className="w-12 h-12 text-accent/40" />
+                        ) : (
+                          <GraduationCap className="w-12 h-12 text-accent/40" />
+                        )
+                      }
+                    />
                   </div>
                 ))}
               </div>
@@ -844,17 +861,14 @@ export default function LandingPage({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {paginatedCompanyPartners.map((item) => (
                   <div key={item.id} className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-center min-h-[80px]">
-                    {item.logo ? (
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
-                        alt={item.name}
-                        width={120}
-                        height={80}
-                        className="object-contain"
-                      />
-                    ) : (
-                      <Building className="w-12 h-12 text-accent/40" />
-                    )}
+                    <ImageWithFallback
+                      src={item.logo ? `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}` : null}
+                      alt={item.name}
+                      width={120}
+                      height={80}
+                      className="object-contain"
+                      fallback={<Building className="w-12 h-12 text-accent/40" />}
+                    />
                   </div>
                 ))}
               </div>
@@ -1004,17 +1018,18 @@ export default function LandingPage({
 
             <div className="flex flex-col items-center text-center gap-3">
               <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-100 shadow bg-gradient-to-br from-accent/10 to-blue-100 flex items-center justify-center">
-                {(activeComment.user?.photo_profile || activeComment.photo_profile) ? (
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${activeComment.user?.photo_profile || activeComment.photo_profile}`}
-                    alt={activeComment.name}
-                    width={96}
-                    height={96}
-                    className="object-cover"
-                  />
-                ) : (
-                  <User className="w-12 h-12 text-accent/50" />
-                )}
+                <ImageWithFallback
+                  src={
+                    (activeComment.user?.photo_profile || activeComment.photo_profile)
+                      ? `${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${activeComment.user?.photo_profile || activeComment.photo_profile}`
+                      : null
+                  }
+                  alt={activeComment.name}
+                  width={96}
+                  height={96}
+                  className="object-cover"
+                  fallback={<User className="w-12 h-12 text-accent/50" />}
+                />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">{activeComment.name}</h3>

@@ -23,7 +23,7 @@ import {
   getTypeTest,
 } from "@/utils/lowonganLabel";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import Image from "next/image";
+import Image, { ImageProps } from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import LowonganDetail from "@/components/LowonganDetail";
@@ -51,6 +51,35 @@ type DurationUnit = "year" | "month" | "day";
 type Type = "full_time" | "part_time";
 type Grade = "smk" | "mahasiswa" | "all";
 type Location = "onsite" | "remote" | "hybrid";
+
+// ====== Helper: Image dengan fallback otomatis saat gagal dimuat (403/forbidden/404/dll) ======
+interface ImageWithFallbackProps extends Omit<ImageProps, "src" | "alt" | "onError"> {
+  src: string | null | undefined;
+  alt: string;
+  fallback: React.ReactNode;
+}
+
+function ImageWithFallback({ src, alt, fallback, ...imageProps }: ImageWithFallbackProps) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (!src || hasError) {
+    return <>{fallback}</>;
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      onError={() => setHasError(true)}
+      {...imageProps}
+    />
+  );
+}
+// ================================================================================================
 
 // Utilitas label
 const getLabel = (type: string, value: string) => {
@@ -89,9 +118,6 @@ function InternshipPageContent() {
   const searchParams = useSearchParams();
   const keyword = searchParams.get("search") || "";
 
-  // FIX: sebelumnya hanya "search" yang dibaca dari query string, jadi filter
-  // (provinsi, kota, tingkat, bidang, durasi) yang dikirim dari landing page
-  // tidak pernah sampai ke state filterData di halaman ini.
   const provinceIdParam = searchParams.get("province_id") || "";
   const cityRegencyIdParam = searchParams.get("city_regency_id") || "";
   const gradeParam = searchParams.get("grade") || "";
@@ -103,8 +129,8 @@ function InternshipPageContent() {
   const [provinces, setProvinces] = useState<ProvinceAndCityRegencyAndField[]>(
     []
   );
-  const [cityRegencies, setCityRegencies] = useState<
-    ProvinceAndCityRegencyAndField[]
+  const [cityRegencies, setCityRegencies] = useState
+    <ProvinceAndCityRegencyAndField[]
   >([]);
   const [durations, setDurations] = useState<Duration[]>([]);
   const [fields, setFields] = useState<ProvinceAndCityRegencyAndField[]>([]);
@@ -117,14 +143,12 @@ function InternshipPageContent() {
     duration_id: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
-  // Track which items have expanded descriptions
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   );
 
   const router = useRouter();
 
-  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setSearch(inputSearch);
@@ -195,7 +219,6 @@ function InternshipPageContent() {
     [openFilter]
   );
 
-  // Fetch data paralel
   useEffect(() => {
     if (loading) return;
     setLoading(true);
@@ -217,10 +240,6 @@ function InternshipPageContent() {
     fetchJobOpenings();
   }, [filterData, search, fetchJobOpenings]);
 
-  // FIX: sebelumnya effect ini hanya menyinkronkan keyword (search) dari URL.
-  // Sekarang sekaligus menyinkronkan seluruh filterData dari query string,
-  // supaya filter yang sudah dipilih user di landing page otomatis ter-apply
-  // di halaman lowongan ini tanpa perlu dipilih ulang manual.
   useEffect(() => {
     setInputSearch(keyword);
     setSearch(keyword);
@@ -256,7 +275,6 @@ function InternshipPageContent() {
       });
   }, [filterData.province_id]);
 
-  // Memoize fields for filter
   const fieldButtons = useMemo(
     () =>
       fields.map((field) => (
@@ -408,17 +426,18 @@ function InternshipPageContent() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-15 h-15 relative rounded-full overflow-hidden">
-                        {item.user.photo_profile ? (
-                          <Image
-                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.user.photo_profile}`}
-                            alt="Company"
-                            fill
-                            sizes="100%"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <Building className="w-full h-full text-[var(--color-accent)]" />
-                        )}
+                        <ImageWithFallback
+                          src={
+                            item.user?.photo_profile
+                              ? `${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.user.photo_profile}`
+                              : null
+                          }
+                          alt="Company"
+                          fill
+                          sizes="100%"
+                          className="object-cover"
+                          fallback={<Building className="w-full h-full text-[var(--color-accent)]" />}
+                        />
                       </div>
 
                       <p className="text-sm font-medium text-gray-500">
