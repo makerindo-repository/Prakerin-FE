@@ -1,40 +1,46 @@
 "use client";
 
 import React, { createContext, useContext, ReactNode, useMemo } from "react";
+import { useAuthStore } from "@/stores/authStore";
 
 interface PermissionContextType {
   permissions: string[];
   can: (permission: string) => boolean;
   canAny: (permissions: string[]) => boolean;
+  canAll: (permissions: string[]) => boolean;
 }
 
 const PermissionContext = createContext<PermissionContextType>({
   permissions: [],
   can: () => false,
   canAny: () => false,
+  canAll: () => false,
 });
 
+/**
+ * PermissionProvider — reads permissions from Zustand (populated after login).
+ * Optionally accepts a `permissions` prop override (for SSR/testing).
+ */
 export const PermissionProvider = ({
-  permissions = [],
+  permissions: propPermissions,
   children,
 }: {
   permissions?: string[];
   children: ReactNode;
 }) => {
-  const normalizedPermissions = useMemo(() => permissions || [], [permissions]);
+  const storePermissions = useAuthStore((s) => s.permissions);
 
-  const can = (permission: string) => {
-    return normalizedPermissions.includes(permission);
-  };
+  const permissions = useMemo(
+    () => propPermissions ?? storePermissions,
+    [propPermissions, storePermissions]
+  );
 
-  const canAny = (perms: string[]) => {
-    return perms.some((p) => normalizedPermissions.includes(p));
-  };
+  const can = (permission: string) => permissions.includes(permission);
+  const canAny = (perms: string[]) => perms.some((p) => permissions.includes(p));
+  const canAll = (perms: string[]) => perms.every((p) => permissions.includes(p));
 
   return (
-    <PermissionContext.Provider
-      value={{ permissions: normalizedPermissions, can, canAny }}
-    >
+    <PermissionContext.Provider value={{ permissions, can, canAny, canAll }}>
       {children}
     </PermissionContext.Provider>
   );

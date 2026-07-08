@@ -8,6 +8,8 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
+import { getUserPermissions } from "@/libs/permissionApi";
+import { useAuthStore } from "@/stores/authStore";
 
 interface FormData {
   email: string;
@@ -22,6 +24,8 @@ interface FormErrors {
 
 export default function LoginPage() {
   const route = useRouter();
+  const setPermissions = useAuthStore((s) => s.setPermissions);
+  const setRole = useAuthStore((s) => s.setRole);
 
   const [data, setData] = useState<FormData>({
     email: "",
@@ -74,6 +78,16 @@ export default function LoginPage() {
         path: "/",
         sameSite: 'strict'
       });
+
+      // Fetch and store user permissions in Zustand for use throughout the app
+      try {
+        const permsData = await getUserPermissions(response.data.token);
+        setRole(permsData.role);
+        setPermissions(permsData.permissions);
+      } catch {
+        // Non-fatal: permissions can be re-fetched later
+        console.warn('Could not fetch permissions after login');
+      }
 
       localStorage.setItem("login-success", "OK");
 

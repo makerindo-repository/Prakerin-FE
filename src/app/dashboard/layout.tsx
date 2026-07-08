@@ -12,7 +12,6 @@ import {
   Briefcase,
   FileText,
   Building,
-  CheckSquare,
   MessageSquare,
   Award,
   User,
@@ -29,47 +28,54 @@ import {
   Handshake,
   HelpCircle,
   UserRound,
-  Database,
   Building2,
   Factory,
-  IdCard,
   CalendarClock,
   GraduationCap,
   BriefcaseBusiness,
   Map,
   ClipboardCheck,
-  Stamp,
   Medal,
   LayoutDashboard,
+  Search,
+  Bell,
+  ChevronDown,
+  School,
   Settings,
+  ScrollText,
+  Activity,
+  Newspaper,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import { createApiCall, ENDPOINTS } from "@/utils/config";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { alertConfirm } from "@/libs/alert";
+import { getUserPermissions } from "@/libs/permissionApi";
+import { useAuthStore } from "@/stores/authStore";
 
-// Interface MenuItem tidak perlu diubah
-interface MenuItem {
+// ── Types ──────────────────────────────────────────────────────────────────
+
+interface NavItem {
   icon: React.ComponentType<any>;
   label: string;
   href?: string;
-  children?: MenuItem[]; // Untuk dropdown
+  isDev?: boolean; // halaman belum dibuat → badge "Dev"
+  permission?: string;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
 }
 
 interface Profile {
   photo_profile?: string | null;
   name: string;
   email: string;
-  // role:
-  //   | "Siswa/Mahasiswa"
-  //   | "Perusahaan"
-  //   | "Sekolah/Universitas"
-  //   | "Super Admin"
-  //   | "";
   role: Role;
-  rawRole?: string; // tambahkan untuk menyimpan nilai role mentah dari API
+  rawRole?: string;
   username: string;
 }
 
@@ -82,138 +88,153 @@ type Role =
   | "Super Admin"
   | "";
 
-// A constant map of menus per role to avoid recreating arrays every render
-const MENU_MAP: Record<string, MenuItem[]> = { //every part that commented is do so because page is still in built, uncomment to access
-  student: [
-    { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan" },
-    { icon: FileText, label: "Curriculum Vitae", href: "/dashboard/cv" },
-    { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan" },
-    {
-      icon: ClipboardCheck,
-      label: "Daftar Tugas",
-      href: "/dashboard/tasklist",
-    },
-    { icon: MessageSquare, label: "Ulasan", href: "/dashboard/feedback" },
-    { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat" },
-    // { icon: Medal, label: "Pembimbing", href: "/dashboard/pembimbing" },
-    { icon: User, label: "Profil", href: "/dashboard/profile" },
-  ],
-  company: [
-    { icon: Home, label: "Dashboard", href: "/dashboard" },
-    {
-      icon: UsersRound,
-      label: "Siswa/Mahasiswa Magang",
-      href: "/dashboard/siswa-magang",
-    },
-    { icon: HelpCircle, label: "Tes", href: "/dashboard/tes" },
-    { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan" },
-    { icon: FileText, label: "Lamaran", href: "/dashboard/industry/lamaran" },
-    {
-      icon: ClipboardCheck,
-      label: "Daftar Tugas",
-      href: "/dashboard/tasklist",
-    },
-    {
-      icon: BookOpen,
-      label: "Sekolah/Universitas",
-      href: "/dashboard/sekolah",
-    },
-    { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou" },
-    // { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
-    { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback" },
-    { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat" },
-    // {
-    //   icon: Medal,
-    //   label: "Pembimbing Perusahaan",
-    //   href: "/dashboard/pembimbing-perusahaan",
-    // },
-    { icon: User, label: "Profil", href: "/dashboard/profile" },
-  ],
-  school: [
-    { icon: Home, label: "Dashboard", href: "/dashboard" },
-    {
-      icon: UsersRound,
-      label: "Daftar Siswa/Mahasiswa",
-      href: "/dashboard/school/daftarsiswa",
-    },
-    { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan" },
-    { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan" },
-    { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou" },
-    // { icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" },
-    { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback" },
-    // {
-    //   icon: Medal,
-    //   label: "Guru Pembimbing",
-    //   href: "/dashboard/guru-pembimbing",
-    // },
-    { icon: User, label: "Profil", href: "/dashboard/profile" },
-  ],
+// ── Semua menu dari referensi layouts.html ─────────────────────────────────
+
+const NAV_GROUPS: Record<string, NavGroup[]> = {
+
+  // ── Super Admin: semua menu reference lengkap ──────────────────────────
   super_admin: [
-    { icon: Home, label: "Dashboard", href: "/dashboard" },
     {
-      icon: Database,
-      label: "Master Data",
-      children: [
-        {
-          icon: Map,
-          label: "Provinsi",
-          href: "/dashboard/master-data/provinsi",
-        },
-        {
-          icon: Building2,
-          label: "Kota/Kabupaten",
-          href: "/dashboard/master-data/kota-kabupaten",
-        },
-        {
-          icon: Factory,
-          label: "Sektor Perusahaan",
-          href: "/dashboard/master-data/sektor",
-        },
-        // {
-        //   icon: IdCard,
-        //   label: "Posisi Magang(Deprecated)",
-        //   href: "/dashboard/master-data/posisi",
-        // },
-        {
-          icon: CalendarClock,
-          label: "Durasi Magang",
-          href: "/dashboard/master-data/durasi",
-        },
-        {
-          icon: GraduationCap,
-          label: "Jurusan Siswa",
-          href: "/dashboard/master-data/jurusan",
-        },
-        {
-          icon: BriefcaseBusiness,
-          label: "Bidang Magang",
-          href: "/dashboard/master-data/bidang",
-        },
+      label: "UTAMA",
+      items: [
+        { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
+        { icon: Activity, label: "AI Analytics", isDev: true, permission: "view_ai_analytics" },
       ],
     },
     {
-      icon: LayoutDashboard,
-      label: "Isi Halaman",
-      href: "/dashboard/isi-halaman",
+      label: "MASTER DATA",
+      items: [
+        { icon: Map, label: "Data Provinsi", href: "/dashboard/master-data/provinsi", permission: "view_data_provinsi" },
+        { icon: Building2, label: "Data Kota/Kabupaten", href: "/dashboard/master-data/kota-kabupaten", permission: "view_data_kota" },
+        { icon: Factory, label: "Data Sektor Industri", href: "/dashboard/master-data/sektor", permission: "view_data_sektor_industri" },
+        { icon: CalendarClock, label: "Data Durasi Magang", href: "/dashboard/master-data/durasi", permission: "view_data_durasi_magang" },
+        { icon: GraduationCap, label: "Data Jurusan Siswa", href: "/dashboard/master-data/jurusan", permission: "view_data_jurusan_siswa" },
+        { icon: BriefcaseBusiness, label: "Data Bidang Magang", href: "/dashboard/master-data/bidang", permission: "view_data_bidang_magang" },
+        { icon: School, label: "Data Sekolah", isDev: true, permission: "view_data_sekolah" },
+        { icon: School, label: "Data Perguruan Tinggi", isDev: true, permission: "view_data_perguruan_tinggi" },
+        { icon: Building, label: "Data Industri", href: "/dashboard/perusahaan", permission: "view_data_industri" },
+      ],
     },
-    { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan" },
     {
-      icon: BookOpen,
-      label: "Sekolah/Universitas",
-      href: "/dashboard/sekolah",
+      label: "MANAJEMEN",
+      items: [
+        { icon: UsersRound, label: "Siswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
+        { icon: GraduationCap, label: "Mahasiswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
+        { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
+        { icon: BookOpen, label: "Kelas Pra-Magang", isDev: true, permission: "view_kelas" },
+        { icon: UserRound, label: "Pembimbing", href: "/dashboard/pembimbing", isDev: true, permission: "view_pembimbing" },
+        { icon: UsersRound, label: "Manajemen User", href: "/dashboard/master-data/users", permission: "view_manajemen_user" },
+      ],
     },
-    //{ icon: Award, label: "Penghargaan", href: "/dashboard/penghargaan" }, //due to it still in construction, I commented it
     {
-      icon: Settings,
-      label: "Setting",
-      children: [
-        { icon: User, label: "Profil", href: "/dashboard/profile" },
-        { icon: UsersRound, label: "User", href: "/dashboard/master-data/users" },
+      label: "KONTEN & KOMUNIKASI",
+      items: [
+        { icon: Newspaper, label: "Isi Halaman", href: "/dashboard/isi-halaman", permission: "view_isi_halaman" },
+        { icon: HelpCircle, label: "Panduan", isDev: true, permission: "view_panduan" },
+        { icon: MessageSquareText, label: "Feedback Pengguna", href: "/dashboard/feedback", permission: "view_feedback" },
+      ],
+    },
+    {
+      label: "MONITORING & LAPORAN",
+      items: [
+        { icon: ScrollText, label: "Laporan", isDev: true, permission: "view_laporan" },
+        { icon: Activity, label: "Log Aktivitas", isDev: true, permission: "view_log_aktivitas" },
+      ],
+    },
+    {
+      label: "SISTEM",
+      items: [
+        { icon: Shield, label: "Role & Hak Akses", href: "/dashboard/master-data/roles", permission: "manage_permissions" },
+        { icon: Settings, label: "Pengaturan", isDev: true, permission: "view_pengaturan" },
+        { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
+      ],
+    },
+  ],
+
+  // ── Siswa / Mahasiswa ─────────────────────────────────────────────────
+  student: [
+    {
+      label: "UTAMA",
+      items: [
+        { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
+      ],
+    },
+    {
+      label: "MANAJEMEN",
+      items: [
+        { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan", permission: "view_kelas" },
+        { icon: FileText, label: "Curriculum Vitae", href: "/dashboard/cv", permission: "view_profil" },
+        { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan", permission: "view_kelas" },
+        { icon: ClipboardCheck, label: "Daftar Tugas", href: "/dashboard/tasklist", permission: "view_kelas" },
+        { icon: MessageSquare, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
+        { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat", permission: "view_profil" },
+        { icon: UserRound, label: "Pembimbing", isDev: true, permission: "view_pembimbing" },
+        { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
+      ],
+    },
+  ],
+
+  // ── Perusahaan ─────────────────────────────────────────────────────────
+  company: [
+    {
+      label: "UTAMA",
+      items: [
+        { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
+      ],
+    },
+    {
+      label: "MANAJEMEN",
+      items: [
+        { icon: UsersRound, label: "Siswa/Mahasiswa Magang", href: "/dashboard/siswa-magang", permission: "view_kelas" },
+        { icon: HelpCircle, label: "Tes", href: "/dashboard/tes", permission: "view_kelas" },
+        { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan", permission: "view_kelas" },
+        { icon: FileText, label: "Lamaran", href: "/dashboard/industry/lamaran", permission: "view_kelas" },
+        { icon: ClipboardCheck, label: "Daftar Tugas", href: "/dashboard/tasklist", permission: "view_kelas" },
+        { icon: BookOpen, label: "Sekolah/Universitas", href: "/dashboard/sekolah", permission: "view_kelas" },
+        { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou", permission: "view_kelas" },
+        { icon: Award, label: "Penghargaan", isDev: true, permission: "view_laporan" },
+        { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
+        { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat", permission: "view_profil" },
+        { icon: UserRound, label: "Pembimbing Perusahaan", isDev: true, permission: "view_pembimbing" },
+        { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
+      ],
+    },
+  ],
+
+  // ── Sekolah / Perguruan Tinggi ─────────────────────────────────────────
+  school: [
+    {
+      label: "UTAMA",
+      items: [
+        { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
+      ],
+    },
+    {
+      label: "MANAJEMEN",
+      items: [
+        { icon: UsersRound, label: "Daftar Siswa/Mahasiswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
+        { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
+        { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan", permission: "view_kelas" },
+        { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou", permission: "view_kelas" },
+        { icon: Award, label: "Penghargaan", isDev: true, permission: "view_laporan" },
+        { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
+        { icon: UserRound, label: "Guru Pembimbing", isDev: true, permission: "view_pembimbing" },
+        { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
       ],
     },
   ],
 };
+
+// route yang butuh status active
+const REQUIRES_ACTIVE_PREFIXES = [
+  "/dashboard/lowongan",
+  "/dashboard/cv",
+  "/dashboard/tasklist",
+  "/dashboard/feedback",
+  "/dashboard/sertifikat",
+];
+
+// ── Component ──────────────────────────────────────────────────────────────
 
 export default function DashboardLayout({
   children,
@@ -230,8 +251,8 @@ export default function DashboardLayout({
     role: "",
   });
   const pathName = usePathname();
-  const router = useRouter();
 
+  // ── Click outside dropdown ────────────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -242,73 +263,86 @@ export default function DashboardLayout({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  // --- AKHIR DARI LOGIKA DROPDOWN ---
 
+  // ── Logout ────────────────────────────────────────────────────────────────
   const handleLogout = async () => {
     const isConfirm = await alertConfirm("Anda yakin ingin logout?");
     if (!isConfirm) return;
-
     Cookies.remove("userToken");
     Cookies.remove("authorization");
-    //router.replace("/");
-    window.location.href = "/"; //replaced the supposed replace to hard location change for auto reload
+    window.location.href = "/";
   };
-  // Menu definitions moved outside component for readability and to avoid
-  // recreating large arrays on every render. We'll compute the menu for the
-  // current role using useMemo below.
 
+  // ── Fetch profile ─────────────────────────────────────────────────────────
   const fetchProfile = useCallback(async (signal?: AbortSignal) => {
     try {
+      // FIX: signal sekarang jadi bagian dari config object (bukan argumen ke-2
+      // terpisah), supaya createApiCall benar-benar meneruskannya ke axios.
       const response = await createApiCall({
         url: `${ENDPOINTS.USERS}/profile`,
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      }, signal);
-      
-      if (response.status === 200) {
-        const data = response.data.data;
-        console.log(data);
-        
-        // Optimize role mapping
-        const getRoleLabel = (role: string, userData: any) => {
-          switch (role) {
-            case "school":
-              return userData.school?.type === "school" ? "Sekolah" : "Perguruan Tinggi";
-            case "student":
-              return userData.student?.school?.type === "school" ? "Siswa" : "Mahasiswa";
-            case "company":
-              return "Perusahaan";
-            case "super_admin":
-              return "Super Admin";
-            default:
-              return "";
-          }
-        };
-        
-        const roleLabel = getRoleLabel(data.role, data);
-        
-        // Extract photo_profile from the correct nested location based on role
-        let photoProfile = null;
-        if (data.role === "student" && data.student?.photo_profile) {
-          photoProfile = data.student.photo_profile;
-        } else if (data.role === "school" && data.school?.photo_profile) {
-          photoProfile = data.school.photo_profile;
-        } else if (data.role === "company" && data.company?.photo_profile) {
-          photoProfile = data.company.photo_profile;
-        } else if (data.photo_profile) {
-          photoProfile = data.photo_profile;
+        signal,
+      });
+
+      // FIX: createApiCall (lihat utils/config.ts) sudah `return response.data`,
+      // jadi `response` di sini ADALAH body API, bukan objek axios mentah.
+      // Tidak ada `.status` di sini, dan cukup `.data` (bukan `.data.data`).
+      const data = response.data;
+
+      const getRoleLabel = (role: string, userData: any) => {
+        switch (role) {
+          case "school":
+            return userData.school?.type === "school" ? "Sekolah" : "Perguruan Tinggi";
+          case "student":
+            return userData.student?.school?.type === "school" ? "Siswa" : "Mahasiswa";
+          case "company":
+            return "Perusahaan";
+          case "super_admin":
+            return "Super Admin";
+          default:
+            return "";
         }
-        
-        setProfile({ ...data, photo_profile: photoProfile, role: roleLabel, rawRole: data.role });
-        setMenuItems(MENU_MAP[data.role] ?? []);
+      };
+
+      const roleLabel = getRoleLabel(data.role, data);
+
+      let photoProfile = null;
+      if (data.role === "student" && data.student?.photo_profile) {
+        photoProfile = data.student.photo_profile;
+      } else if (data.role === "school" && data.school?.photo_profile) {
+        photoProfile = data.school.photo_profile;
+      } else if (data.role === "company" && data.company?.photo_profile) {
+        photoProfile = data.company.photo_profile;
+      } else if (data.photo_profile) {
+        photoProfile = data.photo_profile;
+      }
+
+      setProfile({ ...data, photo_profile: photoProfile, role: roleLabel, rawRole: data.role });
+      setNavGroups(NAV_GROUPS[data.role] ?? []);
+
+      // Fetch and restore permissions in Zustand on reload
+      const token = Cookies.get("userToken");
+      if (token) {
+        try {
+          const permsData = await getUserPermissions(token);
+          useAuthStore.getState().setRole(permsData.role);
+          useAuthStore.getState().setPermissions(permsData.permissions);
+        } catch (err) {
+          console.warn("Could not restore user permissions on layout load:", err);
+        }
       }
     } catch (error: any) {
-      if (error.name !== "AbortError") {
+      const isCanceled =
+        error?.name === "AbortError" ||
+        error?.name === "CanceledError" ||
+        error?.code === "ERR_CANCELED" ||
+        error?.message === "canceled";
+
+      if (!isCanceled) {
         console.error("Error fetching profile:", error);
       }
     }
@@ -320,13 +354,11 @@ export default function DashboardLayout({
     return () => controller.abort();
   }, [fetchProfile]);
 
-  // Only compute and render time/date after client mount to avoid
-  // server/client locale and timing mismatch which causes hydration errors.
+  // ── Clock ─────────────────────────────────────────────────────────────────
   const [time, setTime] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // run only on client
     setMounted(true);
     setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -345,35 +377,25 @@ export default function DashboardLayout({
       })
     : "-";
 
+  // ── Back to homepage ──────────────────────────────────────────────────────
   const handleBack = () => {
-    //router.push("/");
-    window.location.href = "/" //same same here
+    window.location.href = "/";
     console.log("Force returned");
   };
 
+  // ── Sidebar & dropdown helpers ────────────────────────────────────────────
   const toggleDropdown = useCallback(() => setDropdownOpen((v) => !v), []);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
 
-  // compute menuItems on client only to avoid reading cookies during SSR which
-  // leads to hydration mismatches. Start with empty array on first render.
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  // ── Menu state (lazy client init) ─────────────────────────────────────────
+  const [navGroups, setNavGroups] = useState<NavGroup[]>([]);
   const [isActive, setIsActive] = useState<boolean>(false);
-
-  // routes that require active status (same as middleware)
-  const REQUIRES_ACTIVE_PREFIXES = [
-    "/dashboard/lowongan",
-    "/dashboard/cv",
-    "/dashboard/tasklist",
-    "/dashboard/feedback",
-    "/dashboard/sertifikat",
-  ];
 
   useEffect(() => {
     const authorization =
       typeof window !== "undefined" ? Cookies.get("authorization") ?? "" : "";
-    setMenuItems(MENU_MAP[authorization] ?? []);
-    // read active cookie client-side and normalize truthy values
+    setNavGroups(NAV_GROUPS[authorization] ?? []);
     if (typeof window !== "undefined") {
       const v = Cookies.get("active") ?? "";
       const active = !!v && ["true", "1", "yes", "on"].includes(v.toLowerCase());
@@ -381,143 +403,225 @@ export default function DashboardLayout({
     }
   }, []);
 
-  // compute visible menu items: hide protected items when not active
-  const visibleMenuItems = useMemo(() => {
-    if (isActive) return menuItems;
+  const permissions = useAuthStore((s) => s.permissions);
+  const userRole = useAuthStore((s) => s.role);
+
+  // ── Compute visible nav groups (filter by active status & permissions) ────
+  const visibleNavGroups = useMemo(() => {
     const isProtectedHref = (href?: string) => {
       if (!href) return false;
-      return REQUIRES_ACTIVE_PREFIXES.some((p) => href === p || href.startsWith(p + "/") || href.startsWith(p));
+      return REQUIRES_ACTIVE_PREFIXES.some(
+        (p) => href === p || href.startsWith(p + "/") || href.startsWith(p)
+      );
     };
 
-    return menuItems
-      .map((item) => {
-        if (item.children) {
-          const filteredChildren = item.children.filter((child) => !isProtectedHref(child.href));
-          // if no children left, drop parent unless parent itself has href and is allowed
-          if (filteredChildren.length === 0 && isProtectedHref(item.href)) return null;
-          return { ...item, children: filteredChildren } as MenuItem;
-        }
-        return isProtectedHref(item.href) ? null : item;
+    const hasPermission = (item: NavItem) => {
+      if (profile.rawRole === "super_admin" || userRole === "super_admin") return true;
+      if (item.permission) {
+        return permissions.includes(item.permission);
+      }
+      return true;
+    };
+
+    return navGroups
+      .map((group) => {
+        const filteredItems = group.items.filter((item) => {
+          // 1. Cek active status check
+          if (!isActive && isProtectedHref(item.href)) return false;
+          // 2. Cek permission check
+          return hasPermission(item);
+        });
+        return filteredItems.length > 0
+          ? { ...group, items: filteredItems }
+          : null;
       })
-      .filter(Boolean) as MenuItem[];
-  }, [menuItems, isActive]);
+      .filter(Boolean) as NavGroup[];
+  }, [navGroups, isActive, permissions, profile.rawRole, userRole]);
+
+  // ── Active link check ─────────────────────────────────────────────────────
+  const isActiveLink = (href?: string) => {
+    if (!href) return false;
+    if (href === "/dashboard")
+      return pathName === href;
+    return pathName === href || pathName.startsWith(href + "/");
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-blue-50">
-      {/* Sidebar tidak berubah */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
+    <div className="flex h-screen overflow-hidden bg-[#f0f4f8]">
+      {/* ─── SIDEBAR ─────────────────────────────────────────────────────── */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col h-full bg-white border-r border-gray-200 shadow-sm transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out lg:translate-x-0`}
+        }`}
       >
-        {/* ... Konten sidebar Anda tetap sama ... */}
-        <div className="flex items-center justify-between h-16 px-6">
-          <Link href={"/"} className="flex items-center space-x-2">
+        {/* Logo — tetap pakai aset original PrakerinID_ico.svg */}
+        <div className="px-5 py-5 flex items-center" data-purpose="sidebar-logo">
+          <Link href={"/"} className="flex items-center">
             <img
               src="/PrakerinID_ico.svg"
               alt="Prakerin.ID Logo"
-              className="lg:w-50"
+              className="h-9 w-auto"
             />
           </Link>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
         </div>
-        <nav className="mt-8 h-full overflow-y-auto pb-20 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <div className="flex bg-accent-light/15 mx-6 p-3 rounded-xl text-accent-dark justify-center space-x-2 ">
-            <Clock className="w-7 my-auto h-7 " />
-            <div className="">
-              <h3 className="font-md">{timeString}</h3>
-              <h3 className="text-xs">{dateString}</h3>
+
+        {/* Clock Widget — mengacu referensi */}
+        <div className="px-4 mb-3">
+          <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm flex items-center gap-3">
+            <div className="text-[#035a70]">
+              <Clock className="w-7 h-7" />
+            </div>
+            <div>
+              <div className="text-lg font-bold text-gray-800 leading-tight">{timeString}</div>
+              <div className="text-[10px] text-gray-500">{dateString}</div>
             </div>
           </div>
-          {!isActive ? (
-            <div className="px-5">
-            <span className="text-red-500 text-xs">*Akun Kamu belum Aktif silahkan konfirmasi ke admin untuk mengaktifkan akun</span>
+        </div>
+
+        {/* Close button (mobile only) */}
+        <button
+          onClick={closeSidebar}
+          className="lg:hidden absolute top-4 right-4 text-gray-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Navigation — semua menu dari referensi layouts.html */}
+        <nav className="flex-1 overflow-y-auto px-4 space-y-5 pb-6 sidebar-scroll">
+          {!isActive && (
+            <div className="px-2">
+              <span className="text-red-500 text-xs">
+                *Akun Kamu belum Aktif silahkan konfirmasi ke admin untuk mengaktifkan akun
+              </span>
             </div>
-          ):null}
-          {visibleMenuItems.map((item) => (
-            <div key={item.href ?? item.label}>
-              {item.children ? (
-                <SidebarDropdownMenu
-                  item={item}
-                  pathName={pathName} 
-                  setSidebarOpen={closeSidebar}
-                />
-              ) : (
-                <Link
-                  href={item.href!}
-                  onClick={closeSidebar}
-                  className={`flex rounded-xl items-center mx-6 p-3 my-3 text-gray-700 transition-colors ${
-                    (
-                      item.href === "/dashboard"
-                        ? pathName === item.href
-                        : pathName === item.href ||
-                          pathName.startsWith(item.href + "/")
-                    )
-                      ? // match exact + anak
-                        "bg-accent !text-white shadow-lg font-bold"
-                      : "hover:bg-accent/10 hover:text-accent"
-                  }`}
-                >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  {item.label}
-                </Link>
-              )}
+          )}
+
+          {visibleNavGroups.map((group) => (
+            <div key={group.label} data-purpose="nav-group">
+              <h3 className="text-[#64748b] font-bold text-[0.65rem] uppercase tracking-widest mb-2 px-2">
+                {group.label}
+              </h3>
+              <ul className="space-y-0.5">
+                {group.items.map((item) => {
+                  const active = isActiveLink(item.href);
+                  const el = (
+                    <div
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        active
+                          ? "bg-[#035a70] text-white shadow-sm"
+                          : item.href
+                          ? "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      <item.icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="flex-1 truncate">{item.label}</span>
+                      {item.isDev && (
+                        <span className="text-[9px] font-semibold uppercase tracking-wider bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">
+                          Dev
+                        </span>
+                      )}
+                    </div>
+                  );
+
+                  return (
+                    <li key={item.label}>
+                      {item.href ? (
+                        <Link href={item.href} onClick={closeSidebar}>
+                          {el}
+                        </Link>
+                      ) : (
+                        el
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           ))}
         </nav>
-      </div>
 
-      {/* Main Content Area */}
-      <div className="lg:ml-64 flex flex-col min-h-screen">
-        {/* --- MODIFIKASI BAGIAN HEADER DI SINI --- */}
-        <header className="fixed top-0 right-0 left-0 lg:left-64 z-40 bg-accent text-white shadow-sm ">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center space-x-4">
+        {/* Sidebar Footer — tombol Kembali (gaya referensi) */}
+        <div className="p-4 border-t border-gray-100" data-purpose="sidebar-footer">
+          <button
+            onClick={handleBack}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            <CircleArrowLeft className="w-4 h-4" />
+            <span>Kembali</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ─── MAIN CONTENT ────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col lg:ml-64 min-w-0">
+        {/* Header — gaya referensi (white, search, notif, profile) */}
+        <header className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between px-6 py-3">
+            {/* Left: hamburger + search */}
+            <div className="flex items-center gap-4 flex-1">
               <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-white cursor-pointer"
+                onClick={openSidebar}
+                className="lg:hidden text-gray-600 cursor-pointer"
               >
                 <Menu className="w-6 h-6" />
               </button>
+
+              <div className="relative hidden sm:block max-w-sm w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 focus:border-[#035a70]"
+                  placeholder="Cari menu, data, atau informasi..."
+                  type="text"
+                />
+              </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            {/* Right: notification + profile */}
+            <div className="flex items-center gap-4">
+              {/* Notification Bell */}
+              <div className="relative">
+                <Bell className="w-5 h-5 text-gray-600" />
+                <span className="absolute -top-1.5 -right-1.5 bg-[#035a70] text-white text-[10px] w-4.5 h-4.5 flex items-center justify-center rounded-full font-bold">
+                  3
+                </span>
+              </div>
+
+              {/* Profile dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => setDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-3 cursor-pointer"
+                  onClick={toggleDropdown}
+                  className="flex items-center gap-3 cursor-pointer"
                 >
                   <div className="text-right hidden sm:block">
-                    <span className="text-sm font-bold block">
+                    <div className="text-sm font-semibold text-gray-800 leading-tight">
                       {profile.role === "Super Admin"
                         ? profile.username
                         : profile.name}
-                    </span>
-                    <span className="text-xs text-gray-200 block">
-                      {profile.role}
-                    </span>
+                    </div>
+                    <div className="text-[10px] text-gray-500">{profile.role}</div>
                   </div>
                   {profile.photo_profile ? (
-                    <div className="w-10 h-10 rounded-full border-white border overflow-hidden">
+                    <div className="w-9 h-9 rounded-full border-2 border-gray-100 overflow-hidden flex-shrink-0">
                       <img
                         src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${profile.photo_profile}`}
                         alt="Photo Profile"
-                        className="object-cover rounded-full w-full h-full"
+                        className="object-cover w-full h-full"
                       />
                     </div>
                   ) : (
-                    <UserCircle className="w-10 h-10 text-white" />
+                    <div className="w-9 h-9 rounded-full bg-[#035a70] flex items-center justify-center text-white flex-shrink-0">
+                      <User className="w-5 h-5" />
+                    </div>
                   )}
+                  <ChevronDown className="w-4 h-4 text-gray-400 hidden sm:block" />
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 text-gray-800">
-                    <div className="px-4 py-2">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 text-gray-800 border border-gray-100">
+                    <div className="px-4 py-2 border-b border-gray-50">
                       <p className="text-sm font-semibold">
                         {profile.role === "Super Admin"
                           ? profile.username
@@ -527,36 +631,32 @@ export default function DashboardLayout({
                     </div>
                     <Link
                       href="/dashboard/profile"
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       <User className="w-4 h-4 mr-2" />
                       Profile
                     </Link>
                     <Link
-                      href="/lapor-bug" // Ganti dengan link yang sesuai
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      href="/lapor-bug"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <FileText className="w-4 h-4 mr-2" />
+                      <MessageSquare className="w-4 h-4 mr-2" />
                       Laporan Bug
                     </Link>
                     <Link
-                      href="/hubungi-cs" // Ganti dengan link yang sesuai
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      href="/hubungi-cs"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <MessageSquare className="w-4 h-4 mr-2" />
+                      <HelpCircle className="w-4 h-4 mr-2" />
                       Hubungi CS
                     </Link>
                     <div className="border-t border-gray-100 my-1"></div>
                     <button
-                      onClick={handleBack} // Buat fungsi logout jika perlu
-                      className="flex items-center w-full px-4 py-2 text-sm text-accent hover:bg-gray-100"
-                    >
-                      <CircleArrowLeft className="w-4 h-4 mr-2" />
-                      Kembali
-                    </button>
-                    <button
-                      onClick={handleLogout} // Buat fungsi logout jika perlu
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      onClick={handleLogout}
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Logout
@@ -567,99 +667,27 @@ export default function DashboardLayout({
             </div>
           </div>
         </header>
-        {/* --- AKHIR DARI MODIFIKASI HEADER --- */}
 
-        <main className="pt-20 px-6 pb-6 flex-grow">{children}</main>
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-[#f0f4f8]">
+          {children}
+        </main>
 
-        <footer className="bg-white py-4 px-6">
+        {/* Footer */}
+        <footer className="bg-white py-4 px-6 border-t border-gray-100">
           <p className="text-center text-sm text-gray-500">
-            © 2025 Prakerin ID. All rights reserved.
+            &copy; 2025 Prakerin ID. All rights reserved.
           </p>
         </footer>
       </div>
 
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={closeSidebar}
         ></div>
       )}
     </div>
   );
 }
-
-const SidebarDropdownMenu = React.memo(function SidebarDropdownMenu({
-  item,
-  pathName,
-  setSidebarOpen,
-}: {
-  item: MenuItem;
-  pathName: string;
-  // simple callback to close sidebar (no args)
-  setSidebarOpen: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-
-  // Cek apakah salah satu child aktif
-  const isActive = useMemo(
-    () =>
-      !!item.children?.some(
-        (child) =>
-          pathName === child.href ||
-          (child.href && pathName.startsWith(child.href + "/"))
-      ),
-    [item.children, pathName]
-  );
-
-  return (
-    <div className="mx-6 my-3">
-      <button
-        className={`flex w-full rounded-xl items-center p-3 text-gray-700 transition-colors ${
-          isActive
-            ? "bg-accent !text-white shadow-lg font-bold"
-            : "hover:bg-accent/10 hover:text-accent"
-        }`}
-        onClick={() => setOpen((prev) => !prev)}
-        type="button"
-      >
-        <item.icon className="w-5 h-5 mr-3" />
-        <span className="flex-1 text-left">{item.label}</span>
-        <svg
-          className={`w-4 h-4 ml-2 transition-transform ${
-            open ? "rotate-90" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
-      </button>
-      {open && (
-        <div className="ml-6 mt-2 space-y-1">
-          {item.children?.map((child) => (
-            <Link
-              key={child.href ?? child.label}
-              href={child.href!}
-              onClick={setSidebarOpen}
-              className={`flex items-center rounded-lg px-3 py-2 text-sm transition-colors ${
-                pathName === child.href ||
-                (child.href && pathName.startsWith(child.href + "/"))
-                  ? "bg-accent text-white font-bold"
-                  : "hover:bg-accent/10 hover:text-accent text-gray-700"
-              }`}
-            >
-              <child.icon className="w-4 h-4 mr-2" />
-              {child.label}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-});

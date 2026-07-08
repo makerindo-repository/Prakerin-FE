@@ -21,6 +21,7 @@ import {
   FileCheck2,
 } from "lucide-react";
 import { alertConfirm } from "@/libs/alert";
+import { PermissionGuard } from "@/components/PermissionGuard";
 
 interface RoleData {
   id: string | number;
@@ -30,25 +31,52 @@ interface RoleData {
 
 // Group permissions by resource category for better UI organization
 const PERMISSION_GROUPS: Record<string, { label: string; permissions: string[] }> = {
-  vacancies: {
-    label: "Lowongan & Lamaran (Job Openings & Applicants)",
-    permissions: ["view-lowongan", "create-lowongan", "edit-lowongan", "delete-lowongan", "apply-lowongan", "view-applicants"],
+  dashboard: {
+    label: "Dashboard & Profil (Dashboard & Profile)",
+    permissions: ["view_dashboard", "view_profil", "edit_profil"],
   },
-  tasks: {
-    label: "CV & Daftar Tugas (CV & Tasks)",
-    permissions: ["manage-cv", "view-tasklist", "submit-task", "manage-tasklist"],
+  kelas: {
+    label: "Kelas Pra-Magang (Class Management)",
+    permissions: ["view_kelas", "create_kelas", "edit_kelas", "delete_kelas"],
+  },
+  pembimbing: {
+    label: "Pembimbing (Mentor Management)",
+    permissions: ["view_pembimbing", "create_pembimbing", "edit_pembimbing", "delete_pembimbing"],
+  },
+  users: {
+    label: "Manajemen User & Hak Akses (User & Role Management)",
+    permissions: ["view_manajemen_user", "create_manajemen_user", "edit_manajemen_user", "delete_manajemen_user", "manage_roles", "manage_permissions"],
+  },
+  content: {
+    label: "Isi Halaman & Panduan (Content & Guidelines)",
+    permissions: ["view_isi_halaman", "create_isi_halaman", "edit_isi_halaman", "delete_isi_halaman", "view_panduan", "create_panduan", "edit_panduan", "delete_panduan"],
   },
   feedback: {
-    label: "Ulasan & Sertifikat (Feedback & Certificates)",
-    permissions: ["view-feedback", "create-feedback", "view-sertifikat", "create-sertifikat"],
+    label: "Feedback & Ulasan (User Feedback)",
+    permissions: ["view_feedback", "approve_feedback"],
   },
-  school: {
-    label: "Sekolah & Penempatan (School & Placement)",
-    permissions: ["view-students", "manage-placement", "view-companies", "manage-mou"],
+  laporan: {
+    label: "Laporan & Log Aktivitas (Reports & Logs)",
+    permissions: ["view_laporan", "create_laporan", "edit_laporan", "delete_laporan", "view_log_aktivitas"],
   },
-  system: {
-    label: "Sistem & Master Data (System & Master Data)",
-    permissions: ["manage-master-data", "manage-users", "edit-page-content"],
+  settings: {
+    label: "Pengaturan Sistem (System Settings)",
+    permissions: ["view_pengaturan", "edit_pengaturan"],
+  },
+  dev: {
+    label: "Fitur Pengembangan (DEV / In-Progress Features)",
+    permissions: [
+      "view_ai_analytics",
+      "view_data_provinsi", "create_data_provinsi", "edit_data_provinsi", "delete_data_provinsi",
+      "view_data_kota", "create_data_kota", "edit_data_kota", "delete_data_kota",
+      "view_data_sektor_industri", "create_data_sektor_industri", "edit_data_sektor_industri", "delete_data_sektor_industri",
+      "view_data_durasi_magang", "create_data_durasi_magang", "edit_data_durasi_magang", "delete_data_durasi_magang",
+      "view_data_jurusan_siswa", "create_data_jurusan_siswa", "edit_data_jurusan_siswa", "delete_data_jurusan_siswa",
+      "view_data_bidang_magang", "create_data_bidang_magang", "edit_data_bidang_magang", "delete_data_bidang_magang",
+      "view_data_sekolah", "create_data_sekolah", "edit_data_sekolah", "delete_data_sekolah",
+      "view_data_perguruan_tinggi", "create_data_perguruan_tinggi", "edit_data_perguruan_tinggi", "delete_data_perguruan_tinggi",
+      "view_data_industri", "create_data_industri", "edit_data_industri", "delete_data_industri"
+    ],
   },
 };
 
@@ -64,6 +92,14 @@ const ROLE_CONFIG: Record<string, { label: string; icon: React.ComponentType<any
 };
 
 export default function RolesPermissionsPage() {
+  return (
+    <PermissionGuard permission="manage_permissions">
+      <RolesPermissionsContent />
+    </PermissionGuard>
+  );
+}
+
+function RolesPermissionsContent() {
   const [roles, setRoles] = useState<RoleData[]>([]);
   const [allPermissions, setAllPermissions] = useState<string[]>([]);
   const [selectedRoleName, setSelectedRoleName] = useState<string>("");
@@ -81,12 +117,12 @@ export default function RolesPermissionsPage() {
       const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
       
       const rolesRes = await createApiCall({
-        url: ENDPOINTS.ROLES,
+        url: ENDPOINTS.SYSTEM_ROLES,
         headers,
       });
 
       const permissionsRes = await createApiCall({
-        url: `${ENDPOINTS.ROLES}/permissions`,
+        url: ENDPOINTS.SYSTEM_PERMISSIONS,
         headers,
       });
 
@@ -136,8 +172,8 @@ export default function RolesPermissionsPage() {
 
       const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
       await createApiCall({
-        url: `${ENDPOINTS.ROLES}/${selectedRoleName}/permissions`,
-        method: "post",
+        url: `/system/roles/${selectedRoleName}/permissions`,
+        method: "put",
         headers,
         data: { permissions: newPermissions },
       });
@@ -174,8 +210,8 @@ export default function RolesPermissionsPage() {
       const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
       
       await createApiCall({
-        url: `${ENDPOINTS.ROLES}/${selectedRoleName}/permissions`,
-        method: "post",
+        url: `/system/roles/${selectedRoleName}/permissions`,
+        method: "put",
         headers,
         data: { permissions: newPermissions },
       });
