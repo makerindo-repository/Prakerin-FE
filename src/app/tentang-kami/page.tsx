@@ -249,7 +249,7 @@ export default function AboutPage() {
             {/* VISI */}
             <div className="group rounded-[32px] bg-gradient-to-br from-cyan-400 to-sky-600 p-[1px] shadow-2xl">
               <div className="rounded-[32px] bg-white p-10 h-full transition-all duration-300 group-hover:-translate-y-2">
-                <div className="w-20 h-20 rounded-3xl bg-sky-100 flex items-center justify-center text-4xl mb-8">
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mb-8">
                   👁️
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900 mb-6">
@@ -267,7 +267,7 @@ export default function AboutPage() {
             {/* MISSION */}
             <div className="group rounded-[32px] bg-gradient-to-br from-blue-500 to-cyan-400 p-[1px] shadow-2xl">
               <div className="rounded-[32px] bg-white p-10 h-full transition-all duration-300 group-hover:-translate-y-2">
-                <div className="w-20 h-20 rounded-3xl bg-blue-100 flex items-center justify-center text-4xl mb-8">
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mb-8">
                   🚀
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900 mb-8">

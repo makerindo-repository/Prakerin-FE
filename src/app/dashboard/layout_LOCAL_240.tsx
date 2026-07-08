@@ -94,7 +94,6 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "UTAMA",
       items: [
         { icon: Home, label: "Dashboard", href: "/dashboard" },
-        { icon: Activity, label: "AI Analytics", isDev: true },
       ],
     },
     {
@@ -273,59 +272,53 @@ export default function DashboardLayout({
   // ── Fetch profile ─────────────────────────────────────────────────────────
   const fetchProfile = useCallback(async (signal?: AbortSignal) => {
     try {
-      // FIX: signal sekarang jadi bagian dari config object (bukan argumen ke-2
-      // terpisah), supaya createApiCall benar-benar meneruskannya ke axios.
-      const response = await createApiCall({
-        url: `${ENDPOINTS.USERS}/profile`,
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
+      const response = await createApiCall(
+        {
+          url: `${ENDPOINTS.USERS}/profile`,
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
         },
-        signal,
-      });
+        signal
+      );
 
-      // FIX: createApiCall (lihat utils/config.ts) sudah `return response.data`,
-      // jadi `response` di sini ADALAH body API, bukan objek axios mentah.
-      // Tidak ada `.status` di sini, dan cukup `.data` (bukan `.data.data`).
-      const data = response.data;
+      if (response.status === 200) {
+        const data = response.data.data;
+        console.log(data);
 
-      const getRoleLabel = (role: string, userData: any) => {
-        switch (role) {
-          case "school":
-            return userData.school?.type === "school" ? "Sekolah" : "Perguruan Tinggi";
-          case "student":
-            return userData.student?.school?.type === "school" ? "Siswa" : "Mahasiswa";
-          case "company":
-            return "Perusahaan";
-          case "super_admin":
-            return "Super Admin";
-          default:
-            return "";
+        const getRoleLabel = (role: string, userData: any) => {
+          switch (role) {
+            case "school":
+              return userData.school?.type === "school" ? "Sekolah" : "Perguruan Tinggi";
+            case "student":
+              return userData.student?.school?.type === "school" ? "Siswa" : "Mahasiswa";
+            case "company":
+              return "Perusahaan";
+            case "super_admin":
+              return "Super Admin";
+            default:
+              return "";
+          }
+        };
+
+        const roleLabel = getRoleLabel(data.role, data);
+
+        let photoProfile = null;
+        if (data.role === "student" && data.student?.photo_profile) {
+          photoProfile = data.student.photo_profile;
+        } else if (data.role === "school" && data.school?.photo_profile) {
+          photoProfile = data.school.photo_profile;
+        } else if (data.role === "company" && data.company?.photo_profile) {
+          photoProfile = data.company.photo_profile;
+        } else if (data.photo_profile) {
+          photoProfile = data.photo_profile;
         }
-      };
 
-      const roleLabel = getRoleLabel(data.role, data);
-
-      let photoProfile = null;
-      if (data.role === "student" && data.student?.photo_profile) {
-        photoProfile = data.student.photo_profile;
-      } else if (data.role === "school" && data.school?.photo_profile) {
-        photoProfile = data.school.photo_profile;
-      } else if (data.role === "company" && data.company?.photo_profile) {
-        photoProfile = data.company.photo_profile;
-      } else if (data.photo_profile) {
-        photoProfile = data.photo_profile;
+        setProfile({ ...data, photo_profile: photoProfile, role: roleLabel, rawRole: data.role });
+        setNavGroups(NAV_GROUPS[data.role] ?? []);
       }
-
-      setProfile({ ...data, photo_profile: photoProfile, role: roleLabel, rawRole: data.role });
-      setNavGroups(NAV_GROUPS[data.role] ?? []);
     } catch (error: any) {
-      const isCanceled =
-        error?.name === "AbortError" ||
-        error?.name === "CanceledError" ||
-        error?.code === "ERR_CANCELED" ||
-        error?.message === "canceled";
-
-      if (!isCanceled) {
+      if (error.name !== "AbortError") {
         console.error("Error fetching profile:", error);
       }
     }

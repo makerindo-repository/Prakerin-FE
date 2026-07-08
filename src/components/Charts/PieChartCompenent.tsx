@@ -52,6 +52,7 @@ interface PieChartCompenentProps {
   legend: string;
   tooltip?: string;
   dataList: DataPieChart[];
+  hideCardStyle?: boolean;
 }
 
 export interface DataPieChart {
@@ -64,12 +65,15 @@ export default function PieChartComponent({
   legend,
   tooltip,
   dataList,
+  hideCardStyle = false,
 }: PieChartCompenentProps) {
   return (
-    <div className="w-full h-full mx-auto bg-gray-50 rounded-lg p-4 shadow-sm">
-      <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">
-        {legend}
-      </h2>
+    <div className={hideCardStyle ? "w-full" : "w-full h-full mx-auto bg-gray-50 rounded-lg p-4 shadow-sm"}>
+      {legend && (
+        <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">
+          {legend}
+        </h2>
+      )}
 
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
@@ -83,7 +87,7 @@ export default function PieChartComponent({
               cy="50%"
               labelLine={false}
               label={renderCustomizedLabel}
-              outerRadius={120}
+              outerRadius={100}
               fill="#8884d8"
               dataKey="value"
             >

@@ -47,28 +47,32 @@ interface BarChartComponentProps {
     name: string;
     value: number;
   }[];
+  hideCardStyle?: boolean;
 }
 
 export default function BarChartComponent({
   legend,
   dataList,
+  hideCardStyle = false,
 }: BarChartComponentProps) {
   return (
-    <div className="w-full h-full mx-auto bg-gray-50 rounded-lg p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-800 text-center mb-8">
-        {legend} {dataList.length}
-      </h2>
+    <div className={hideCardStyle ? "w-full" : "w-full h-full mx-auto bg-gray-50 rounded-lg p-6 shadow-sm"}>
+      {legend && (
+        <h2 className="text-lg font-semibold text-gray-800 text-center mb-8">
+          {legend} {dataList.length}
+        </h2>
+      )}
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={dataList}
-            margin={{
-              top: 10,
-              right: 20,
-              left: 50,
-              bottom: 5,
-            }}
-            barCategoryGap="20%"
+             data={dataList}
+             margin={{
+               top: 10,
+               right: 20,
+               left: 10,
+               bottom: 5,
+             }}
+             barCategoryGap="20%"
           >
             <XAxis
               dataKey="name"

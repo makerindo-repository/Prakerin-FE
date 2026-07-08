@@ -65,7 +65,13 @@ const Dashboard: React.FC = () => {
         });
       }
     } catch (error: any) {
-      if (error.name !== "AbortError") {
+      const isCanceled =
+        error?.name === "AbortError" ||
+        error?.name === "CanceledError" ||
+        error?.code === "ERR_CANCELED" ||
+        error?.message === "canceled";
+
+      if (!isCanceled) {
         console.error("Error fetching profile:", error);
       }
     } finally {
