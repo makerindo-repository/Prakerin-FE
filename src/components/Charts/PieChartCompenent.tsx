@@ -10,20 +10,23 @@ const renderCustomizedLabel = ({
   outerRadius,
   percent,
 }: any) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-(midAngle ?? 0) * RADIAN);
-  const y = cy + radius * Math.sin(-(midAngle ?? 0) * RADIAN);
+  // Sembunyikan label untuk slice yang terlalu kecil supaya tidak numpuk/tabrakan
+  if ((percent ?? 0) < 0.05) return null;
 
-  // Show all labels regardless of size
+  // Posisi label di LUAR donat, bukan di tengah cincin
+  const labelRadius = outerRadius + 20;
+  const x = cx + labelRadius * Math.cos(-(midAngle ?? 0) * RADIAN);
+  const y = cy + labelRadius * Math.sin(-(midAngle ?? 0) * RADIAN);
+
   return (
     <text
       x={x}
       y={y}
-      fill="white"
+      fill="#374151"
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
       fontSize="12"
-      fontWeight="600"
+      fontWeight="700"
     >
       {`${((percent ?? 1) * 100).toFixed(0)}%`}
     </text>
@@ -85,9 +88,11 @@ export default function PieChartComponent({
               }))}
               cx="50%"
               cy="50%"
-              labelLine={false}
+              labelLine={{ stroke: "#9ca3af", strokeWidth: 1 }}
               label={renderCustomizedLabel}
-              outerRadius={100}
+              innerRadius={60}
+              outerRadius={90}
+              paddingAngle={2}
               fill="#8884d8"
               dataKey="value"
             >

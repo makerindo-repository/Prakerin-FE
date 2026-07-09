@@ -148,7 +148,7 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
         params: {
           page: 1,
           limit: 100,
-          student_id: id,
+          user_student_id: id,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
