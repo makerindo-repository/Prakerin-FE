@@ -49,7 +49,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { createApiCall, ENDPOINTS } from "@/utils/config";
+import { createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import { usePathname } from "next/navigation";
 import { alertConfirm } from "@/libs/alert";
 import { getUserPermissions } from "@/libs/permissionApi";
@@ -606,7 +606,7 @@ export default function DashboardLayout({
                   {profile.photo_profile ? (
                     <div className="w-9 h-9 rounded-full border-2 border-gray-100 overflow-hidden flex-shrink-0">
                       <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${profile.photo_profile}`}
+                        src={getPhotoProfileUrl(profile.photo_profile) || ''}
                         alt="Photo Profile"
                         className="object-cover w-full h-full"
                       />

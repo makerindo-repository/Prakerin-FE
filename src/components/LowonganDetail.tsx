@@ -1,6 +1,37 @@
 "use client";
 
-import Image from "next/image";
+import Image, { ImageProps } from "next/image";
+import React, { useState, useEffect } from "react";
+
+// ====== Helper: Image dengan fallback otomatis saat gagal dimuat (403/forbidden/404/dll) ======
+interface ImageWithFallbackProps extends Omit<ImageProps, "src" | "alt" | "onError"> {
+  src: string | null | undefined;
+  alt: string;
+  fallback: React.ReactNode;
+}
+
+function ImageWithFallback({ src, alt, fallback, ...imageProps }: ImageWithFallbackProps) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (!src || hasError) {
+    return <>{fallback}</>;
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      onError={() => setHasError(true)}
+      unoptimized
+      {...imageProps}
+    />
+  );
+}
+// ================================================================================================
 import {
   Bookmark,
   MapPin,
@@ -18,6 +49,7 @@ import {
   getTypeTest,
 } from "@/utils/lowonganLabel";
 import { Building } from "lucide-react";
+import { getPhotoProfileUrl } from "@/utils/config";
 import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Link from "next/link";
@@ -80,13 +112,14 @@ export default function LowonganDetail({
         <div className="flex justify-between items-start">
             {/* Logo */}
             <div className="mb-6">
-                {data.user.photo_profile ? (
+                {data.user?.photo_profile ? (
                 <div className="w-24 h-24 relative rounded-full overflow-hidden">
-                    <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${data.user.photo_profile}`}
+                    <ImageWithFallback
+                    src={getPhotoProfileUrl(data.user.photo_profile)}
                     alt="Logo"
                     fill
                     className="object-contain"
+                    fallback={<Building className="w-full h-full text-accent" />}
                     />
                 </div>
                 ) : (
@@ -94,23 +127,25 @@ export default function LowonganDetail({
                 )}
             </div>
             {/* Action Buttons */}
-            {Cookies.get("authorization") === "student" && (
+            {(!Cookies.get("authorization") || Cookies.get("authorization") === "student") && (
                 <div className="flex justify-end gap-3 mb-6">
-                    <button
-                        type="button"
-                        onClick={(e) => handleClickFavorite(e, data.id)}
-                        className={`px-5 py-2 rounded-lg border font-medium transition ${
-                        data.save_job_opening
-                            ? "bg-cyan-600 text-white border-cyan-600"
-                            : "border-cyan-300 text-cyan-600"
-                        }`}
-                    >
-                        Simpan
-                    </button>
+                    {Cookies.get("authorization") === "student" && (
+                        <button
+                            type="button"
+                            onClick={(e) => handleClickFavorite(e, data.id)}
+                            className={`px-5 py-2 rounded-lg border font-medium transition ${
+                            data.save_job_opening
+                                ? "bg-cyan-600 text-white border-cyan-600"
+                                : "border-cyan-300 text-cyan-600"
+                            }`}
+                        >
+                            Simpan
+                        </button>
+                    )}
 
                     <Link
-                        href={`/dashboard/lowongan/${data.id}/apply`}
-                        className="px-5 py-2 rounded-lg bg-cyan-600 text-white hover:bg-cyan-700"
+                        href={Cookies.get("authorization") === "student" ? `/dashboard/lowongan/${data.id}/apply` : `/masuk`}
+                        className="px-5 py-2 rounded-lg bg-cyan-600 text-white hover:bg-cyan-700 flex items-center justify-center font-medium transition"
                     >
                         Lamar Sekarang
                     </Link>

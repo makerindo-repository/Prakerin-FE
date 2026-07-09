@@ -13,7 +13,7 @@ import {
   UserSquare,
 } from "lucide-react";
 import { ChangeEvent, use, useEffect, useState } from "react";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import Cookies from "js-cookie";
 import { EditorProps } from "@/components/Editor";
 import dynamic from "next/dynamic";
@@ -457,7 +457,7 @@ export default function ProfilePage() {
                   />
                 ) : typeof userForm.photo_profile === "string" ? (
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${userForm.photo_profile}`}
+                    src={getPhotoProfileUrl(userForm.photo_profile) || ''}
                     alt="Profile"
                     width={100}
                     height={100}
