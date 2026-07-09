@@ -75,6 +75,7 @@ function ImageWithFallback({ src, alt, fallback, ...imageProps }: ImageWithFallb
       src={src}
       alt={alt}
       onError={() => setHasError(true)}
+      unoptimized
       {...imageProps}
     />
   );

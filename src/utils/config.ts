@@ -108,3 +108,24 @@ export const createApiCall = async (arg1: any, arg2: any = {}) => {
     throw new Error(error.response?.data?.message || error.message || 'API Error');
   }
 };
+
+export const getPhotoProfileUrl = (photo: string | null | undefined): string | null => {
+  if (!photo) return null;
+  if (photo.startsWith("http://") || photo.startsWith("https://")) {
+    return photo;
+  }
+  const cleanPhoto = photo.startsWith("/") ? photo.slice(1) : photo;
+  return `${BASE_URL}/storage/photo-profile/${cleanPhoto}`;
+};
+
+export const getCommentPhotoUrl = (photo: string | null | undefined): string | null => {
+  if (!photo) return null;
+  if (photo.startsWith("http://") || photo.startsWith("https://")) {
+    return photo;
+  }
+  const cleanPhoto = photo.startsWith("/") ? photo.slice(1) : photo;
+  if (cleanPhoto.startsWith("pfpupload/")) {
+    return `${BASE_URL}/storage/photo-profile/${cleanPhoto}`;
+  }
+  return `${BASE_URL}/storage/comment-prakerin/${cleanPhoto}`;
+};

@@ -11,7 +11,7 @@ import Image from "next/image";
 import useDebounce from "@/hooks/useDebounce";
 import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import Loader from "../loader";
 import TabsComponent from "../TabsCompenent";
 import PaginationComponent from "../PaginationComponent";
@@ -199,7 +199,7 @@ const NonAdminSekolah: React.FC = () => {
                 {data.photo_profile ? (
                   <div className="w-15 h-15 relative rounded-full border-white border">
                     <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${data.photo_profile}`}
+                      src={getPhotoProfileUrl(data.photo_profile) || ''}
                       alt="Logo Perusahaan"
                       fill
                       sizes="100%"

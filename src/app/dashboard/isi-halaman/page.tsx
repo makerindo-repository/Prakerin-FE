@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl, getCommentPhotoUrl } from "@/utils/config";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { profile } from "console";
 import Image from "next/image";
@@ -557,7 +557,11 @@ const PerusahaanPage: React.FC = () => {
                 <div className="w-24 h-24 rounded-full overflow-hidden shadow-md border border-gray-100 mb-4 relative">
                   {(item.user?.photo_profile || item.photo_profile) && (
                     <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.user?.photo_profile || item.photo_profile}`}
+                      src={
+                        item.user?.photo_profile
+                          ? getPhotoProfileUrl(item.user.photo_profile) || ''
+                          : getCommentPhotoUrl(item.photo_profile) || ''
+                      }
                       alt={item.name}
                       fill
                       sizes="100%"

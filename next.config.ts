@@ -64,6 +64,24 @@ const nextConfig: NextConfig = {
         hostname: "127.0.0.1",
         port: "8001",
         pathname: "/storage/**"
+      },
+      {
+        protocol: "http",
+        hostname: "prakerin-be.test",
+        port: "",
+        pathname: "/**"
+      },
+      {
+        protocol: "https",
+        hostname: "prakerin-be.test",
+        port: "",
+        pathname: "/**"
+      },
+      {
+        protocol: "https",
+        hostname: "ui-avatars.com",
+        port: "",
+        pathname: "/**"
       }
     ],
   },

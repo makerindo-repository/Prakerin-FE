@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import DescriptionRenderer from "@/components/RenderBlocks";
 import RenderBlocks from "@/components/RenderBlocks";
 import Cookies from "js-cookie";
@@ -23,10 +23,40 @@ import Cookies from "js-cookie";
 // import dayjs from "dayjs";
 import { getDurationUnit } from "@/utils/getDurationUnit";
 import { getTypeJobOpening } from "@/utils/getTypeJobOpening";
-import Image from "next/image";
+import Image, { ImageProps } from "next/image";
 import Loader from "@/components/loader";
 import { AxiosError } from "axios";
 import { notFound, useRouter } from "next/navigation";
+
+// ====== Helper: Image dengan fallback otomatis saat gagal dimuat (403/forbidden/404/dll) ======
+interface ImageWithFallbackProps extends Omit<ImageProps, "src" | "alt" | "onError"> {
+  src: string | null | undefined;
+  alt: string;
+  fallback: React.ReactNode;
+}
+
+function ImageWithFallback({ src, alt, fallback, ...imageProps }: ImageWithFallbackProps) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (!src || hasError) {
+    return <>{fallback}</>;
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      onError={() => setHasError(true)}
+      unoptimized
+      {...imageProps}
+    />
+  );
+}
+// ================================================================================================
 
 interface Lowongan {
   id: string;
@@ -236,14 +266,15 @@ const DetailLowonganPage = ({
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
                   <div className="flex items-start gap-4">
                     {/* Company Logo */}
-                    {data.user.photo_profile ? (
+                    {data.user?.photo_profile ? (
                       <div className="w-15 h-15 relative rounded-full border-white border">
-                        <Image
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${data.user.photo_profile}`}
+                        <ImageWithFallback
+                          src={getPhotoProfileUrl(data.user.photo_profile)}
                           alt="Logo Perusahaan"
                           fill
                           sizes="100%"
                           className="object-cover rounded-full"
+                          fallback={<Building className="w-full h-full text-[var(--color-accent)]" />}
                         />
                       </div>
                     ) : (
@@ -271,36 +302,29 @@ const DetailLowonganPage = ({
                   </div>
 
                   {/* Action Buttons */}
-                  {Cookies.get("authorization") === "student" && (
+                  {(!Cookies.get("authorization") || Cookies.get("authorization") === "student") && (
                     <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                      {/* <Link
-                        href={"#"}
-                        className="flex items-center justify-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                        aria-disabled
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>Chat Perusahaan</span>
-                        <Lock className="w-4 h-4" />
-                      </Link> */}
-                      <button
-                        type="button"
-                        className={`flex items-center justify-center gap-2 hover:text-blue-600 hover:bg-white px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors cursor-pointer ${
-                          data.save_job_opening
-                            ? "text-white border-blue-500 bg-blue-500"
-                            : "text-gray-400"
-                        }`}
-                        onClick={(e) => handleClickFavorite(e, data.id)}
-                      >
-                        <Bookmark
-                          className={`w-4 h-4 `}
-                          fill={data.save_job_opening ? "currentColor" : "none"}
-                        />
-                        <span>Simpan</span>
-                      </button>
+                      {Cookies.get("authorization") === "student" && (
+                        <button
+                          type="button"
+                          className={`flex items-center justify-center gap-2 hover:text-blue-600 hover:bg-white px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors cursor-pointer ${
+                            data.save_job_opening
+                              ? "text-white border-blue-500 bg-blue-500"
+                              : "text-gray-400"
+                          }`}
+                          onClick={(e) => handleClickFavorite(e, data.id)}
+                        >
+                          <Bookmark
+                            className={`w-4 h-4 `}
+                            fill={data.save_job_opening ? "currentColor" : "none"}
+                          />
+                          <span>Simpan</span>
+                        </button>
+                      )}
 
                       <Link
-                        href={`/dashboard/lowongan/${id}/apply`}
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                        href={Cookies.get("authorization") === "student" ? `/dashboard/lowongan/${id}/apply` : `/masuk`}
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors text-center flex items-center justify-center"
                       >
                         Lamar Sekarang
                       </Link>

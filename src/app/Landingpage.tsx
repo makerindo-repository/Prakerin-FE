@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import Image, { ImageProps } from "next/image";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl, getCommentPhotoUrl } from "@/utils/config";
 
 interface Partner {
   id: string;
@@ -116,6 +116,7 @@ function ImageWithFallback({ src, alt, fallback, ...imageProps }: ImageWithFallb
       src={src}
       alt={alt}
       onError={() => setHasError(true)}
+      unoptimized
       {...imageProps}
     />
   );
@@ -249,7 +250,7 @@ export default function LandingPage({
         setTruncatedComments((prev) =>
           prev[id] === truncated ? prev : { ...prev, [id]: truncated }
         );
-      } catch {}
+      } catch { }
     };
 
     checkTruncate();
@@ -453,7 +454,7 @@ export default function LandingPage({
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              {homepages?.["title-landing-4"] ?? "-"}
+              {["Feedback Siswa/Mahasiswa", "Cerita Sukses Alumni"].includes(homepages?.["title-landing-4"]) ? "Success Story" : (homepages?.["title-landing-4"] ?? "-")}
             </h2>
           </div>
           <div className="mb-4 flex justify-between items-center">
@@ -488,9 +489,9 @@ export default function LandingPage({
                           >
                             <ImageWithFallback
                               src={
-                                (item.user?.photo_profile || item.photo_profile)
-                                  ? `${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${item.user?.photo_profile || item.photo_profile}`
-                                  : null
+                                item.user?.photo_profile
+                                  ? getPhotoProfileUrl(item.user.photo_profile)
+                                  : getCommentPhotoUrl(item.photo_profile)
                               }
                               alt={item.name}
                               fill
@@ -558,9 +559,8 @@ export default function LandingPage({
                   <button
                     key={index}
                     onClick={() => setCurrentCommentPage(index + 1)}
-                    className={`w-3 h-3 rounded-full transition ${
-                      currentCommentPage === index + 1 ? "bg-accent" : "bg-gray-300"
-                    }`}
+                    className={`w-3 h-3 rounded-full transition ${currentCommentPage === index + 1 ? "bg-accent" : "bg-gray-300"
+                      }`}
                   />
                 ))}
               </div>
@@ -694,7 +694,7 @@ export default function LandingPage({
                     <ImageWithFallback
                       src={
                         job.user?.photo_profile
-                          ? `${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`
+                          ? getPhotoProfileUrl(job.user.photo_profile)
                           : null
                       }
                       alt={job.company?.name ?? "Company"}
@@ -779,17 +779,15 @@ export default function LandingPage({
               <div className="flex gap-8 mb-6 border-b border-gray-600">
                 <button
                   onClick={() => setPartnerTab("school")}
-                  className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
-                    partnerTab === "school" ? "text-accent border-accent" : "text-gray-600 border-transparent hover:text-accent"
-                  }`}
+                  className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${partnerTab === "school" ? "text-accent border-accent" : "text-gray-600 border-transparent hover:text-accent"
+                    }`}
                 >
                   Sekolah
                 </button>
                 <button
                   onClick={() => setPartnerTab("university")}
-                  className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
-                    partnerTab === "university" ? "text-accent border-accent" : "text-gray-600 border-transparent hover:text-accent"
-                  }`}
+                  className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${partnerTab === "university" ? "text-accent border-accent" : "text-gray-600 border-transparent hover:text-accent"
+                    }`}
                 >
                   Universitas
                 </button>
@@ -798,7 +796,13 @@ export default function LandingPage({
                 {activePartners.map((item) => (
                   <div key={item.id} className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-center min-h-[80px]">
                     <ImageWithFallback
-                      src={item.logo ? `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}` : null}
+                      src={
+                        item.logo
+                          ? (item.logo.startsWith("pfpupload/")
+                            ? getPhotoProfileUrl(item.logo)
+                            : `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`)
+                          : null
+                      }
                       alt={item.name}
                       width={120}
                       height={80}
@@ -1020,9 +1024,9 @@ export default function LandingPage({
               <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-100 shadow bg-gradient-to-br from-accent/10 to-blue-100 flex items-center justify-center">
                 <ImageWithFallback
                   src={
-                    (activeComment.user?.photo_profile || activeComment.photo_profile)
-                      ? `${process.env.NEXT_PUBLIC_API_URL}/storage/comment-prakerin/${activeComment.user?.photo_profile || activeComment.photo_profile}`
-                      : null
+                    activeComment.user?.photo_profile
+                      ? getPhotoProfileUrl(activeComment.user.photo_profile)
+                      : getCommentPhotoUrl(activeComment.photo_profile)
                   }
                   alt={activeComment.name}
                   width={96}
