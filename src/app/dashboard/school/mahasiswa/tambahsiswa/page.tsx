@@ -137,7 +137,7 @@ const tambahSiswaPage: React.FC = () => {
         },
       });
 
-      await alertSuccess("Siswa berhasil didaftarkan!", 1500);
+      await alertSuccess("Mahasiswa berhasil didaftarkan!", 1500);
       profileImage && setProfileImage(null);
       setFormData({
         username: "",
@@ -174,16 +174,16 @@ const tambahSiswaPage: React.FC = () => {
       <h1 className="text-accent-dark text-sm mb-5">
         <Link
           className="hover:underline hover:text-accent"
-          href={"/dashboard/school/daftarsiswa"}
+          href={"/dashboard/school/mahasiswa"}
         >
-          Daftar Siswa
+          Daftar Mahasiswa
         </Link>{" "}
-        -&gt; Tambah Siswa
+        -&gt; Tambah Mahasiswa
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <UsersRound className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Tambah Siswa</h2>
+          <h2 className="text-2xl mt-2">Tambah Mahasiswa</h2>
         </div>
       </div>
 
@@ -196,7 +196,7 @@ const tambahSiswaPage: React.FC = () => {
             </div>
             <div className="my-auto">
               <h2 className="text-xl font-semibold text-gray-700 my-auto">
-                Daftar Siswa Magang
+                Daftar Mahasiswa Magang
               </h2>
               <span className="text-gray-400">
                 Silahkan isi semua informasi yang dibutuhkan

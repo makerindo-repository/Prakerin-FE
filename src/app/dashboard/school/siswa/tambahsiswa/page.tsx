@@ -174,7 +174,7 @@ const tambahSiswaPage: React.FC = () => {
       <h1 className="text-accent-dark text-sm mb-5">
         <Link
           className="hover:underline hover:text-accent"
-          href={"/dashboard/school/daftarsiswa"}
+          href={"/dashboard/school/siswa"}
         >
           Daftar Siswa
         </Link>{" "}

@@ -119,11 +119,11 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "MANAJEMEN",
       items: [
-        { icon: UsersRound, label: "Siswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
-        { icon: GraduationCap, label: "Mahasiswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
+        { icon: UsersRound, label: "Siswa", href: "/dashboard/school/siswa", permission: "view_manajemen_user" },
+        { icon: GraduationCap, label: "Mahasiswa", href: "/dashboard/school/mahasiswa", permission: "view_manajemen_user" },
         { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
         { icon: BookOpen, label: "Kelas Pra-Magang", href: "https://makerindo.myr.id/", isLms: true, permission: "view_kelas" },
-        { icon: UserRound, label: "Pembimbing", href: "/dashboard/pembimbing", isDev: true, permission: "view_pembimbing" },
+        { icon: UserRound, label: "Pembimbing", href: "/dashboard/pembimbing", permission: "view_pembimbing" },
         { icon: UsersRound, label: "Manajemen User", href: "/dashboard/master-data/users", permission: "view_manajemen_user" },
       ],
     },
@@ -138,8 +138,8 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "MONITORING & LAPORAN",
       items: [
-        { icon: ScrollText, label: "Laporan", isDev: true, permission: "view_laporan" },
-        { icon: Activity, label: "Log Aktivitas", isDev: true, permission: "view_log_aktivitas" },
+        { icon: ScrollText, label: "Laporan", href: "/dashboard/laporan", permission: "view_laporan" },
+        { icon: Activity, label: "Log Aktivitas", href: "/dashboard/log-aktivitas", permission: "view_log_aktivitas" },
       ],
     },
     {
@@ -170,6 +170,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: ClipboardCheck, label: "Daftar Tugas", href: "/dashboard/tasklist", permission: "view_kelas" },
         { icon: MessageSquare, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
         { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat", permission: "view_profil" },
+        { icon: Award, label: "Penghargaan Saya", href: "/dashboard/my-awards", permission: "view_profil" },
         { icon: UserRound, label: "Pembimbing", isDev: true, permission: "view_pembimbing" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
       ],
@@ -195,7 +196,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: ClipboardCheck, label: "Daftar Tugas", href: "/dashboard/tasklist", permission: "view_kelas" },
         { icon: BookOpen, label: "Sekolah/Universitas", href: "/dashboard/sekolah", permission: "view_kelas" },
         { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou", permission: "view_kelas" },
-        { icon: Award, label: "Penghargaan", isDev: true, permission: "view_laporan" },
+        { icon: Award, label: "Penghargaan", href: "/dashboard/awards", permission: "view_laporan" },
         { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
         { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat", permission: "view_profil" },
         { icon: UserRound, label: "Pembimbing Perusahaan", isDev: true, permission: "view_pembimbing" },
@@ -215,12 +216,12 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "MANAJEMEN",
       items: [
-        { icon: UsersRound, label: "Daftar Siswa/Mahasiswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
+        { icon: UsersRound, label: "Daftar Siswa/Mahasiswa", href: "/dashboard/school/siswa", permission: "view_manajemen_user" },
         { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
         { icon: BookOpen, label: "Kelas Pra-Magang", href: "https://makerindo.myr.id/", isLms: true, permission: "view_kelas" },
         { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan", permission: "view_kelas" },
         { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou", permission: "view_kelas" },
-        { icon: Award, label: "Penghargaan", isDev: true, permission: "view_laporan" },
+        { icon: Award, label: "Penghargaan", href: "/dashboard/awards", permission: "view_laporan" },
         { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
         { icon: UserRound, label: "Guru Pembimbing", isDev: true, permission: "view_pembimbing" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },

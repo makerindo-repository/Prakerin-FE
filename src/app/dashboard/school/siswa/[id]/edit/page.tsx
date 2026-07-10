@@ -1,21 +1,20 @@
 "use client";
 import { ClipboardCheck, Eye, EyeOff, Upload, UsersRound } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ChangeEvent, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
 import { alertError, alertSuccess } from "@/libs/alert";
+import Loader from "@/components/loader";
 
 interface FormData {
   username: string;
   name: string;
-  school_id: string;
   email: string;
-  password: string;
-  password_confirmation: string;
-  recaptcha_token: string;
+  password?: string;
+  password_confirmation?: string;
   role: string;
   image?: File | null;
   class: string;
@@ -30,18 +29,20 @@ interface FormErrors {
   [key: string]: string | undefined;
 }
 
-const tambahSiswaPage: React.FC = () => {
+const EditSiswaPage: React.FC = () => {
   const router = useRouter();
+  const params = useParams();
+  const userId = params.id as string;
+
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     username: "",
     name: "",
-    school_id: "",
     email: "",
     password: "",
     password_confirmation: "",
-    recaptcha_token: "",
     role: "student",
     class: "",
     major_id: "",
@@ -52,43 +53,75 @@ const tambahSiswaPage: React.FC = () => {
   });
 
   const [majors, setMajors] = useState<Array<{ id: string; name: string }>>([]);
-
-  useEffect(() => {
-    const fetchMajors = async () => {
-      try {
-        const response = await API.get(ENDPOINTS.MAJORS, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-        });
-        const responseData = response.data.data || response.data;
-        if (Array.isArray(responseData)) {
-          setMajors(responseData);
-        }
-      } catch (error) {
-        console.error("Error fetching majors:", error);
-      }
-    };
-    fetchMajors();
-  }, []);
-
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showpassword_confirmation, setShowpassword_confirmation] =
     useState<boolean>(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoadingData(true);
+        // Fetch majors
+        const majorsResponse = await API.get(ENDPOINTS.MAJORS, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        });
+        setMajors(majorsResponse.data.data || majorsResponse.data);
+
+        // Fetch student user detail
+        const userResponse = await API.get(`${ENDPOINTS.USERS}/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        });
+
+        const userData = userResponse.data.data;
+        const studentData = userData.student || {};
+
+        setFormData({
+          username: userData.username || "",
+          name: studentData.name || userData.name || "",
+          email: userData.email || "",
+          password: "",
+          password_confirmation: "",
+          role: "student",
+          class: studentData.class || "",
+          major_id: studentData.major_id || "",
+          gender: studentData.gender || "male",
+          address: studentData.address || "",
+          phone_number: studentData.phone_number || "",
+          date_of_birth: studentData.date_of_birth || "",
+        });
+
+        if (userData.photo_profile) {
+          setProfileImage(`${process.env.NEXT_PUBLIC_API_URL || "https://api.prakerin.id"}/storage/photo-profile/${userData.photo_profile}`);
+        }
+      } catch (error) {
+        console.error("Error fetching student details:", error);
+        await alertError("Gagal mengambil data siswa");
+        router.push("/dashboard/school/siswa");
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    if (userId) {
+      fetchData();
+    }
+  }, [userId]);
+
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (2MB limit)
       if (file.size > 2 * 1024 * 1024) {
-        alert("File size must be less than 2MB");
+        alert("Ukuran file maksimal 2MB");
         return;
       }
 
-      // Check file type
       if (!file.type.startsWith("image/")) {
-        alert("Please select a valid image file");
+        alert("Silahkan pilih file gambar yang valid");
         return;
       }
 
@@ -99,7 +132,6 @@ const tambahSiswaPage: React.FC = () => {
         }
       };
       reader.readAsDataURL(file);
-      console.log(file);
 
       setFormData((prev) => ({
         ...prev,
@@ -109,7 +141,7 @@ const tambahSiswaPage: React.FC = () => {
   };
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -120,48 +152,38 @@ const tambahSiswaPage: React.FC = () => {
 
   const handleSubmit = async (): Promise<void> => {
     setIsSubmitting(true);
+    setErrors({});
     try {
-      console.log(formData);
-
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          data.append(key, value instanceof File ? value : String(value));
+        if (value !== undefined && value !== null && value !== "") {
+          // Rename image to photo_profile to match backend updateProfile rules
+          if (key === "image") {
+            data.append("photo_profile", value);
+          } else {
+            data.append(key, value instanceof File ? value : String(value));
+          }
         }
       });
+      // Force POST request to emulate PATCH due to Laravel multipart issue
+      data.append("_method", "PATCH");
 
-      await API.post(`${ENDPOINTS.USERS}`, data, {
+      await API.post(`${ENDPOINTS.USERS}/${userId}`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
 
-      await alertSuccess("Siswa berhasil didaftarkan!", 1500);
-      profileImage && setProfileImage(null);
-      setFormData({
-        username: "",
-        name: "",
-        school_id: "",
-        email: "",
-        password: "",
-        password_confirmation: "",
-        recaptcha_token: "",
-        role: "student",
-        class: "",
-        major_id: "",
-        gender: "male",
-        address: "",
-        phone_number: "",
-        date_of_birth: "",
-      });
+      await alertSuccess("Data siswa berhasil diperbarui!", 1500);
+      router.push("/dashboard/school/siswa");
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
         if (typeof responseError === "string") {
           await alertError(responseError);
         } else {
-          setErrors(responseError);
+          setErrors(responseError || {});
         }
       }
       console.error(error);
@@ -169,21 +191,30 @@ const tambahSiswaPage: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoadingData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">
         <Link
           className="hover:underline hover:text-accent"
-          href={"/dashboard/school/daftarsiswa"}
+          href={"/dashboard/school/siswa"}
         >
           Daftar Siswa
         </Link>{" "}
-        -&gt; Tambah Siswa
+        -&gt; Ubah Siswa
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <UsersRound className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Tambah Siswa</h2>
+          <h2 className="text-2xl mt-2">Ubah Siswa</h2>
         </div>
       </div>
 
@@ -196,10 +227,10 @@ const tambahSiswaPage: React.FC = () => {
             </div>
             <div className="my-auto">
               <h2 className="text-xl font-semibold text-gray-700 my-auto">
-                Daftar Siswa Magang
+                Ubah Informasi Siswa
               </h2>
               <span className="text-gray-400">
-                Silahkan isi semua informasi yang dibutuhkan
+                Silahkan perbarui data informasi siswa yang diperlukan
               </span>
             </div>
           </div>
@@ -209,11 +240,11 @@ const tambahSiswaPage: React.FC = () => {
               {/* Profile Photo Upload */}
               <div className="lg:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tambah Foto
+                  Foto Profil
                 </label>
                 <div className="relative">
                   <div
-                    className={`w-full h-48 border-2 border-dashed  rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer ${
+                    className={`w-full h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer ${
                       errors.image ? "border-red-500" : "border-gray-300"
                     }`}
                   >
@@ -247,7 +278,7 @@ const tambahSiswaPage: React.FC = () => {
               {/* Form Fields */}
               <div className="lg:col-span-2 space-y-4">
                 {/* Username and Full Name */}
-                <div className="grid grid-cols-1  gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Username<span className="text-red-500">*</span>
@@ -257,7 +288,7 @@ const tambahSiswaPage: React.FC = () => {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      placeholder="Masukan username siswa anda disini"
+                      placeholder="Masukkan username siswa"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                         errors.username ? "border-red-500" : "border-gray-300"
                       }`}
@@ -277,7 +308,7 @@ const tambahSiswaPage: React.FC = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      placeholder="Masukan nama siswa anda disini"
+                      placeholder="Masukkan nama lengkap siswa"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                         errors.name ? "border-red-500" : "border-gray-300"
                       }`}
@@ -412,28 +443,7 @@ const tambahSiswaPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Address */}
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Alamat
-                    </label>
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      placeholder="Masukan alamat lengkap siswa"
-                      rows={3}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
-                        errors.address ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {errors.address && (
-                      <p className="mt-1 text-sm text-red-500">{errors.address}</p>
-                    )}
-                  </div>
-
-                {/* School and Email */}
+                {/* Email */}
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -444,7 +454,7 @@ const tambahSiswaPage: React.FC = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="Masukan email siswa anda disini"
+                      placeholder="Masukkan email siswa"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
                         errors.email ? "border-red-500" : "border-gray-300"
                       }`}
@@ -457,11 +467,33 @@ const tambahSiswaPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Address */}
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Alamat
+                    </label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="Masukkan alamat lengkap siswa"
+                      rows={3}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                        errors.address ? "border-red-500" : "border-gray-300"
+                      }`}
+                    />
+                    {errors.address && (
+                      <p className="mt-1 text-sm text-red-500">{errors.address}</p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Password and Confirm Password */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Password<span className="text-red-500">*</span>
+                      Password Baru (Opsional)
                     </label>
                     <div className="relative">
                       <input
@@ -469,7 +501,7 @@ const tambahSiswaPage: React.FC = () => {
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="Masukan password siswa anda disini"
+                        placeholder="Masukkan password baru jika ingin mengubah"
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
                           errors.password ? "border-red-500" : "border-gray-300"
                         }`}
@@ -494,7 +526,7 @@ const tambahSiswaPage: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Konfirmasi Password<span className="text-red-500">*</span>
+                      Konfirmasi Password Baru
                     </label>
                     <div className="relative">
                       <input
@@ -502,7 +534,7 @@ const tambahSiswaPage: React.FC = () => {
                         name="password_confirmation"
                         value={formData.password_confirmation}
                         onChange={handleInputChange}
-                        placeholder="Masukan password siswa anda disini"
+                        placeholder="Masukkan kembali password baru"
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors pr-12 ${
                           errors.password_confirmation
                             ? "border-red-500"
@@ -551,7 +583,7 @@ const tambahSiswaPage: React.FC = () => {
                 disabled={isSubmitting}
                 className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>{isSubmitting ? "Mendaftar..." : "Daftar"}</span>
+                <span>{isSubmitting ? "Menyimpan..." : "Simpan"}</span>
                 {!isSubmitting && (
                   <svg
                     className="w-4 h-4"
@@ -575,4 +607,5 @@ const tambahSiswaPage: React.FC = () => {
     </main>
   );
 };
-export default tambahSiswaPage;
+
+export default EditSiswaPage;

@@ -243,13 +243,13 @@ const DaftarSiswaPage: React.FC = () => {
       {/* Page Header */}
       <div className="mb-4 sm:mb-6">
         <h1 className="text-accent-dark text-xs sm:text-sm mb-3 sm:mb-5">
-          Daftar Siswa/Mahasiswa
+          Daftar Siswa
         </h1>
         <div className="mb-4 sm:mb-8">
           <div className="flex items-center space-x-2 font-extrabold text-accent">
             <UsersRound className="w-4 h-4 sm:w-5 sm:h-5" />
             <h2 className="text-xl sm:text-2xl mt-1 sm:mt-2">
-              Daftar Siswa/Mahasiswa
+              Daftar Siswa
             </h2>
           </div>
         </div>
@@ -294,7 +294,7 @@ const DaftarSiswaPage: React.FC = () => {
           />
           
           <Link
-            href="/dashboard/school/daftarsiswa/permohonan"
+            href="/dashboard/school/siswa/permohonan"
             className="bg-vip hover:bg-orange-400 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center order-2 lg:order-none"
           >
             <ClipboardCopy size={14} className="mr-1 sm:mr-2 flex-shrink-0" />
@@ -302,7 +302,7 @@ const DaftarSiswaPage: React.FC = () => {
           </Link>
           
           <Link
-            href="/dashboard/school/daftarsiswa/tambahsiswa"
+            href="/dashboard/school/siswa/tambahsiswa"
             className="bg-accent text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center order-1 lg:order-none"
           >
             <Plus size={14} className="mr-1 sm:mr-2 flex-shrink-0" />
@@ -318,7 +318,7 @@ const DaftarSiswaPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
           <input
             type="text"
-            placeholder="Cari siswa/mahasiswa..."
+            placeholder="Cari siswa..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-accent text-white placeholder-teal-200 pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300 text-sm sm:text-base"
@@ -376,7 +376,7 @@ const DaftarSiswaPage: React.FC = () => {
                     <td className="p-4">
                       <div className="flex items-center space-x-2">
                         <Link
-                          href={`/dashboard/school/daftarsiswa/${task.id}/edit`}
+                          href={`/dashboard/school/siswa/${task.id}/edit`}
                           className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
                           title="Ubah"
                         >
@@ -451,7 +451,7 @@ const DaftarSiswaPage: React.FC = () => {
                 <div className="flex justify-end items-center mt-3 pt-3 border-t border-gray-100">
                   <div className="flex items-center space-x-2">
                     <Link
-                      href={`/dashboard/school/daftarsiswa/${task.id}/edit`}
+                      href={`/dashboard/school/siswa/${task.id}/edit`}
                       className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer text-xs flex items-center space-x-1"
                     >
                       <Edit size={14} />
@@ -479,7 +479,7 @@ const DaftarSiswaPage: React.FC = () => {
         {/* Empty State */}
         {students.length === 0 && !isLoading && (
           <div className="text-center py-8 sm:py-12">
-            <NotFoundComponent text="Tidak ada siswa/mahasiswa yang ditemukan." />
+            <NotFoundComponent text="Tidak ada siswa yang ditemukan." />
           </div>
         )}
       </div>

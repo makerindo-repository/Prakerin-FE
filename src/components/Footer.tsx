@@ -125,7 +125,7 @@ export default function FooterPage() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/hubungi-kami"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   Hubungi Kami

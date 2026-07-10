@@ -908,7 +908,7 @@ export default function LandingPage({
           <div className="mx-auto container px-4 text-center mt-8">
             <p className="mb-4">Punya pertanyaan lebih lanjut?</p>
             <Link
-              href="#"
+              href="/hubungi-kami"
               className="inline-block px-8 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
             >
               Hubungi Kami
