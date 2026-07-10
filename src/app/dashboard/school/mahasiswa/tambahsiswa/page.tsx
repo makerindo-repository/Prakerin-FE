@@ -2,7 +2,7 @@
 import { ClipboardCheck, Eye, EyeOff, Upload, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
@@ -109,7 +109,7 @@ const tambahSiswaPage: React.FC = () => {
   };
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -432,6 +432,7 @@ const tambahSiswaPage: React.FC = () => {
                       <p className="mt-1 text-sm text-red-500">{errors.address}</p>
                     )}
                   </div>
+                </div>
 
                 {/* School and Email */}
                 <div className="grid grid-cols-1 gap-4">
