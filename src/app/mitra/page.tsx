@@ -107,7 +107,7 @@ const paginatedPartners = filteredPartners.slice((currentPage - 1) * partnerPerP
             <h1 className="text-6xl font-bold text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">
               {currentContent.title}
             </h1>
-            <p className="text-black text-xl text-left mb-4">
+            <p className="text-black text-xl text-left mb-4 break-words whitespace-normal">
               {currentContent.description}
             </p>
           </div>
