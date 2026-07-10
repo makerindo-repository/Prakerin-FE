@@ -111,7 +111,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: CalendarClock, label: "Data Durasi Magang", href: "/dashboard/master-data/durasi", permission: "view_data_durasi_magang" },
         { icon: GraduationCap, label: "Data Jurusan Siswa", href: "/dashboard/master-data/jurusan", permission: "view_data_jurusan_siswa" },
         { icon: BriefcaseBusiness, label: "Data Bidang Magang", href: "/dashboard/master-data/bidang", permission: "view_data_bidang_magang" },
-        { icon: School, label: "Data Sekolah", isDev: true, permission: "view_data_sekolah" },
+        { icon: School, label: "Data Sekolah", href: "/dashboard/sekolah", permission: "view_data_sekolah" },
         { icon: School, label: "Data Perguruan Tinggi", isDev: true, permission: "view_data_perguruan_tinggi" },
         { icon: Building, label: "Data Industri", href: "/dashboard/perusahaan", permission: "view_data_industri" },
       ],

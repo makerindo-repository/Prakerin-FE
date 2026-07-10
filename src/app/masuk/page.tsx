@@ -1,6 +1,6 @@
 "use client";
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
-// import ReCAPTCHA from "react-google-recaptcha"; // CAPTCHA disabled for local dev
+import ReCAPTCHA from "react-google-recaptcha"; // CAPTCHA disabled for local dev
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { API, ENDPOINTS } from "@/utils/config";
@@ -36,7 +36,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  // const recaptchaRef = useRef<any>(null); // CAPTCHA disabled for local dev
+  const recaptchaRef = useRef<any>(null); // CAPTCHA disabled for local dev
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setData({
@@ -52,14 +52,14 @@ export default function LoginPage() {
     try {
       setIsSubmitting(true);
 
-      // const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
-      // recaptchaRef.current.reset();
-      // data.recaptcha_token = token;
+      const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
+      recaptchaRef.current.reset();
+      data.recaptcha_token = token;
 
       const response = await API.post(`${ENDPOINTS.LOGIN}`, {
         email: data.email,
         password: data.password,
-        // recaptcha_token: data.recaptcha_token, // CAPTCHA disabled for local dev
+        recaptcha_token: data.recaptcha_token, // CAPTCHA disabled for local dev
       });
 
       Cookies.set("userToken", response.data.token, {
@@ -212,11 +212,11 @@ export default function LoginPage() {
               </label>
             </div>
 
-            {/* <ReCAPTCHA
+            <ReCAPTCHA
               sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
               size="invisible"
               ref={recaptchaRef}
-            /> */}
+            />
 
             <button
               type="submit"
