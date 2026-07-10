@@ -104,7 +104,7 @@ const paginatedPartners = filteredPartners.slice((currentPage - 1) * partnerPerP
       <section className="mt-15">
         <div className="w-[85%] mx-auto">
           <div>
-            <h1 className="text-6xl font-bold text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">
+            <h1 className="text-6xl font-bold text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent leading-normal pb-2">
               {currentContent.title}
             </h1>
             <p className="text-black text-xl text-left mb-4 break-words whitespace-normal">

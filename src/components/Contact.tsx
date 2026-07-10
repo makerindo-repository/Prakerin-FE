@@ -22,18 +22,19 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // CAPTCHA disabled for local dev
-    // if (!recaptchaRef.current) return;
-    // const token = await recaptchaRef.current.executeAsync();
-    // if (!token) {
-    //   recaptchaRef.current.reset();
-    //   alert("Please complete the reCAPTCHA.");
-    //   return;
-    // }
-
     if (!formRef.current) return;
 
-    // TODO: Implement contact form submission
+    const formData = new FormData(formRef.current);
+    const name = (formData.get("name") as string) || "";
+    const email = (formData.get("email") as string) || "";
+    const message = (formData.get("message") as string) || "";
+
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      alert("Harap lengkapi semua bidang yang wajib diisi!");
+      return;
+    }
+
+    // TODO: Implement actual contact form submission API
     // For now, just show success message
     alert("Pesan berhasil dikirim!");
     formRef.current?.reset();
@@ -68,6 +69,7 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
                   name="name"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
                   placeholder="Nama"
+                  required
                 />
               </div>
               <div>
@@ -76,6 +78,7 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
                   name="email"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300"
                   placeholder="Email"
+                  required
                 />
               </div>
               <div>
@@ -84,6 +87,7 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
                   className="w-full h-36 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-prakerin focus:border-transparent transition-all duration-300 resize-none"
                   placeholder="Pesan..."
                   rows={3}
+                  required
                 ></textarea>
               </div>
               {/* <ReCAPTCHA
