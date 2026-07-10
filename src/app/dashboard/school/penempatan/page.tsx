@@ -162,10 +162,10 @@ const PerusahaanPage: React.FC = () => {
                 </Link>
               </div>
               <div className="flex w-full md:w-auto items-center bg-accent-light/15 p-3 rounded-2xl border border-accent-light">
-                {item.student.company[0].user.photo_profile ? (
+                {item.student.company?.[0]?.user?.photo_profile ? (
                   <div className="w-10 h-10 relative rounded-full border-white border">
                     <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.student.company[0].user.photo_profile}`}
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.student.company?.[0]?.user?.photo_profile}`}
                       alt="Logo Perusahaan"
                       fill
                       sizes="100%"
@@ -177,12 +177,12 @@ const PerusahaanPage: React.FC = () => {
                 )}
                 <div className="ms-3 flex gap-2 flex-col text-md">
                   <h5 className="text-accent font-bold">
-                    {item.student.company[0].name}
+                    {item.student.company?.[0]?.name || "Belum ada perusahaan"}
                   </h5>
                   <span className="flex">
                     <MapPin className="w-5 h-5" />{" "}
-                    {item.student.company[0].city_regency.name},{" "}
-                    {item.student.company[0].province.name}
+                    {item.student.company?.[0]?.city_regency?.name || "-"},{" "}
+                    {item.student.company?.[0]?.province?.name || "-"}
                   </span>
                 </div>
               </div>
