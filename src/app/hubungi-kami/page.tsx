@@ -98,9 +98,22 @@ const HubungiKamiPage: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setErrors({});
     setSubmittedId(null);
+
+    // Frontend validation — prevent empty/whitespace-only fields
+    const newErrors: FormErrors = {};
+    if (!form.name.trim()) newErrors.name = "Nama tidak boleh kosong";
+    if (!form.email.trim()) newErrors.email = "Email tidak boleh kosong";
+    if (!form.subject.trim()) newErrors.subject = "Subjek tidak boleh kosong";
+    if (!form.message.trim()) newErrors.message = "Pesan tidak boleh kosong";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const response = await API.post("/api/v1/contacts", form);

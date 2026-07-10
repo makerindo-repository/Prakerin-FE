@@ -140,6 +140,13 @@ const DetailLowonganPage = ({
   const { id } = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [authRole, setAuthRole] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setAuthRole(Cookies.get("authorization") || null);
+    setIsMounted(true);
+  }, []);
 
   const handleClickFavorite = async (
     e: React.MouseEvent<HTMLButtonElement>,
@@ -302,9 +309,9 @@ const DetailLowonganPage = ({
                   </div>
 
                   {/* Action Buttons */}
-                  {(!Cookies.get("authorization") || Cookies.get("authorization") === "student") && (
+                  {isMounted && (!authRole || authRole === "student") && (
                     <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                      {Cookies.get("authorization") === "student" && (
+                      {authRole === "student" && (
                         <button
                           type="button"
                           className={`flex items-center justify-center gap-2 hover:text-blue-600 hover:bg-white px-4 py-2 border border-gray-300 hover:border-blue-300 rounded-lg font-medium transition-colors cursor-pointer ${
@@ -323,7 +330,7 @@ const DetailLowonganPage = ({
                       )}
 
                       <Link
-                        href={Cookies.get("authorization") === "student" ? `/dashboard/lowongan/${id}/apply` : `/masuk`}
+                        href={authRole === "student" ? `/dashboard/lowongan/${id}/apply` : `/masuk`}
                         className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-medium transition-colors text-center flex items-center justify-center"
                       >
                         Lamar Sekarang

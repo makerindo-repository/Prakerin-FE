@@ -17,7 +17,6 @@ import {
   UserPlus,
   ClipboardList,
   LineChart,
-  Star,
   ChevronDown,
   Code2,
   PenTool,
@@ -27,9 +26,8 @@ import {
   Quote,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
+import { useState } from "react";
+import { getPhotoProfileUrl, getCommentPhotoUrl } from "@/utils/config";
 import { useReveal } from "@/hooks/useReveal";
 import { useCountUp } from "@/hooks/useCountUp";
 
@@ -40,14 +38,13 @@ interface Partner {
   logo: string;
   type: string;
 }
-interface FeedbackComment {
+interface CommentPrakerin {
   id: string;
-  student_name: string;
-  company_name: string;
-  rating: number;
-  text: string;
-  created_at: string;
+  name: string;
+  position: string;
+  comment: string;
   photo_profile?: string | null;
+  created_at?: string;
 }
 interface LandingStats {
   schools: number;
@@ -76,7 +73,7 @@ interface Duration {
 interface LandingProps {
   homepages?: Record<string, string>;
   partners?: Partner[];
-  comments?: FeedbackComment[];
+  commentPrakerins?: CommentPrakerin[];
   jobOpenings?: unknown[];
   stats?: LandingStats;
   popularCategories?: Category[];
@@ -123,33 +120,27 @@ const FALLBACK_CATEGORIES: Category[] = [
   { id: "desain-multimedia", name: "Desain Multimedia", total: 0 },
 ];
 
-const FALLBACK_TESTIMONIALS: FeedbackComment[] = [
+const FALLBACK_STORIES: CommentPrakerin[] = [
   {
-    id: "t1",
-    student_name: "Muhammad Mufti",
-    company_name: "Dicoding",
-    rating: 5,
-    text: "Aplikasi yang sangat membantu untuk saya pribadi, jadi bisa mencari perusahaan yang sesuai dengan minat dan keahlian.",
+    id: "s1",
+    name: "Muhammad Mufti",
+    position: "Web Developer",
+    comment: "Aplikasi yang sangat membantu untuk saya pribadi, jadi bisa mencari perusahaan yang sesuai dengan minat dan keahlian.",
     photo_profile: null,
-    created_at: "",
   },
   {
-    id: "t2",
-    student_name: "Aufa Azhar",
-    company_name: "Halodoc",
-    rating: 5,
-    text: "Sangat membantu dan memudahkan saya untuk mencari pengalaman kerja yang relevan sejak dini.",
+    id: "s2",
+    name: "Aufa Azhar",
+    position: "UI/UX Designer",
+    comment: "Sangat membantu dan memudahkan saya untuk mencari pengalaman kerja yang relevan sejak dini.",
     photo_profile: null,
-    created_at: "",
   },
   {
-    id: "t3",
-    student_name: "Syahdan Alfiansyah",
-    company_name: "Mekari",
-    rating: 5,
-    text: "Prosesnya jelas dan transparan. Saya menemukan tempat magang dengan lebih mudah dan cepat.",
+    id: "s3",
+    name: "Syahdan Alfiansyah",
+    position: "Digital Marketing",
+    comment: "Prosesnya jelas dan transparan. Saya menemukan tempat magang dengan lebih mudah dan cepat.",
     photo_profile: null,
-    created_at: "",
   },
 ];
 
@@ -200,66 +191,31 @@ function Reveal({
 /* ── Page ──────────────────────────────────────────────────────────────── */
 export default function LandingPage({
   partners = [],
-  comments = [],
+  commentPrakerins = [],
   stats,
   popularCategories,
   footer,
 }: LandingProps) {
-  const router = useRouter();
-
-  const [posisi, setPosisi] = useState("");
-  const [provinceId, setProvinceId] = useState("");
-  const [fieldId, setFieldId] = useState("");
-  const [durationId, setDurationId] = useState("");
-  const [provinces, setProvinces] = useState<Option[]>([]);
-  const [fields, setFields] = useState<Option[]>([]);
-  const [durations, setDurations] = useState<Duration[]>([]);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [p, f, d] = await Promise.allSettled([
-          API.get(ENDPOINTS.PROVINCES),
-          API.get(ENDPOINTS.FIELDS),
-          API.get(ENDPOINTS.DURATIONS),
-        ]);
-        if (p.status === "fulfilled") setProvinces(p.value.data.data ?? []);
-        if (f.status === "fulfilled") setFields(f.value.data.data ?? []);
-        if (d.status === "fulfilled") setDurations(d.value.data.data ?? []);
-      } catch {
-        /* silent — search still works with free text */
-      }
-    };
-    load();
-  }, []);
-
-  const handleSearch = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    const params = new URLSearchParams();
-    if (posisi.trim()) params.set("search", posisi.trim());
-    if (provinceId) params.set("province_id", provinceId);
-    if (fieldId) params.set("field_id", fieldId);
-    if (durationId) params.set("duration_id", durationId);
-    const qs = params.toString();
-    router.push(qs ? `/lowongan?${qs}` : "/lowongan");
-  };
-
   const categories =
     popularCategories && popularCategories.length > 0
       ? popularCategories
       : FALLBACK_CATEGORIES;
-  const testimonials = comments.filter((c) => c.text);
-  const displayTestimonials = testimonials.length ? testimonials : FALLBACK_TESTIMONIALS;
+  const stories = commentPrakerins.filter((c) => c.comment);
+  const displayStories = stories.length ? stories : FALLBACK_STORIES;
 
+  const companyPartners = partners.filter((p) => p.type === "company");
   const schoolPartners = partners.filter((p) => p.type === "school");
   const universityPartners = partners.filter((p) => p.type === "university");
-  const [partnerTab, setPartnerTab] = useState<"school" | "university">(
-    schoolPartners.length ? "school" : "university"
+  const [partnerTab, setPartnerTab] = useState<"company" | "school" | "university">(
+    companyPartners.length ? "company" : schoolPartners.length ? "school" : "university"
   );
-  const activePartners = (
-    partnerTab === "school" ? schoolPartners : universityPartners
-  ).slice(0, 12);
-  const hasPartners = schoolPartners.length + universityPartners.length > 0;
+  const partnersByTab = {
+    company: companyPartners,
+    school: schoolPartners,
+    university: universityPartners,
+  };
+  const activePartners = partnersByTab[partnerTab].slice(0, 12);
+  const hasPartners = partners.length > 0;
 
   return (
     <main className="overflow-x-hidden bg-white">
@@ -289,44 +245,21 @@ export default function LandingPage({
               terpercaya.
             </p>
 
-            {/* Search card */}
-            <form
-              onSubmit={handleSearch}
-              className="mt-7 rounded-2xl border border-gray-100 bg-white p-3 shadow-xl shadow-accent/5"
-            >
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                <label className="flex flex-col gap-1 rounded-xl px-3 py-2 hover:bg-gray-50 sm:col-span-2 lg:col-span-1">
-                  <span className="text-[11px] font-semibold text-gray-500">Posisi / Keahlian</span>
-                  <input
-                    value={posisi}
-                    onChange={(e) => setPosisi(e.target.value)}
-                    placeholder="Contoh: Web Developer"
-                    className="bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
-                  />
-                </label>
-                <SelectField label="Lokasi" value={provinceId} onChange={setProvinceId} placeholder="Pilih lokasi">
-                  {provinces.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </SelectField>
-                <SelectField label="Kategori" value={fieldId} onChange={setFieldId} placeholder="Pilih kategori">
-                  {fields.map((f) => (
-                    <option key={f.id} value={f.id}>{f.name}</option>
-                  ))}
-                </SelectField>
-                <SelectField label="Durasi" value={durationId} onChange={setDurationId} placeholder="Pilih durasi">
-                  {durations.map((d) => (
-                    <option key={d.id} value={d.id}>{d.duration_value} {d.duration_unit}</option>
-                  ))}
-                </SelectField>
-              </div>
-              <button
-                type="submit"
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-light px-6 py-3 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-accent/25 hover:brightness-105"
+            {/* Primary CTAs */}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/lowongan"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-light px-7 py-3.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-accent/25 hover:brightness-105"
               >
-                <Search className="h-4 w-4" /> Cari Magang
-              </button>
-            </form>
+                <Search className="h-4 w-4" /> Mulai Cari Magang
+              </Link>
+              <Link
+                href="/daftar"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-7 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:border-accent hover:text-accent"
+              >
+                Daftar Gratis <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
 
             {/* Trust badges */}
             <div className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
@@ -432,7 +365,7 @@ export default function LandingPage({
                       <Icon className="h-5 w-5" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="line-clamp-2 text-sm font-bold leading-tight text-gray-900">{c.name}</p>
+                      <p className="text-sm font-bold leading-tight text-gray-900">{c.name}</p>
                       <p className="mt-0.5 text-xs text-gray-500">
                         {c.total > 0 ? `${fmt(c.total)} lowongan` : "Jelajahi"}
                       </p>
@@ -485,35 +418,30 @@ export default function LandingPage({
               subtitle="Pengalaman nyata mereka yang menemukan tempat magang lewat PRAKERIN.ID."
             />
             <div className="mt-12 grid gap-6 md:grid-cols-3">
-              {displayTestimonials.slice(0, 6).map((t, i) => (
-                <Reveal key={t.id} delay={i * 80}>
-                  <figure className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+              {displayStories.slice(0, 6).map((s, i) => (
+                <Reveal key={s.id} delay={i * 80}>
+                  <figure className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
                     <Quote className="h-7 w-7 text-accent/20" />
                     <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-gray-600">
-                      &ldquo;{t.text}&rdquo;
+                      &ldquo;{s.comment}&rdquo;
                     </blockquote>
-                    <div className="mt-5 flex items-center gap-3 border-t border-gray-100 pt-4">
+                    <figcaption className="mt-5 flex items-center gap-3 border-t border-gray-100 pt-4">
                       <img
                         src={
-                          getPhotoProfileUrl(t.photo_profile) ??
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(t.student_name)}&background=00809d&color=fff`
+                          getCommentPhotoUrl(s.photo_profile) ??
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=00809d&color=fff`
                         }
-                        alt={t.student_name}
-                        className="h-11 w-11 rounded-full object-cover"
+                        alt={s.name}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=00809d&color=fff`;
+                        }}
+                        className="h-12 w-12 rounded-full object-cover"
                       />
                       <div className="min-w-0">
-                        <figcaption className="truncate text-sm font-bold text-gray-900">{t.student_name}</figcaption>
-                        <p className="truncate text-xs text-gray-500">di {t.company_name}</p>
+                        <p className="truncate font-bold text-gray-900">{s.name}</p>
+                        {s.position && <p className="truncate text-xs text-gray-500">{s.position}</p>}
                       </div>
-                      <div className="ml-auto flex gap-0.5">
-                        {Array.from({ length: 5 }).map((_, s) => (
-                          <Star
-                            key={s}
-                            className={`h-3.5 w-3.5 ${s < Math.round(t.rating) ? "fill-vip text-vip" : "text-gray-200"}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
+                    </figcaption>
                   </figure>
                 </Reveal>
               ))}
@@ -527,10 +455,13 @@ export default function LandingPage({
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeading
               eyebrow="Jaringan Mitra"
-              title="Mitra Sekolah & Perguruan Tinggi Kami"
-              subtitle="Bergabung bersama institusi pendidikan yang memercayakan program magangnya kepada PRAKERIN.ID."
+              title="Mitra Industri, Sekolah dan Perguruan Tinggi"
+              subtitle="Bergabung bersama industri dan institusi pendidikan yang memercayakan program magangnya kepada PRAKERIN.ID."
             />
             <div className="mt-8 flex flex-wrap justify-center gap-2">
+              <TabPill active={partnerTab === "company"} onClick={() => setPartnerTab("company")} count={companyPartners.length}>
+                Industri
+              </TabPill>
               <TabPill active={partnerTab === "school"} onClick={() => setPartnerTab("school")} count={schoolPartners.length}>
                 Sekolah
               </TabPill>
@@ -554,7 +485,7 @@ export default function LandingPage({
             )}
 
             <div className="mt-8 text-center">
-              <Link href="/mitra?type=education" className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-all hover:gap-2.5">
+              <Link href="/mitra" className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-all hover:gap-2.5">
                 Lihat semua mitra <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -607,34 +538,6 @@ export default function LandingPage({
 }
 
 /* ── Subcomponents ─────────────────────────────────────────────────────── */
-function SelectField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  children,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1 rounded-xl px-3 py-2 hover:bg-gray-50">
-      <span className="text-[11px] font-semibold text-gray-500">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-transparent text-sm text-gray-800 focus:outline-none"
-      >
-        <option value="">{placeholder}</option>
-        {children}
-      </select>
-    </label>
-  );
-}
-
 function TabPill({
   active,
   onClick,
@@ -670,11 +573,11 @@ function PartnerLogo({
 }: {
   name: string;
   logo?: string;
-  kind: "school" | "university";
+  kind: "company" | "school" | "university";
 }) {
   const [err, setErr] = useState(false);
   const src = partnerLogo(logo);
-  const Icon = kind === "school" ? School : GraduationCap;
+  const Icon = kind === "company" ? Building2 : kind === "school" ? School : GraduationCap;
   return (
     <div className="group flex h-full flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-5 transition-all hover:-translate-y-1 hover:border-accent/20 hover:shadow-lg">
       <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-gray-50">
@@ -689,7 +592,7 @@ function PartnerLogo({
           <Icon className="h-7 w-7 text-accent/50" />
         )}
       </div>
-      <p className="line-clamp-2 text-center text-xs font-semibold text-gray-700">{name}</p>
+      <p className="text-center text-xs font-semibold text-gray-700">{name}</p>
     </div>
   );
 }

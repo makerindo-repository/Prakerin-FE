@@ -111,7 +111,7 @@ export default function HomePage() {
     () => ({
       homepages: data?.homepages,
       partners: data?.partners || [],
-      comments: data?.comments || [],
+      commentPrakerins: data?.comment_prakerins || [],
       jobOpenings: data?.job_openings || [],
       stats: data?.stats,
       popularCategories: data?.popular_categories || [],
