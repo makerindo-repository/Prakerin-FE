@@ -14,7 +14,9 @@ import {
   ChevronDown,
   Search,
   UsersRound,
-  MapPin
+  MapPin,
+  Clock,
+  GraduationCap,
 } from "lucide-react";
 import {
   getGrade,
@@ -299,12 +301,14 @@ function InternshipPageContent() {
     <>
       <section className="mt-15">
         <div className="w-[85%] mx-auto">
-          <h1 className="text-6xl font-bold py-4 text-left mb-3 bg-gradient-to-r from-accent-light via-accent to-accent-dark bg-clip-text text-transparent">Lowongan Magang</h1>
-          <p className="text-black text-xl text-left mb-4">
+          <h1 className="mb-2 py-2 text-3xl font-extrabold sm:text-4xl bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">
+            Lowongan Magang
+          </h1>
+          <p className="mb-5 max-w-2xl text-base text-gray-600">
             Temukan peluang magang dari berbagai perusahaan ternama. Daftar,
             lamar, dan mulai perjalanan kariermu bersama kami.
           </p>
-          <div className="bg-white shadow-sm border border-gray-600 p-6 mb-4 rounded-xl">
+          <div className="bg-white shadow-sm border border-gray-200 p-6 mb-4 rounded-xl">
             {/* Search */}
             <div className="relative mb-4">
               <input
@@ -312,7 +316,7 @@ function InternshipPageContent() {
                 onChange={(e) => setInputSearch(e.target.value)}
                 value={inputSearch}
                 placeholder="Cari lowongan magang impian anda..."
-                className="w-full pl-4 pr-4 py-4 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-accent rounded-xl"
+                className="w-full pl-4 pr-4 py-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent rounded-xl"
               />
             </div>
 
@@ -322,7 +326,7 @@ function InternshipPageContent() {
               <div className="relative">
                 <select
                 value={filterData.province_id} onChange={(e) => handleFilterChange("province_id", e.target.value)}
-                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Provinsi</option>
                   {provinces.map((province) => (
@@ -337,7 +341,7 @@ function InternshipPageContent() {
               <div className="relative">
                 <select
                 value={filterData.city_regency_id} onChange={(e) => handleFilterChange("city_regency_id", e.target.value)} disabled={!filterData.province_id}
-                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Kota / Kabupaten</option>
                   {cityRegencies.map((cityreg) => (
@@ -352,7 +356,7 @@ function InternshipPageContent() {
               <div className="relative">
                 <select
                 value={filterData.grade} onChange={(e) => handleFilterChange("grade", e.target.value)}
-                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Tingkat</option>
                   <option value="smk">Tingkat SMK</option>
@@ -365,7 +369,7 @@ function InternshipPageContent() {
               <div className="relative">
                 <select
                 value={filterData.field_id} onChange={(e) => handleFilterChange("field_id", e.target.value)}
-                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Bidang</option>
                   {fields.map((field) => (
@@ -379,7 +383,7 @@ function InternshipPageContent() {
               {/* Durasi */}
               <div className="relative">
                 <select value={filterData.duration_id} onChange={(e) => handleFilterChange("duration_id", e.target.value)}
-                className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
+                className="appearance-none border border-gray-200 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Durasi</option>
                   {[...durations]
@@ -411,8 +415,12 @@ function InternshipPageContent() {
 
       <section className="px-4 md:px-10 lg:px-20 py-10 w-[95%] mx-auto">
         <h5 className="text-sm text-gray-600">
-          Total Posisi: <span className="text-gray-800 font-bold">{data.length} </span>
-          Total Perusahaan: <span className="text-gray-800 font-bold">8</span>
+          Total Posisi: <span className="font-bold text-gray-800">{data.length}</span>
+          {"   ·   "}
+          Total Perusahaan:{" "}
+          <span className="font-bold text-gray-800">
+            {new Set(data.map((d) => d.company?.name).filter(Boolean)).size}
+          </span>
         </h5>
         <div className="grid lg:grid-cols-[400px_1fr] gap-8">
           <div className="w-full lg:flex-1 flex flex-col gap-6 mt-3">
@@ -420,98 +428,121 @@ function InternshipPageContent() {
               <LoaderData />
             ) : data.length > 0 ? (
               <>
-                {paginatedData.map((item, index) => (
-                  <div
-                    key={index}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedJob(item)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        setSelectedJob(item);
-                      }
-                    }}
-                    className="bg-white border border-gray-600 shadow-sm p-5 flex flex-col rounded-xl hover:shadow-lg transition-all duration-200 cursor-pointer hover:border hover:border-cyan-500"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-15 h-15 relative rounded-full overflow-hidden">
-                        <ImageWithFallback
-                          src={
-                            item.user?.photo_profile
-                              ? `${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.user.photo_profile}`
-                              : null
-                          }
-                          alt="Company"
-                          fill
-                          sizes="100%"
-                          className="object-cover"
-                          fallback={<Building className="w-full h-full text-[var(--color-accent)]" />}
-                        />
+                {paginatedData.map((item) => {
+                  const isActive = selectedJob?.id === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedJob(item)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedJob(item);
+                        }
+                      }}
+                      className={`group flex cursor-pointer flex-col rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
+                        isActive ? "border-accent ring-1 ring-accent/30" : "border-gray-200 hover:border-accent/40"
+                      }`}
+                    >
+                      {/* Header */}
+                      <div className="flex items-start gap-3">
+                        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+                          <ImageWithFallback
+                            src={
+                              item.user?.photo_profile
+                                ? `${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.user.photo_profile}`
+                                : null
+                            }
+                            alt={item.company?.name ?? "Perusahaan"}
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                            fallback={
+                              <div className="flex h-full w-full items-center justify-center">
+                                <Building className="h-6 w-6 text-accent/50" />
+                              </div>
+                            }
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-accent">{item.company?.name}</p>
+                          <h2 className="mt-0.5 line-clamp-2 text-lg font-bold leading-snug text-gray-900 transition-colors group-hover:text-accent">
+                            {item.title}
+                          </h2>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => handleClickFavorite(e, item.id)}
+                          aria-label={item.save_job_opening ? "Hapus dari tersimpan" : "Simpan lowongan"}
+                          className="shrink-0 rounded-lg p-2 text-gray-400 transition-colors hover:bg-accent/5 hover:text-accent"
+                        >
+                          <Bookmark className={`h-5 w-5 ${item.save_job_opening ? "fill-accent text-accent" : ""}`} />
+                        </button>
                       </div>
 
-                      <p className="text-sm font-medium text-gray-500">
-                        Berakhir:{" "}
-                        <span className="text-red-500">
-                          {new Date(item.closing_date).toLocaleDateString("id-ID", {day: "numeric", month: "long", year: "numeric",})}
+                      {/* Meta */}
+                      <div className="mt-4 grid grid-cols-2 gap-y-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
+                          <span className="truncate">{item.city_regency?.name ?? "-"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-4 w-4 shrink-0 text-gray-400" />
+                          <span>
+                            {item.duration?.duration_value} {getDurationUnit(item.duration?.duration_unit)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <UsersRound className="h-4 w-4 shrink-0 text-gray-400" />
+                          <span>{item.qouta} Posisi</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <GraduationCap className="h-4 w-4 shrink-0 text-gray-400" />
+                          <span className="truncate">{getLabel("grade", item.grade)}</span>
+                        </div>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <span className="rounded-full bg-accent/5 px-3 py-1 text-xs font-medium text-accent ring-1 ring-accent/15">
+                          {getLabel("location", item.location)}
                         </span>
-                      </p>
-                    </div>
-
-                    <p className="text-sm font-bold text-blue-500">
-                      {item.company.name}
-                    </p>
-
-                    <h2 className="text-xl font-bold text-gray-900">
-                      {item.title}
-                    </h2>
-
-                    <div className="flex items-center text-gray-600 mb-2 gap-2 text-sm">
-                      <MapPin className="w-4 h-4" />
-                      {item.city_regency?.name ?? "N/A"},{" "}
-                      {item.province?.name ?? "N/A"}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-blue-600 mb-2 text-sm">
-                      <UsersRound className="w-4 h-4" />
-                      {item.qouta} Posisi
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      <span className="px-3 py-1 border border-cyan-500 bg-cyan-50 text-blue-600 text-sm rounded-3xl">
-                        {getLabel("location", item.location)}
-                      </span>
-
-                      <span className="px-3 py-1 border border-cyan-500 bg-cyan-50 text-blue-600 text-sm rounded-3xl">
-                        {getLabel("type", item.type)}
-                      </span>
-
-                      {item.is_paid && (
-                        <span className="px-3 py-1 border border-cyan-500 bg-cyan-50 text-blue-600 text-sm rounded-3xl">
-                          Dibayar
+                        <span className="rounded-full bg-accent/5 px-3 py-1 text-xs font-medium text-accent ring-1 ring-accent/15">
+                          {getLabel("type", item.type)}
                         </span>
-                      )}
+                        {item.is_paid ? (
+                          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 ring-1 ring-emerald-200">
+                            Dibayar
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-gray-50 px-3 py-1 text-xs font-medium text-gray-500 ring-1 ring-gray-200">
+                            Tidak Dibayar
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
+                        <p className="text-xs text-gray-400">
+                          Berakhir{" "}
+                          {new Date(item.closing_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/lowongan/${item.id}`);
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-accent to-accent-light px-4 py-2 text-sm font-semibold text-white transition-all hover:shadow-md hover:brightness-105"
+                        >
+                          Lihat Detail <ArrowRight className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="border-t-4 border-gray-600 mb-4 mt-10"></div>
-
-                    <div className="mt-auto">
-                      <p className="text-sm text-gray-500 mb-4">
-                        Diposting {new Date(item.created_at).toLocaleDateString("id-ID", {day: "numeric", month: "long", year: "numeric",})}
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/lowongan/${item.id}`);
-                        }}
-                        className="w-full rounded-xl bg-gradient-to-r from-accent to-accent-light text-white py-3 hover:from-accent-light hover:to-accent-light duration-300 transition-all"
-                      >
-                        Lihat Detail
-                      </button>
-                    </div>
-                  </div>
-              ))}
+                  );
+                })}
                 <div className="flex justify-center items-center gap-2 mt-6">
                   <button
                     disabled={currentPage === 1}

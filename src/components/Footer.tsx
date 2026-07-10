@@ -41,20 +41,20 @@ export default function FooterPage() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-2">
-              <img src="/PrakerinID_ico.svg" alt="PRAKERIN.ID" className="h-8 w-auto brightness-0 invert" />
+              <img src="/PrakerinID_ico.svg" alt="PRAKERIN.ID" className="h-9 w-auto" />
             </div>
             <p className="max-w-xs text-sm leading-relaxed text-gray-400">
               Platform magang terpercaya yang menghubungkan talenta muda dengan
               perusahaan berkualitas di seluruh Indonesia.
             </p>
             <div className="mt-5 flex gap-3">
-              <SocialIcon href="https://www.instagram.com/officialprakerin.id" label="Instagram">
+              <SocialIcon href="https://www.instagram.com/makerdotindo/" label="Instagram">
                 <Instagram className="h-5 w-5" />
               </SocialIcon>
-              <SocialIcon href="https://www.linkedin.com/in/prakerin-id-933549389" label="LinkedIn">
+              <SocialIcon href="https://www.linkedin.com/company/makerindo-prima-solusi/" label="LinkedIn">
                 <Linkedin className="h-5 w-5" />
               </SocialIcon>
-              <SocialIcon href="#" label="YouTube">
+              <SocialIcon href="https://www.youtube.com/@makerindoprimasolusi" label="YouTube">
                 <Youtube className="h-5 w-5" />
               </SocialIcon>
             </div>
@@ -87,15 +87,15 @@ export default function FooterPage() {
             <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex items-start gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent-light" />
-                <span>PT. Makerindo Prima Solusi, Jakarta, Indonesia</span>
+                <span>Komplek Pesona Ciganitri Blok A39, Cipagalo, Kec. Bojongsoang, Kabupaten Bandung, Jawa Barat 40287</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="h-4 w-4 shrink-0 text-accent-light" />
-                <a href="tel:+622112345678" className="hover:text-accent-light">(021) 1234 5678</a>
+                <a href="tel:+6281218210613" className="hover:text-accent-light">0812-1821-0613</a>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 shrink-0 text-accent-light" />
-                <a href="mailto:halo@prakerin.id" className="hover:text-accent-light">halo@prakerin.id</a>
+                <a href="mailto:makerdotindo@gmail.com" className="hover:text-accent-light">makerdotindo@gmail.com</a>
               </li>
             </ul>
           </div>

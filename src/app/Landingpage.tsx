@@ -123,6 +123,36 @@ const FALLBACK_CATEGORIES: Category[] = [
   { id: "desain-multimedia", name: "Desain Multimedia", total: 0 },
 ];
 
+const FALLBACK_TESTIMONIALS: FeedbackComment[] = [
+  {
+    id: "t1",
+    student_name: "Muhammad Mufti",
+    company_name: "Dicoding",
+    rating: 5,
+    text: "Aplikasi yang sangat membantu untuk saya pribadi, jadi bisa mencari perusahaan yang sesuai dengan minat dan keahlian.",
+    photo_profile: null,
+    created_at: "",
+  },
+  {
+    id: "t2",
+    student_name: "Aufa Azhar",
+    company_name: "Halodoc",
+    rating: 5,
+    text: "Sangat membantu dan memudahkan saya untuk mencari pengalaman kerja yang relevan sejak dini.",
+    photo_profile: null,
+    created_at: "",
+  },
+  {
+    id: "t3",
+    student_name: "Syahdan Alfiansyah",
+    company_name: "Mekari",
+    rating: 5,
+    text: "Prosesnya jelas dan transparan. Saya menemukan tempat magang dengan lebih mudah dan cepat.",
+    photo_profile: null,
+    created_at: "",
+  },
+];
+
 /* ── Helpers ────────────────────────────────────────────────────────────── */
 const nf = new Intl.NumberFormat("id-ID");
 const fmt = (n: number) => nf.format(n);
@@ -219,6 +249,7 @@ export default function LandingPage({
       ? popularCategories
       : FALLBACK_CATEGORIES;
   const testimonials = comments.filter((c) => c.text);
+  const displayTestimonials = testimonials.length ? testimonials : FALLBACK_TESTIMONIALS;
 
   const schoolPartners = partners.filter((p) => p.type === "school");
   const universityPartners = partners.filter((p) => p.type === "university");
@@ -400,12 +431,13 @@ export default function LandingPage({
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
                       <Icon className="h-5 w-5" />
                     </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-gray-900">{c.name}</p>
-                      <p className="text-xs text-gray-500">
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-2 text-sm font-bold leading-tight text-gray-900">{c.name}</p>
+                      <p className="mt-0.5 text-xs text-gray-500">
                         {c.total > 0 ? `${fmt(c.total)} lowongan` : "Jelajahi"}
                       </p>
                     </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-0.5 group-hover:text-accent" />
                   </Link>
                 </Reveal>
               );
@@ -445,8 +477,7 @@ export default function LandingPage({
       </section>
 
       {/* ── SUCCESS STORIES ──────────────────────────────────────────── */}
-      {testimonials.length > 0 && (
-        <section id="ulasan" className="bg-gray-50 py-16">
+      <section id="ulasan" className="bg-gray-50 py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeading
               eyebrow="Cerita Sukses"
@@ -454,7 +485,7 @@ export default function LandingPage({
               subtitle="Pengalaman nyata mereka yang menemukan tempat magang lewat PRAKERIN.ID."
             />
             <div className="mt-12 grid gap-6 md:grid-cols-3">
-              {testimonials.slice(0, 6).map((t, i) => (
+              {displayTestimonials.slice(0, 6).map((t, i) => (
                 <Reveal key={t.id} delay={i * 80}>
                   <figure className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
                     <Quote className="h-7 w-7 text-accent/20" />
@@ -488,8 +519,7 @@ export default function LandingPage({
               ))}
             </div>
           </div>
-        </section>
-      )}
+      </section>
 
       {/* ── MITRA (Sekolah & Perguruan Tinggi) ───────────────────────── */}
       {hasPartners && (
@@ -694,9 +724,12 @@ function StatsSection({ stats }: { stats?: LandingStats }) {
   return (
     <section id="statistik" className="border-y border-gray-100 bg-white py-14">
       <div ref={ref} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="mb-10 text-center text-lg font-semibold text-gray-700">
-          Dipercaya oleh ekosistem pendidikan dan industri di Indonesia
-        </p>
+        <div className="mb-10 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-accent">Bukti Nyata</p>
+          <p className="mx-auto mt-2 max-w-2xl text-xl font-extrabold text-gray-900 sm:text-2xl">
+            Dipercaya oleh ekosistem pendidikan dan industri di Indonesia
+          </p>
+        </div>
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
           {items.map((it, i) => (
             <StatItem key={it.label} {...it} start={visible} delay={i * 120} />
@@ -724,18 +757,20 @@ function StatItem({
   return (
     <div
       style={{ transitionDelay: `${delay}ms` }}
-      className={`flex flex-col items-center text-center transition-all duration-700 ${
+      className={`transition-all duration-700 ${
         start ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       }`}
     >
-      <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
-        <Icon className="h-7 w-7" />
-      </span>
-      <p className="text-3xl font-extrabold text-gray-900">
-        {fmt(n)}
-        {value > 0 && <span className="text-accent">+</span>}
-      </p>
-      <p className="mt-1 text-sm text-gray-500">{label}</p>
+      <div className="group flex h-full flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/20 hover:shadow-lg">
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
+          <Icon className="h-7 w-7" />
+        </span>
+        <p className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+          {fmt(n)}
+          {value > 0 && <span className="text-accent">+</span>}
+        </p>
+        <p className="text-sm font-medium text-gray-500">{label}</p>
+      </div>
     </div>
   );
 }

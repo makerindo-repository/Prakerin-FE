@@ -6,7 +6,7 @@ export default function ServiceButton() {
     );
   };
   return (
-    <div className="sticky bottom-4 mb-5 md:mb-16 pe-5 md:mr-10 z-30 flex justify-end w-full pointer-events-none">
+    <div className="fixed bottom-5 right-5 md:bottom-6 md:right-8 z-40 flex justify-end pointer-events-none">
       <button
         onClick={handleClick}
         className="flex items-center space-x-2 p-3 px-4 md:px-5 bg-green-400 shadow-xl text-white rounded-full pointer-events-auto cursor-pointer hover:bg-green-500 transition-colors duration-300"
