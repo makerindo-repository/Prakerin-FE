@@ -66,6 +66,8 @@ interface HomepageData {
   comment_prakerins: CommentPrakerin[];
   comments?: any[];
   job_openings: any[];
+  stats?: any;
+  popular_categories?: any[];
 }
 
 export default function HomePage() {
@@ -111,6 +113,8 @@ export default function HomePage() {
       partners: data?.partners || [],
       comments: data?.comments || [],
       jobOpenings: data?.job_openings || [],
+      stats: data?.stats,
+      popularCategories: data?.popular_categories || [],
       // FooterPage di-pass sebagai prop ReactNode ke LandingPage
       // agar footer berada di dalam snap container yang sama
       footer: (

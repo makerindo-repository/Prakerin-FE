@@ -1,253 +1,204 @@
 "use client";
 
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import Link from "next/link";
-import { Menu } from "lucide-react";
-// import DarkModeToggle from "./DarkModeToggle";
+import { Menu, X, Search, ChevronDown, LayoutDashboard } from "lucide-react";
 
 interface NavigationProps {
-  section: string;
-  setSection: Dispatch<SetStateAction<string>>;
+  section?: string;
+  setSection?: Dispatch<SetStateAction<string>>;
 }
 
-export default function Navigation({ setSection }: NavigationProps) {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [currentHash, setCurrentHash] = useState("");
-  const pathName = usePathname();
-  const router = useRouter();
+const NAV_LINKS = [
+  { label: "Beranda", href: "/" },
+  { label: "Lowongan", href: "/lowongan" },
+  { label: "Tentang Kami", href: "/tentang-kami" },
+  { label: "Panduan", href: "/panduan" },
+];
+
+export default function Navigation({}: NavigationProps) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathName = usePathname();
 
   useEffect(() => {
-    // Jalankan hanya di client setelah mount
     setMounted(true);
-    const token = Cookies.get("userToken");
-    setIsLoggedIn(!!token);
+    setIsLoggedIn(!!Cookies.get("userToken"));
   }, []);
-
 
   useEffect(() => {
-    const updateHash = () => {
-      if (typeof window !== "undefined") {
-        setCurrentHash(window.location.hash);
-      }
-    };
-    updateHash();
-    window.addEventListener("hashchange", updateHash);
-    return () => window.removeEventListener("hashchange", updateHash);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isBerandaActive = pathName === "/" && currentHash === "";
-  const isMitraActive = pathName === "/" && currentHash === "#mitra-sekolah";
+  // Close the mobile drawer on route change.
+  useEffect(() => setMobileOpen(false), [pathName]);
 
-  const handleBerandaClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    router.push("/");
-    setCurrentHash("");
-  };
-
-  const handleMitraClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    router.push("/#mitra-sekolah");
-    setCurrentHash("#mitra-sekolah");
-  };
-
-  const handleOtherNavClick = () => setCurrentHash("");
+  const isActive = (href: string) =>
+    href === "/" ? pathName === "/" : pathName.startsWith(href);
 
   return (
-    <nav className="w-[85%] mx-auto bg-white mt-10 z-50 transition-all duration-300">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Link href="/">
-              <img
-                src="/PrakerinID_ico.svg"
-                className="cursor-pointer"
-                alt=""
-              />
-            </Link>
-          </div>
+    <header
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        scrolled
+          ? "bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100"
+          : "bg-white/70 backdrop-blur-sm border-b border-transparent"
+      }`}
+    >
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="PRAKERIN.ID Beranda">
+          <img src="/PrakerinID_ico.svg" alt="PRAKERIN.ID" className="h-8 w-auto" />
+        </Link>
 
-          <div className="hidden md:flex space-x-8 ml-auto mr-8">
-            <Link
-              href="/"
-              onClick={handleBerandaClick}
-              className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                isBerandaActive ? "text-accent" : "text-gray-700"
-              }`}
-            >
-              Beranda
-            </Link>
-            <Link
-              href="/lowongan"
-              onClick={handleOtherNavClick}
-              className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                pathName === "/lowongan" || pathName.startsWith("/lowongan/")
+        {/* Desktop nav */}
+        <div className="hidden items-center gap-1 md:flex">
+          {NAV_LINKS.slice(0, 2).map((l) => (
+            <NavItem key={l.href} href={l.href} active={isActive(l.href)}>
+              {l.label}
+            </NavItem>
+          ))}
+
+          {/* Mitra dropdown */}
+          <div className="group relative">
+            <button
+              className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                pathName.startsWith("/mitra")
                   ? "text-accent"
-                  : "text-gray-700"
+                  : "text-gray-700 hover:text-accent"
               }`}
             >
-              Lowongan
-            </Link>
-
-            {/* Mitra Dropdown */}
-            <div className="relative group">
-              <button
-                className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                  pathName === "/mitra"
-                    ? "text-accent"
-                    : "text-gray-700"
-                }`}
-              >
-                Mitra
-              </button>
-
-              <div className="absolute hidden group-hover:block bg-white shadow-lg rounded-lg py-2 min-w-[260px] z-50">
-                <Link
-                  href="/mitra?type=company"
-                  className="block px-4 py-2 hover:bg-gray-50"
-                >
-                  Mitra Perusahaan
-                </Link>
-
-                <Link
-                  href="/mitra?type=education"
-                  className="block px-4 py-2 hover:bg-gray-50"
-                >
-                  Mitra Sekolah & Universitas
-                </Link>
-              </div>
+              Mitra
+              <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
+            </button>
+            <div className="invisible absolute left-0 top-full w-64 translate-y-1 rounded-xl border border-gray-100 bg-white p-2 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+              <Link href="/mitra?type=company" className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-accent/5 hover:text-accent">
+                Mitra Perusahaan
+              </Link>
+              <Link href="/mitra?type=education" className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-accent/5 hover:text-accent">
+                Mitra Sekolah &amp; Universitas
+              </Link>
             </div>
-
-            <Link
-              href="/tentang-kami"
-              onClick={handleOtherNavClick}
-              className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                pathName === "/tentang-kami" ? "text-accent" : "text-gray-700"
-              }`}
-            >
-              Tentang Kami
-            </Link>
-            <Link
-              href="/panduan"
-              onClick={handleOtherNavClick}
-              className={`font-semibold hover:text-accent transition-colors duration-300 ${
-                pathName === "/panduan" ? "text-accent" : "text-gray-700"
-              }`}
-            >
-              Panduan
-            </Link>
           </div>
 
-          <div className="hidden md:flex space-x-4 items-center">
-            {/* Tambahan: Toggle untuk versi Desktop */}
-            {/* <DarkModeToggle /> */}
-            {!mounted ? null : isLoggedIn ? (
+          {NAV_LINKS.slice(2).map((l) => (
+            <NavItem key={l.href} href={l.href} active={isActive(l.href)}>
+              {l.label}
+            </NavItem>
+          ))}
+        </div>
+
+        {/* Desktop CTA */}
+        <div className="hidden items-center gap-3 md:flex">
+          {!mounted ? (
+            <div className="h-9 w-40" />
+          ) : isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-accent to-accent-light px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105"
+            >
+              <LayoutDashboard className="h-4 w-4" /> Dashboard
+            </Link>
+          ) : (
+            <>
               <Link
-                href="/dashboard"
-                className="px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
+                href="/masuk"
+                className="rounded-lg border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-accent hover:text-accent"
               >
+                Masuk
+              </Link>
+              <Link
+                href="/lowongan"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-accent to-accent-light px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105"
+              >
+                <Search className="h-4 w-4" /> Mulai Cari Magang
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile toggle */}
+        <button
+          className="inline-flex items-center justify-center rounded-lg p-2 text-gray-700 hover:bg-gray-100 md:hidden"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
+          aria-expanded={mobileOpen}
+        >
+          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </nav>
+
+      {/* Mobile drawer */}
+      <div
+        className={`overflow-hidden border-t border-gray-100 bg-white transition-[max-height] duration-300 md:hidden ${
+          mobileOpen ? "max-h-[420px]" : "max-h-0"
+        }`}
+      >
+        <div className="space-y-1 px-4 py-3">
+          {NAV_LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={`block rounded-lg px-3 py-2.5 text-sm font-semibold ${
+                isActive(l.href) ? "bg-accent/5 text-accent" : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {l.label}
+            </Link>
+          ))}
+          <Link href="/mitra?type=company" className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+            Mitra
+          </Link>
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            {!mounted ? null : isLoggedIn ? (
+              <Link href="/dashboard" className="col-span-2 rounded-lg bg-gradient-to-r from-accent to-accent-light px-4 py-2.5 text-center text-sm font-semibold text-white">
                 Dashboard
               </Link>
             ) : (
               <>
-                <Link
-                  href="/masuk"
-                  className="px-8 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all"
-                >
-                  Login
+                <Link href="/masuk" className="rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-semibold text-gray-700">
+                  Masuk
                 </Link>
-              </>
-            )}
-          </div>
-
-          {/* Tambahan: Toggle untuk versi Mobile */}
-            <div className="flex items-center space-x-2 md:hidden">
-              {/* <DarkModeToggle />*/}
-            </div>  
-
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden flex items-center justify-center p-2 text-gray-700 hover:text-accent transition-colors duration-300"
-            onClick={() => {
-              const mobileMenu = document.getElementById("mobile-menu");
-              if (mobileMenu) {
-                mobileMenu.classList.toggle("hidden");
-              }
-            }}
-          >
-            <Menu />
-          </button>
-        </div>
-
-        {/* Mobile menu */}
-        <div id="mobile-menu" className="md:hidden hidden mt-4 space-y-2">
-          <Link
-            href="/"
-            onClick={handleBerandaClick}
-            className={`block py-2 hover:text-prakerin transition-colors duration-300 ${
-              isBerandaActive ? "text-accent" : "text-gray-700"
-            }`}
-          >
-            Beranda
-          </Link>
-          <Link
-            href="/tentang-kami"
-            onClick={handleOtherNavClick}
-            className={`block py-2  hover:text-prakerin transition-colors duration-300 ${
-              pathName === "/tentang-kami" ? "text-accent" : "text-gray-700"
-            }`}
-          >
-            Tentang Kami
-          </Link>
-          <Link
-            href="/lowongan"
-            onClick={handleOtherNavClick}
-            className={`block py-2  hover:text-prakerin transition-colors duration-300 ${
-              pathName === "/lowongan" || pathName.startsWith("/lowongan/")
-                ? "text-accent"
-                : "text-gray-700"
-            }`}
-          >
-            Lowongan
-          </Link>
-          <Link
-            href="/#mitra-sekolah"
-            onClick={handleMitraClick}
-            className={`block py-2  hover:text-prakerin transition-colors duration-300 ${
-              isMitraActive ? "text-accent" : "text-gray-700"
-            }`}
-          >
-            Mitra
-          </Link>
-          <div className="flex flex-col gap-2 mt-2">
-            {!mounted ? null : isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="w-full px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all text-center"
-              >
-                Dahsboard
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/daftar"
-                  className="w-full px-4 py-2 font-semibold border border-accent text-accent rounded-lg hover:bg-accent-light hover:border-accent-light hover:text-white transition-all duration-300 text-center"
-                >
-                  Daftar
-                </Link>
-                <Link
-                  href="/masuk"
-                  className="w-full px-4 py-2 font-semibold bg-gradient-to-r from-accent to-accent-light text-white rounded-lg hover:from-accent-light hover:to-accent-light duration-300 transition-all text-center"
-                >
-                  Login
+                <Link href="/lowongan" className="rounded-lg bg-gradient-to-r from-accent to-accent-light px-4 py-2.5 text-center text-sm font-semibold text-white">
+                  Cari Magang
                 </Link>
               </>
             )}
           </div>
         </div>
       </div>
-    </nav>
+    </header>
+  );
+}
+
+function NavItem({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`relative rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+        active ? "text-accent" : "text-gray-700 hover:text-accent"
+      }`}
+    >
+      {children}
+      <span
+        className={`absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-accent transition-transform duration-300 ${
+          active ? "scale-x-100" : "scale-x-0"
+        }`}
+      />
+    </Link>
   );
 }
