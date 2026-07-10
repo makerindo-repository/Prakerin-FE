@@ -30,6 +30,10 @@ interface Data {
   };
 }
 
+interface FormErrors {
+  [key: string]: string | undefined;
+}
+
 const Users: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");

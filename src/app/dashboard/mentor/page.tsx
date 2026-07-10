@@ -9,6 +9,9 @@ interface AssignedMentor {
   id: string;
   notes: string | null;
   assigned_at: string;
+  assigned_by?: {
+    username: string;
+  };
   mentor: {
     id: string;
     expertise: string;
