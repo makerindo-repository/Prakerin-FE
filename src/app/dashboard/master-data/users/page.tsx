@@ -12,7 +12,7 @@ import Link from "next/link";
 import { API, ENDPOINTS } from "@/utils/config";
 import { useRouter } from "next/navigation";
 
-type ActiveTab = "Semua" | "Sekolah" | "Perusahaan" | "Siswa / Mahasiswa";
+type ActiveTab = "Semua" | "Sekolah" | "Perusahaan" | "Siswa" | "Mahasiswa";
 
 interface Pages {
   activePages: number;
@@ -39,7 +39,7 @@ const Users: React.FC = () => {
   const [inputSearch, setInputSearch] = useState("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
 
-  const tabs = ["Semua" , "Sekolah" , "Perusahaan" , "Siswa / Mahasiswa"];
+  const tabs = ["Semua" , "Sekolah" , "Perusahaan" , "Siswa" , "Mahasiswa"];
 
   const [pages, setPages] = useState<Pages>({
     activePages: 1,
@@ -139,6 +139,7 @@ const Users: React.FC = () => {
 
     try {
       let roles: string | undefined = undefined;
+      let schoolType: string | undefined = undefined;
       switch (activeTab) {
         case "Sekolah":
           roles = "school";
@@ -146,8 +147,13 @@ const Users: React.FC = () => {
         case "Perusahaan":
           roles = "company";
           break;
-        case "Siswa / Mahasiswa":
+        case "Siswa":
           roles = "student";
+          schoolType = "school";
+          break;
+        case "Mahasiswa":
+          roles = "student";
+          schoolType = "university";
           break;
         default:
           break;
@@ -156,7 +162,7 @@ const Users: React.FC = () => {
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
           role: roles,
-          // is_verified: roles,
+          school_type: schoolType,
           search: inputSearch,
           limit: 10,
           page: pages.activePages,

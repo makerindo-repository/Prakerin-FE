@@ -409,43 +409,47 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* ── SUCCESS STORIES ──────────────────────────────────────────── */}
-      <section id="ulasan" className="bg-gray-50 py-16">
+      {/* ── SUCCESS STORIES (Marquee) ────────────────────────────────── */}
+      <section id="ulasan" className="bg-gray-50 py-16 overflow-hidden">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeading
               eyebrow="Cerita Sukses"
               title="Dipercaya Talenta Muda di Seluruh Indonesia"
               subtitle="Pengalaman nyata mereka yang menemukan tempat magang lewat PRAKERIN.ID."
             />
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
-              {displayStories.slice(0, 6).map((s, i) => (
-                <Reveal key={s.id} delay={i * 80}>
-                  <figure className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
-                    <Quote className="h-7 w-7 text-accent/20" />
-                    <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-gray-600">
-                      &ldquo;{s.comment}&rdquo;
-                    </blockquote>
-                    <figcaption className="mt-5 flex items-center gap-3 border-t border-gray-100 pt-4">
-                      <img
-                        src={
-                          getCommentPhotoUrl(s.photo_profile) ??
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=00809d&color=fff`
-                        }
-                        alt={s.name}
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=00809d&color=fff`;
-                        }}
-                        className="h-12 w-12 rounded-full object-cover"
-                      />
-                      <div className="min-w-0">
-                        <p className="truncate font-bold text-gray-900">{s.name}</p>
-                        {s.position && <p className="truncate text-xs text-gray-500">{s.position}</p>}
-                      </div>
-                    </figcaption>
-                  </figure>
-                </Reveal>
-              ))}
+          </div>
+
+          {/* Marquee container */}
+          <div className="relative mt-12">
+            {/* Edge fade gradients */}
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-24 bg-gradient-to-r from-gray-50 to-transparent" />
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-24 bg-gradient-to-l from-gray-50 to-transparent" />
+
+            {/* Row 1 — scrolls left */}
+            <div className="group mb-5">
+              <div
+                className="flex w-max gap-5 group-hover:[animation-play-state:paused]"
+                style={{ animation: 'marquee-left 40s linear infinite' }}
+              >
+                {[...displayStories, ...displayStories].map((s, i) => (
+                  <StoryCard key={`r1-${s.id}-${i}`} story={s} />
+                ))}
+              </div>
             </div>
+
+            {/* Row 2 — scrolls right (only if enough stories) */}
+            {displayStories.length > 3 && (
+              <div className="group">
+                <div
+                  className="flex w-max gap-5 group-hover:[animation-play-state:paused]"
+                  style={{ animation: 'marquee-right 45s linear infinite' }}
+                >
+                  {[...displayStories.slice().reverse(), ...displayStories.slice().reverse()].map((s, i) => (
+                    <StoryCard key={`r2-${s.id}-${i}`} story={s} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
       </section>
 
@@ -612,6 +616,34 @@ function SectionHeading({
       <h2 className="mt-2 text-2xl font-extrabold text-gray-900 sm:text-3xl">{title}</h2>
       {subtitle && <p className="mt-3 text-gray-500">{subtitle}</p>}
     </Reveal>
+  );
+}
+
+function StoryCard({ story: s }: { story: CommentPrakerin }) {
+  return (
+    <figure className="flex w-[340px] shrink-0 flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
+      <Quote className="h-7 w-7 text-accent/20" />
+      <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-gray-600">
+        &ldquo;{s.comment}&rdquo;
+      </blockquote>
+      <figcaption className="mt-5 flex items-center gap-3 border-t border-gray-100 pt-4">
+        <img
+          src={
+            getCommentPhotoUrl(s.photo_profile) ??
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=00809d&color=fff`
+          }
+          alt={s.name}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=00809d&color=fff`;
+          }}
+          className="h-12 w-12 rounded-full object-cover"
+        />
+        <div className="min-w-0">
+          <p className="truncate font-bold text-gray-900">{s.name}</p>
+          {s.position && <p className="truncate text-xs text-gray-500">{s.position}</p>}
+        </div>
+      </figcaption>
+    </figure>
   );
 }
 

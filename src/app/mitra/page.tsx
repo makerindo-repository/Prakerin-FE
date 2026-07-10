@@ -39,35 +39,29 @@ function PartnerPageContent() {
   const searchParams = useSearchParams();
   const keyword = searchParams.get("search") || "";
   const [partners, setPartners] = useState<Partner[]>([]);
-  const [educationTab, setEducationTab] = useState<"school" | "university">("school");
-
-  const schoolPartners = (partners || []).filter((p) => p.type === "school");
-  const universityPartners = (partners || []).filter((p) => p.type === "university");
-  const companyPartners = (partners || []).filter((p) => p.type === "company");
 
   const [currentPage, setCurrentPage] = useState(1);
   const partnerPerPage = 9;
 
   const type = searchParams.get("type") || "company";
-  const displayedPartners =
-    type === "company"
-      ? companyPartners
-      : educationTab === "school"
-        ? schoolPartners
-        : universityPartners;
+  const displayedPartners = (partners || []).filter((p) => p.type === type);
 
   const filteredPartners = displayedPartners.filter((partner) => partner.name.toLowerCase().includes(search.toLowerCase()));
   const pageContent = {
     company: {
-      title: "Mitra Perusahaan",
+      title: "Mitra Industri",
       description:
-        "Temukan peluang magang dari berbagai perusahaan ternama. Daftar, lamar, dan mulai perjalanan kariermu bersama kami.",
+        "Temukan peluang magang dari berbagai industri ternama. Daftar, lamar, dan mulai perjalanan kariermu bersama kami.",
     },
-
-    education: {
-      title: "Mitra Sekolah & Universitas",
+    school: {
+      title: "Mitra Sekolah",
       description:
-        "Jelajahi jaringan sekolah dan universitas yang telah bekerja sama dengan Prakerin untuk mendukung pengembangan talenta muda Indonesia.",
+        "Jelajahi jaringan sekolah yang telah bekerja sama dengan Prakerin untuk mendukung pengembangan talenta muda Indonesia.",
+    },
+    university: {
+      title: "Mitra Perguruan Tinggi",
+      description:
+        "Jelajahi jaringan perguruan tinggi yang telah bekerja sama dengan Prakerin untuk mendukung pengembangan talenta muda Indonesia.",
     },
   };
   const currentContent = pageContent[type as keyof typeof pageContent] ?? pageContent.company;
@@ -94,7 +88,7 @@ function PartnerPageContent() {
   }, []);
   useEffect(() => {
     setCurrentPage(1);
-  }, [type, educationTab]);
+  }, [type]);
 
 const totalPartnerPages = Math.ceil(filteredPartners.length / partnerPerPage);
 const paginatedPartners = filteredPartners.slice((currentPage - 1) * partnerPerPage, currentPage * partnerPerPage);
@@ -136,31 +130,7 @@ const paginatedPartners = filteredPartners.slice((currentPage - 1) * partnerPerP
             </div>
           </div>
 
-          {type === "education" && (
-            <div className="flex gap-4 mb-6">
-              <button
-                onClick={() => setEducationTab("school")}
-                className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
-                  educationTab === "school"
-                    ? "text-accent border-accent"
-                    : "text-gray-400 border-transparent hover:text-accent"
-                }`}
-              >
-                Sekolah
-              </button>
 
-              <button
-                onClick={() => setEducationTab("university")}
-                className={`pb-3 font-semibold transition-colors duration-200 border-b-3 ${
-                  educationTab === "university"
-                    ? "text-accent border-accent"
-                    : "text-gray-400 border-transparent hover:text-accent"
-                }`}
-              >
-                Universitas
-              </button>
-            </div>
-          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedPartners.map((item) => (
