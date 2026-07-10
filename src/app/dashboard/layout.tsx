@@ -63,6 +63,7 @@ interface NavItem {
   href?: string;
   isDev?: boolean; // halaman belum dibuat → badge "Dev"
   permission?: string;
+  isLms?: boolean; // LMS link
 }
 
 interface NavGroup {
@@ -121,7 +122,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: UsersRound, label: "Siswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
         { icon: GraduationCap, label: "Mahasiswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
         { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
-        { icon: BookOpen, label: "Kelas Pra-Magang", isDev: true, permission: "view_kelas" },
+        { icon: BookOpen, label: "Kelas Pra-Magang", href: "https://makerindo.myr.id/", isLms: true, permission: "view_kelas" },
         { icon: UserRound, label: "Pembimbing", href: "/dashboard/pembimbing", isDev: true, permission: "view_pembimbing" },
         { icon: UsersRound, label: "Manajemen User", href: "/dashboard/master-data/users", permission: "view_manajemen_user" },
       ],
@@ -163,6 +164,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "MANAJEMEN",
       items: [
         { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan", permission: "view_kelas" },
+        { icon: BookOpen, label: "Kelas Pra-Magang", href: "https://makerindo.myr.id/", isLms: true, permission: "view_kelas" },
         { icon: FileText, label: "Curriculum Vitae", href: "/dashboard/cv", permission: "view_profil" },
         { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan", permission: "view_kelas" },
         { icon: ClipboardCheck, label: "Daftar Tugas", href: "/dashboard/tasklist", permission: "view_kelas" },
@@ -186,6 +188,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "MANAJEMEN",
       items: [
         { icon: UsersRound, label: "Siswa/Mahasiswa Magang", href: "/dashboard/siswa-magang", permission: "view_kelas" },
+        { icon: BookOpen, label: "Kelas Pra-Magang", href: "https://makerindo.myr.id/", isLms: true, permission: "view_kelas" },
         { icon: HelpCircle, label: "Tes", href: "/dashboard/tes", permission: "view_kelas" },
         { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan", permission: "view_kelas" },
         { icon: FileText, label: "Lamaran", href: "/dashboard/industry/lamaran", permission: "view_kelas" },
@@ -214,6 +217,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       items: [
         { icon: UsersRound, label: "Daftar Siswa/Mahasiswa", href: "/dashboard/school/daftarsiswa", permission: "view_manajemen_user" },
         { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
+        { icon: BookOpen, label: "Kelas Pra-Magang", href: "https://makerindo.myr.id/", isLms: true, permission: "view_kelas" },
         { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan", permission: "view_kelas" },
         { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou", permission: "view_kelas" },
         { icon: Award, label: "Penghargaan", isDev: true, permission: "view_laporan" },
@@ -506,11 +510,14 @@ export default function DashboardLayout({
               <ul className="space-y-0.5">
                 {group.items.map((item) => {
                   const active = isActiveLink(item.href);
+                  const isLms = item.isLms;
                   const el = (
                     <div
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         active
                           ? "bg-[#035a70] text-white shadow-sm"
+                          : isLms
+                          ? "text-[#157af6] bg-[#157af6]/5 hover:bg-[#157af6]/15 hover:text-[#157af6] border-l-2 border-[#157af6] rounded-l-none pl-2.5"
                           : item.href
                           ? "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                           : "text-gray-400 cursor-not-allowed"
@@ -523,15 +530,26 @@ export default function DashboardLayout({
                           Dev
                         </span>
                       )}
+                      {isLms && (
+                        <span className="text-[8px] font-extrabold uppercase tracking-wider bg-[#157af6] text-white px-1.5 py-0.5 rounded shrink-0 animate-pulse">
+                          LMS
+                        </span>
+                      )}
                     </div>
                   );
 
                   return (
                     <li key={item.label}>
                       {item.href ? (
-                        <Link href={item.href} onClick={closeSidebar}>
-                          {el}
-                        </Link>
+                        item.href.startsWith("http") ? (
+                          <a href={item.href} target="_blank" rel="noopener noreferrer" onClick={closeSidebar}>
+                            {el}
+                          </a>
+                        ) : (
+                          <Link href={item.href} onClick={closeSidebar}>
+                            {el}
+                          </Link>
+                        )
                       ) : (
                         el
                       )}

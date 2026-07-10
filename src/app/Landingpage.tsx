@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import Image, { ImageProps } from "next/image";
 import { API, ENDPOINTS, getPhotoProfileUrl, getCommentPhotoUrl } from "@/utils/config";
+import { getDurationUnit } from "@/utils/getDurationUnit";
 
 interface Partner {
   id: string;
@@ -15,16 +16,14 @@ interface Partner {
   type: string;
 }
 
-interface CommentPrakerin {
+interface FeedbackComment {
   id: string;
-  photo_profile: string | null;
-  user?: {
-    photo_profile?: string | null;
-  };
-  name: string;
-  position: string;
-  comment: string;
+  student_name: string;
+  company_name: string;
+  rating: number;
+  text: string;
   created_at: string;
+  photo_profile?: string | null;
 }
 
 interface JobOpening {
@@ -132,14 +131,12 @@ export default function LandingPage({
 }: {
   homepages: any;
   partners: Partner[];
-  comments: CommentPrakerin[];
+  comments: FeedbackComment[];
   jobOpenings: JobOpening[];
   footer?: React.ReactNode;
 }) {
   const router = useRouter();
 
-  const [currentCommentPage, setCurrentCommentPage] = useState(1);
-  const commentsPerPage = 3;
   const [schoolPage, setSchoolPage] = useState(1);
   const schoolPerPage = 8;
   const [universityPage, setUniversityPage] = useState(1);
@@ -152,11 +149,6 @@ export default function LandingPage({
   const [inputSearch, setInputSearch] = useState<string>("");
   const [search, setSearch] = useState<string>("");
   const [partnerTab, setPartnerTab] = useState<"school" | "university">("school");
-  const [showCommentModal, setShowCommentModal] = useState(false);
-  const [activeComment, setActiveComment] = useState<CommentPrakerin | null>(null);
-  const [truncatedComments, setTruncatedComments] = useState<Record<string, boolean>>({});
-  const commentRefs = useState<Map<string, HTMLParagraphElement>>(new Map())[0];
-  const observers = useState<Map<string, ResizeObserver>>(new Map())[0];
 
   const [filterData, setFilterData] = useState<Filter>({
     province_id: "",
@@ -228,36 +220,7 @@ export default function LandingPage({
     }
   };
 
-  const registerCommentRef = (el: HTMLParagraphElement | null, id: string) => {
-    const cleanup = () => {
-      const existing = observers.get(id);
-      if (existing) existing.disconnect();
-      observers.delete(id);
-      commentRefs.delete(id);
-    };
 
-    if (!el) {
-      cleanup();
-      return;
-    }
-
-    cleanup();
-    commentRefs.set(id, el);
-
-    const checkTruncate = () => {
-      try {
-        const truncated = el.scrollHeight > el.clientHeight + 1;
-        setTruncatedComments((prev) =>
-          prev[id] === truncated ? prev : { ...prev, [id]: truncated }
-        );
-      } catch { }
-    };
-
-    checkTruncate();
-    const ro = new ResizeObserver(() => checkTruncate());
-    ro.observe(el);
-    observers.set(id, ro);
-  };
 
   useEffect(() => {
     setJobPage(1);
@@ -305,8 +268,6 @@ export default function LandingPage({
   const universityPartners = (partners || []).filter((p) => p.type === "university");
   const companyPartners = (partners || []).filter((p) => p.type === "company");
 
-  const totalCommentPages = Math.ceil(comments.length / commentsPerPage);
-  const paginatedComments = comments.slice((currentCommentPage - 1) * commentsPerPage, currentCommentPage * commentsPerPage);
   const totalSchoolPages = Math.ceil(schoolPartners.length / schoolPerPage);
   const paginatedSchoolPartners = schoolPartners.slice((schoolPage - 1) * schoolPerPage, schoolPage * schoolPerPage);
   const totalUniversityPages = Math.ceil(universityPartners.length / universityPerPage);
@@ -450,132 +411,75 @@ export default function LandingPage({
       </section>
 
       {/* Ulasan */}
-      <section id="ulasan" className="py-16 w-[85%] mx-auto snap-start">
-        <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
-              {["Feedback Siswa/Mahasiswa", "Cerita Sukses Alumni"].includes(homepages?.["title-landing-4"]) ? "Success Story" : (homepages?.["title-landing-4"] ?? "-")}
-            </h2>
-          </div>
-          <div className="mb-4 flex justify-between items-center">
-            <p className="text-gray-600 text-sm font-semibold">{comments.length} ulasan</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {comments.length !== 0 ? (
-              <>
-                <style suppressHydrationWarning>{`
-                  .line-clamp-3 {
-                    display: -webkit-box;
-                    -webkit-line-clamp: 3;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                  }
-                `}</style>
-
-                <div className="contents">
-                  {paginatedComments.map((item, index) => {
-                    const isLong = !!truncatedComments[item.id];
-                    return (
-                      <div
-                        key={`comment-${item.id}-${index}`}
-                        className="h-[260px] bg-white rounded-2xl shadow-lg 
-                          p-6 transition-all duration-300 
-                          hover:shadow-xl hover:-translate-y-1 overflow-hidden"
-                      >
-                        <div className="flex items-center gap-4 mb-6">
-                          <div
-                            className="w-16 h-16 bg-gradient-to-br from-accent/10 to-blue-100 
-                              rounded-full relative overflow-hidden shadow-inner shrink-0 flex items-center justify-center"
-                          >
-                            <ImageWithFallback
-                              src={
-                                item.user?.photo_profile
-                                  ? getPhotoProfileUrl(item.user.photo_profile)
-                                  : getCommentPhotoUrl(item.photo_profile)
-                              }
-                              alt={item.name}
-                              fill
-                              sizes="64px"
-                              className="object-cover rounded-full bg-white"
-                              fallback={<User className="w-8 h-8 text-accent/50" />}
-                            />
-                          </div>
-
-                          <div className="text-left">
-                            <p className="font-bold text-prakerin break-words">
-                              {item.name}
-                            </p>
-                            <p className="text-xs text-blue-500 break-words">
-                              {item.position}
-                            </p>
-                            <p className="text-xs text-gray-500 break-words">
-                              {new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                            </p>
-                          </div>
-                        </div>
-
-                        <p
-                          ref={(el) => registerCommentRef(el, item.id)}
-                          className="text-gray-700 italic leading-relaxed break-words whitespace-pre-wrap overflow-hidden line-clamp-3 text-left"
-                        >
-                          "{item.comment}"
-                        </p>
-
-                        {isLong && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveComment(item);
-                              setShowCommentModal(true);
-                            }}
-                            className="mt-2 text-accent font-semibold text-sm hover:underline cursor-pointer"
-                          >
-                            Lihat selengkapnya
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col justify-center items-center w-full h-[320px]">
-                <p className="text-gray-500">Tidak ada ulasan yang ditemukan.</p>
-              </div>
-            )}
-          </div>
-          {totalCommentPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-10">
-              <button
-                onClick={() => setCurrentCommentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentCommentPage === 1}
-                className="text-accent disabled:opacity-30 transition cursor-pointer"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-
-              <div className="flex gap-2">
-                {Array.from({ length: totalCommentPages }).map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentCommentPage(index + 1)}
-                    className={`w-3 h-3 rounded-full transition ${currentCommentPage === index + 1 ? "bg-accent" : "bg-gray-300"
-                      }`}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentCommentPage((prev) => Math.min(prev + 1, totalCommentPages))}
-                disabled={currentCommentPage === totalCommentPages}
-                className="text-accent disabled:opacity-30 transition cursor-pointer"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
+      {comments && comments.length > 0 ? (
+        <section id="ulasan" className="py-16 w-[85%] mx-auto snap-start">
+          <div className="container mx-auto px-4">
+            <div className="mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-accent mb-4">
+                {["Feedback Siswa/Mahasiswa", "Cerita Sukses Alumni"].includes(homepages?.["title-landing-4"])
+                  ? "Success Story"
+                  : (homepages?.["title-landing-4"] ?? "-")}
+              </h2>
             </div>
-          )}
-        </div>
-      </section>
+            <div className="mb-4 flex justify-between items-center">
+              <p className="text-gray-600 text-sm font-semibold">{comments.length} ulasan</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {comments.map((comment, index) => (
+                <div
+                  key={`comment-${comment.id}-${index}`}
+                  className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                >
+                  <div>
+                    {/* Star Rating */}
+                    <div className="flex items-center gap-1 mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <svg
+                          key={i}
+                          className={`w-5 h-5 ${
+                            i < comment.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-200 fill-gray-200"
+                          }`}
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+
+                    {/* Comment Text */}
+                    <p className="text-gray-700 italic leading-relaxed text-sm text-left mb-6 whitespace-pre-wrap">
+                      "{comment.text}"
+                    </p>
+                  </div>
+
+                  {/* Student & Company Name with PFP */}
+                  <div className="border-t border-gray-100 pt-4 mt-auto flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-accent/10 to-blue-100 rounded-full relative overflow-hidden shadow-inner shrink-0 flex items-center justify-center">
+                      <ImageWithFallback
+                        src={getPhotoProfileUrl(comment.photo_profile)}
+                        alt={comment.student_name}
+                        fill
+                        sizes="40px"
+                        className="object-cover rounded-full bg-white"
+                        fallback={<User className="w-5 h-5 text-accent/50" />}
+                      />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-gray-800">
+                        {comment.student_name}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        at <span className="font-medium text-accent">{comment.company_name}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* Magang */}
       <section className="py-4 w-[85%] mx-auto snap-start">
@@ -665,11 +569,19 @@ export default function LandingPage({
                 className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
               >
                 <option value="">Durasi</option>
-                {durations.map((duration) => (
-                  <option key={duration.id} value={duration.id}>
-                    {duration.duration_value} {duration.duration_unit}
-                  </option>
-                ))}
+                {[...durations]
+                  .sort((a, b) => {
+                    const unitOrder: Record<string, number> = { day: 1, month: 2, year: 3 };
+                    const unitA = unitOrder[a.duration_unit] || 99;
+                    const unitB = unitOrder[b.duration_unit] || 99;
+                    if (unitA !== unitB) return unitA - unitB;
+                    return a.duration_value - b.duration_value;
+                  })
+                  .map((duration) => (
+                    <option key={duration.id} value={duration.id}>
+                      {duration.duration_value} {getDurationUnit(duration.duration_unit)}
+                    </option>
+                  ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
             </div>
@@ -1008,44 +920,7 @@ export default function LandingPage({
         {footer}
       </section>
 
-      {/* Modal Ulasan Penuh */}
-      {showCommentModal && activeComment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
-            <button
-              aria-label="Tutup"
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700"
-              onClick={() => setShowCommentModal(false)}
-            >
-              ×
-            </button>
 
-            <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-100 shadow bg-gradient-to-br from-accent/10 to-blue-100 flex items-center justify-center">
-                <ImageWithFallback
-                  src={
-                    activeComment.user?.photo_profile
-                      ? getPhotoProfileUrl(activeComment.user.photo_profile)
-                      : getCommentPhotoUrl(activeComment.photo_profile)
-                  }
-                  alt={activeComment.name}
-                  width={96}
-                  height={96}
-                  className="object-cover"
-                  fallback={<User className="w-12 h-12 text-accent/50" />}
-                />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">{activeComment.name}</h3>
-                <p className="text-sm text-accent mb-2">{activeComment.position}</p>
-              </div>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                "{activeComment.comment}"
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

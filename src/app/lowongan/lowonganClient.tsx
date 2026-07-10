@@ -382,11 +382,19 @@ function InternshipPageContent() {
                 className="appearance-none border border-gray-600 px-4 py-3 pr-10 text-gray-600 rounded-xl w-full"
                 >
                   <option value="">Durasi</option>
-                  {durations.map((duration) => (
-                    <option key={duration.id} value={duration.id}>
-                      {duration.duration_value} {duration.duration_unit}
-                    </option>
-                  ))}
+                  {[...durations]
+                    .sort((a, b) => {
+                      const unitOrder: Record<string, number> = { day: 1, month: 2, year: 3 };
+                      const unitA = unitOrder[a.duration_unit] || 99;
+                      const unitB = unitOrder[b.duration_unit] || 99;
+                      if (unitA !== unitB) return unitA - unitB;
+                      return a.duration_value - b.duration_value;
+                    })
+                    .map((duration) => (
+                      <option key={duration.id} value={duration.id}>
+                        {duration.duration_value} {getDurationUnit(duration.duration_unit)}
+                      </option>
+                    ))}
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
               </div>

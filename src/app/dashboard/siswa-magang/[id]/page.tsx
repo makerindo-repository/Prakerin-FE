@@ -52,6 +52,7 @@ interface Student {
     id: string;
     start_date: string;
     end_date: string;
+    is_completed?: boolean;
   };
   field: string;
   tipe: string;
@@ -71,6 +72,8 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
   const route = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoad, setIsLoad] = useState<boolean>(true);
+  const [showEndConfirm, setShowEndConfirm] = useState<boolean>(false);
+  const [isEnding, setIsEnding] = useState<boolean>(false);
   const [data, setData] = useState<Student>({
     photo_profile: null,
     email: "",
@@ -98,6 +101,7 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
       id: "",
       start_date: "",
       end_date: "",
+      is_completed: false,
     },
     field: "",
     tipe: "",
@@ -188,6 +192,28 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleEndInternship = async () => {
+    if (!data.internship?.id) return;
+    setIsEnding(true);
+    try {
+      await API.patch(
+        `${ENDPOINTS.INTERNSHIPS}/${data.internship.id}`,
+        { is_completed: true },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+      setShowEndConfirm(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error ending internship:", error);
+    } finally {
+      setIsEnding(false);
+    }
+  };
 
   const getGender = (status: string) => {
     switch (status) {
@@ -321,19 +347,34 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
 
               {/* Action button */}
-              <div className="mt-8 flex justify-between">
+              <div className="mt-8 flex flex-wrap gap-3 justify-between items-center border-t border-gray-100 pt-4">
                 <Link
                   href="/dashboard/siswa-magang"
                   className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
                 >
                   Kembali
                 </Link>
-                <Link
-                  href={`/dashboard/siswa-magang/${id}/penempatan`}
-                  className="px-6 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg font-medium transition-colors"
-                >
-                  Ubah
-                </Link>
+                {!data.internship?.is_completed ? (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowEndConfirm(true)}
+                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors cursor-pointer text-sm"
+                    >
+                      Akhiri Magang
+                    </button>
+                    <Link
+                      href={`/dashboard/siswa-magang/${id}/penempatan`}
+                      className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg font-medium transition-colors text-sm"
+                    >
+                      Ubah
+                    </Link>
+                  </div>
+                ) : (
+                  <span className="px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg font-semibold text-xs tracking-wide">
+                    Magang Selesai
+                  </span>
+                )}
               </div>
             </div>
 
@@ -421,6 +462,37 @@ const detailPenempatan = ({ params }: { params: Promise<{ id: string }> }) => {
               )}
             </div>
           </div>
+          {showEndConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Konfirmasi Akhiri Magang
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  Apakah Anda yakin ingin mengakhiri program magang untuk{" "}
+                  <span className="font-semibold text-gray-800">{data.student.name}</span>? Tindakan ini akan secara otomatis menandai status magang sebagai selesai, menerbitkan sertifikat, dan mengizinkan siswa memberikan ulasan/feedback.
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowEndConfirm(false)}
+                    disabled={isEnding}
+                    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleEndInternship}
+                    disabled={isEnding}
+                    className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white rounded-lg font-medium transition-colors"
+                  >
+                    {isEnding ? "Proses..." : "Ya, Akhiri"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       )}
     </>

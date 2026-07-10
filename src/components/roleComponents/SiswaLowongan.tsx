@@ -22,6 +22,7 @@ import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
 import LoaderData from "../loader";
 import NotFoundComponent from "../NotFoundComponent";
+import { getDurationUnit } from "@/utils/getDurationUnit";
 
 interface InternshipApplicationCount {
   total: number;
@@ -454,11 +455,19 @@ export default function SiswaLowongan() {
             className="p-3 rounded-lg border border-gray-300 bg-gray-200 text-black"
           >
             <option value="">Durasi</option>
-            {durations.map((duration) => (
-              <option key={duration.id} value={duration.id}>
-                {duration.duration_value} {duration.duration_unit}
-              </option>
-            ))}
+            {[...durations]
+              .sort((a, b) => {
+                const unitOrder: Record<string, number> = { day: 1, month: 2, year: 3 };
+                const unitA = unitOrder[a.duration_unit] || 99;
+                const unitB = unitOrder[b.duration_unit] || 99;
+                if (unitA !== unitB) return unitA - unitB;
+                return a.duration_value - b.duration_value;
+              })
+              .map((duration) => (
+                <option key={duration.id} value={duration.id}>
+                  {duration.duration_value} {getDurationUnit(duration.duration_unit)}
+                </option>
+              ))}
           </select>
 
           <button

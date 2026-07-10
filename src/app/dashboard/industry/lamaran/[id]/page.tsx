@@ -105,22 +105,27 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
       console.log(response);
       setApplication(response.data.data);
 
-      const preview = await API.get(
-        `${ENDPOINTS.CURRICULUM_VITAE}/${response.data.data.curriculum_vitae_id}/preview`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-          responseType: "blob",
-        }
-      );
+      try {
+        const preview = await API.get(
+          `${ENDPOINTS.CURRICULUM_VITAE}/${response.data.data.curriculum_vitae_id}/preview`,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("userToken")}`,
+            },
+            responseType: "blob",
+          }
+        );
 
-      const fileBlob = new Blob([preview.data], {
-        type: "application/pdf",
-      });
-      const fileUrl = URL.createObjectURL(fileBlob);
+        const fileBlob = new Blob([preview.data], {
+          type: "application/pdf",
+        });
+        const fileUrl = URL.createObjectURL(fileBlob);
 
-      setPreviewUrl(fileUrl);
+        setPreviewUrl(fileUrl);
+      } catch (previewError) {
+        console.error("Failed to load CV preview:", previewError);
+        setPreviewUrl(null);
+      }
     } catch (error) {
       console.error(error);
     } finally {

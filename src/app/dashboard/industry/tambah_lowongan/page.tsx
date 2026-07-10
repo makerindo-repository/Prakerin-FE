@@ -237,10 +237,17 @@ const tambahLowonganPage: React.FC = () => {
         const res = await API.get(ENDPOINTS.DURATIONS, {
           params: { search: debouncedDuration, limit: 5 },
         });
+        const sorted = [...res.data.data].sort((a, b) => {
+          const unitOrder: Record<string, number> = { day: 1, month: 2, year: 3 };
+          const unitA = unitOrder[a.duration_unit] || 99;
+          const unitB = unitOrder[b.duration_unit] || 99;
+          if (unitA !== unitB) return unitA - unitB;
+          return a.duration_value - b.duration_value;
+        });
         setDurationOptions(
-          res.data.data.map((d: any) => ({
+          sorted.map((d: any) => ({
             value: d.id,
-            label: `${d.duration_value} ${d.duration_unit}`,
+            label: `${d.duration_value} ${d.duration_unit === 'month' ? 'Bulan' : d.duration_unit === 'year' ? 'Tahun' : 'Hari'}`,
           }))
         );
       } catch (err) {
