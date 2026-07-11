@@ -77,7 +77,7 @@ export default function Navigation({}: NavigationProps) {
                   : "text-gray-700 hover:bg-accent/5 hover:text-accent"
               }`}
             >
-              Pendaftaran
+              Mitra
               <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
             </button>
             <div className="invisible absolute left-0 top-full w-64 translate-y-1 rounded-xl border border-gray-100 bg-white p-2 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
@@ -159,13 +159,13 @@ export default function Navigation({}: NavigationProps) {
             </Link>
           ))}
           <Link href="/mitra?type=company" className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-            Pendaftaran - Industri
+            Mitra - Industri
           </Link>
           <Link href="/mitra?type=school" className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-            Pendaftaran - Sekolah
+            Mitra - Sekolah
           </Link>
           <Link href="/mitra?type=university" className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-            Pendaftaran - Perguruan Tinggi
+            Mitra - Perguruan Tinggi
           </Link>
           <div className="grid grid-cols-2 gap-2 pt-2">
             {!mounted ? null : isLoggedIn ? (

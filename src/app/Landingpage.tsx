@@ -283,13 +283,13 @@ export default function LandingPage({
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/daftar"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-light px-7 py-3.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-accent/25 hover:brightness-105"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FDE047] px-7 py-3.5 text-sm font-bold text-gray-900 transition-all hover:shadow-lg hover:shadow-[#FDE047]/25 hover:brightness-105"
               >
                 Daftar Sekarang <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/lowongan"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-7 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:border-accent hover:text-accent"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-light px-7 py-3.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-accent/25 hover:brightness-105"
               >
                 <Search className="h-4 w-4" /> Cari Lowongan
               </Link>

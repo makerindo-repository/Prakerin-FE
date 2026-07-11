@@ -40,7 +40,7 @@ export default function ContactPage({ homepages }: { homepages?: any }) {
     formRef.current?.reset();
   };
   return (
-    <section id="contact" className="py-16 mx-auto w-[85%]">
+    <section id="hubungi-kami" className="py-16 mx-auto w-[85%]">
       <div className="container mx-auto px-4">
         <div className="mb-12 grid grid-cols-1 md:grid-cols-10 gap-6 items-start">
           {/* Subtitle - left */}
