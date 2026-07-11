@@ -109,9 +109,9 @@ const PrakerinRegistrationSiswaForm: React.FC<
     setShowPassword(false);
     setShowpasswordConfirmation(false);
     setIsSubmitting(true);
-    const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
-    recaptchaRef.current.reset();
-    formData.recaptcha_token = token;
+    // const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
+    // recaptchaRef.current.reset();
+    // formData.recaptcha_token = token;
     try {
 
       const data = new FormData(); //Penambahan const data untuk melewati format FormData
@@ -495,12 +495,12 @@ const PrakerinRegistrationSiswaForm: React.FC<
             >
               Kembali
             </button>
-            <ReCAPTCHA
+            {/* <ReCAPTCHA
               sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
               size="invisible"
               className="mb-4"
               ref={recaptchaRef}
-            />
+            /> */}
             <button
               type="button"
               onClick={handleSubmit}

@@ -52,9 +52,9 @@ export default function LoginPage() {
     try {
       setIsSubmitting(true);
 
-      const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
-      recaptchaRef.current.reset();
-      data.recaptcha_token = token;
+      // const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
+      // recaptchaRef.current.reset();
+      // data.recaptcha_token = token;
 
       const response = await API.post(`${ENDPOINTS.LOGIN}`, {
         email: data.email,
@@ -212,11 +212,11 @@ export default function LoginPage() {
               </label>
             </div>
 
-            <ReCAPTCHA
+            {/* <ReCAPTCHA
               sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
               size="invisible"
               ref={recaptchaRef}
-            />
+            /> */}
 
             <button
               type="submit"
