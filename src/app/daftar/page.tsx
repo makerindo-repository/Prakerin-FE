@@ -1,14 +1,21 @@
 "use client";
 import Link from "next/link";
 import PrakerinRegistrationSiswaForm from "./AsSiswa";
-import { useState } from "react";
 import PrakerinRegistrationSekolahForm from "./AsSekolah";
 import PrakerinRegistrationIndustryForm from "./AsIndustry";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
-export default function DaftarPage() {
+function DaftarContent() {
+  const searchParams = useSearchParams();
   const [showForm, setShowForm] = useState<string>("");
+
+  useEffect(() => {
+    const type = searchParams.get("type");
+    if (type) setShowForm(type);
+  }, [searchParams]);
+
   const route = useRouter();
 
   return (
@@ -80,4 +87,12 @@ export default function DaftarPage() {
       return <PrakerinRegistrationIndustryForm setShowForm={setShowForm} />;
     return null;
   }
+}
+
+export default function DaftarPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <DaftarContent />
+    </Suspense>
+  );
 }

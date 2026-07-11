@@ -118,7 +118,7 @@ const STEPS = [
 const AUDIENCE = [
   { icon: School, title: "Sekolah", desc: "Kelola pendaftaran siswa, administrasi, dan kerja sama industri dengan lebih tertata." },
   { icon: Landmark, title: "Perguruan Tinggi", desc: "Fasilitasi mahasiswa mencari tempat magang dan lakukan pemantauan secara efisien." },
-  { icon: Factory, title: "Industri / Mitra", desc: "Publikasikan lowongan magang dan temukan kandidat talenta muda terbaik dengan mudah." },
+  { icon: Factory, title: "Industri", desc: "Publikasikan lowongan magang dan temukan kandidat talenta muda terbaik dengan mudah." },
   { icon: GraduationCap, title: "Siswa & Mahasiswa", desc: "Eksplorasi dan lamar lowongan praktik kerja yang sesuai dengan minat dan jurusanmu." },
 ];
 
@@ -129,11 +129,11 @@ const SECURITY = [
 ];
 
 const REGISTER_ROLES = [
-  { icon: School, title: "Sekolah" },
-  { icon: Factory, title: "Industri" },
-  { icon: Landmark, title: "Perguruan Tinggi" },
-  { icon: GraduationCap, title: "Siswa" },
-  { icon: UserRound, title: "Mahasiswa" },
+  { icon: School, title: "Sekolah", type: "sekolah" },
+  { icon: Factory, title: "Industri", type: "company" },
+  { icon: Landmark, title: "Perguruan Tinggi", type: "university" },
+  { icon: GraduationCap, title: "Siswa", type: "siswa" },
+  { icon: UserRound, title: "Mahasiswa", type: "mahasiswa" },
 ];
 
 const FAQS = [
@@ -262,7 +262,7 @@ export default function LandingPage({
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-10 pt-10 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pt-16">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-xs font-semibold text-accent">
-              <ShieldCheck className="h-4 w-4" /> Platform Magang Terpercaya di Indonesia
+              <ShieldCheck className="h-4 w-4" /> Platform Magang No. 1 di Indonesia
             </span>
 
             <h1 className="mt-5 text-4xl font-extrabold leading-[1.15] tracking-tight text-gray-900 sm:text-5xl">
@@ -294,25 +294,6 @@ export default function LandingPage({
                 <Search className="h-4 w-4" /> Cari Lowongan
               </Link>
             </div>
-
-            {/* Trust badges */}
-            <div className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-              {TRUST_BADGES.map((b) => (
-                <div key={b.title} className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <b.icon className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-xs font-bold text-gray-800">{b.title}</p>
-                    <p className="text-[11px] text-gray-500">
-                      {b.title === "Mitra Industri Aktif" && stats
-                        ? `${fmt(stats.companies)}+ perusahaan bergabung`
-                        : b.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Illustration */}
@@ -323,34 +304,52 @@ export default function LandingPage({
               alt="Ilustrasi siswa dan mahasiswa mencari magang di PRAKERIN.ID"
               width={640}
               height={520}
-              className="mx-auto h-auto w-full max-w-lg"
+              className="mx-auto h-auto w-full max-w-lg relative z-10"
               loading="eager"
             />
-            {stats && (
-              <>
-                <div className="floating absolute -left-2 top-10 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                    <Briefcase className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Lowongan Baru</p>
-                    <p className="text-lg font-extrabold leading-none text-gray-900">
-                      +{fmt(stats.new_jobs_month)}
-                      <span className="ml-1 text-xs font-medium text-gray-400">/ bulan</span>
-                    </p>
-                  </div>
-                </div>
-                <div className="floating-delayed absolute -right-2 bottom-8 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-vip/15 text-vip">
-                    <CheckCheck className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Tingkat Penempatan</p>
-                    <p className="text-lg font-extrabold leading-none text-gray-900">{stats.placement_rate}%</p>
-                  </div>
-                </div>
-              </>
-            )}
+            
+            {/* Floating Badges Surrounding Image */}
+            <div className="floating absolute -left-8 top-16 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                <ShieldCheck className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[11px] font-bold text-gray-800 leading-tight">Lowongan Terverifikasi</p>
+                <p className="text-[9px] text-gray-500 mt-0.5 leading-tight">100% terverifikasi & terpercaya</p>
+              </div>
+            </div>
+
+            <div className="floating-delayed absolute -right-6 top-10 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                <Building2 className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[11px] font-bold text-gray-800 leading-tight">Mitra Industri Aktif</p>
+                <p className="text-[9px] text-gray-500 mt-0.5 leading-tight">
+                  {stats ? `${fmt(stats.companies)}+ perusahaan bergabung` : '26+ perusahaan bergabung'}
+                </p>
+              </div>
+            </div>
+
+            <div className="floating absolute -left-4 bottom-24 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                <UserCheck className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[11px] font-bold text-gray-800 leading-tight">Pendampingan Karier</p>
+                <p className="text-[9px] text-gray-500 mt-0.5 leading-tight">Dibimbing hingga siap kerja</p>
+              </div>
+            </div>
+
+            <div className="floating-delayed absolute -right-2 bottom-12 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                <Zap className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[11px] font-bold text-gray-800 leading-tight">Proses Lamaran Mudah</p>
+                <p className="text-[9px] text-gray-500 mt-0.5 leading-tight">Cepat, praktis, tanpa ribet</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -362,7 +361,7 @@ export default function LandingPage({
           title="Mengapa Memilih PRAKERIN.ID?"
           subtitle="Kami menawarkan ekosistem terpadu yang menyederhanakan proses magang dari hulu ke hilir untuk semua pihak."
         />
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={i * 80}>
               <article className="group h-full rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:-translate-y-1 hover:border-accent/20 hover:shadow-xl hover:shadow-accent/5">
@@ -511,6 +510,9 @@ export default function LandingPage({
           </div>
       </section>
 
+      {/* ── STATS BAND ───────────────────────────────────────────────── */}
+      <StatsSection stats={stats} />
+
       {/* ── MITRA (Sekolah & Perguruan Tinggi) ───────────────────────── */}
       {hasPartners && (
         <section id="mitra" className="border-t border-gray-100 bg-white py-16">
@@ -587,7 +589,7 @@ export default function LandingPage({
           {REGISTER_ROLES.map((r, i) => (
             <Reveal key={r.title} delay={i * 70}>
               <Link
-                href="/daftar"
+                href={`/daftar?type=${r.type}`}
                 className="group flex h-full flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg"
               >
                 <span className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
@@ -617,9 +619,6 @@ export default function LandingPage({
           ))}
         </div>
       </section>
-
-      {/* ── STATS BAND (bottom) ──────────────────────────────────────── */}
-      <StatsSection stats={stats} />
 
       {footer}
     </main>

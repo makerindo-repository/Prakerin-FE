@@ -12,29 +12,33 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   metadataBase: new URL("https://prakerin.id"),
   title: {
-    default: "PRAKERIN.ID — Platform Magang Terpercaya di Indonesia",
     template: "%s | PRAKERIN.ID",
+    default: "PRAKERIN.ID — Platform Magang No. 1 di Indonesia",
   },
   description:
-    "PRAKERIN.ID menghubungkan siswa, mahasiswa, sekolah, universitas, dan perusahaan dalam satu ekosistem magang yang terverifikasi, transparan, dan terpercaya.",
+    "Platform magang terpercaya yang menghubungkan talenta muda dengan perusahaan berkualitas di seluruh Indonesia. Mulai karier Anda dengan pengalaman magang yang berharga.",
   keywords: [
     "magang",
     "prakerin",
-    "lowongan magang",
     "internship",
-    "siswa",
-    "mahasiswa",
-    "SMK",
-    "perusahaan",
+    "praktik kerja lapangan",
+    "lowongan magang",
+    "magang indonesia",
+    "magang smk",
+    "magang mahasiswa",
   ],
+  authors: [{ name: "Makerindo Prima Solusi" }],
+  creator: "Makerindo Prima Solusi",
+  publisher: "PRAKERIN.ID",
   icons: { icon: "/prakerin.ico" },
   robots: { index: true, follow: true },
   openGraph: {
-    title: "PRAKERIN.ID — Platform Magang Terpercaya di Indonesia",
-    description:
-      "Raih pengalaman nyata dan bangun karier impianmu bersama ribuan mitra industri terpercaya.",
     type: "website",
     locale: "id_ID",
+    url: "https://prakerin.id",
+    title: "PRAKERIN.ID — Platform Magang No. 1 di Indonesia",
+    description:
+      "Raih pengalaman nyata dan bangun karier impianmu bersama ribuan mitra industri terpercaya.",
   },
 };
 
