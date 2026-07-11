@@ -309,7 +309,7 @@ export default function LandingPage({
             />
             
             {/* Floating Badges Surrounding Image */}
-            <div className="floating absolute -left-8 top-16 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
+            <div className="floating absolute -left-10 top-12 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
                 <ShieldCheck className="h-5 w-5" />
               </span>
@@ -319,7 +319,7 @@ export default function LandingPage({
               </div>
             </div>
 
-            <div className="floating-delayed absolute -right-6 top-10 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
+            <div className="floating-delayed absolute -right-8 top-8 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
                 <Building2 className="h-5 w-5" />
               </span>
@@ -331,7 +331,7 @@ export default function LandingPage({
               </div>
             </div>
 
-            <div className="floating absolute -left-4 bottom-24 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
+            <div className="floating absolute -left-6 bottom-20 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
                 <UserCheck className="h-5 w-5" />
               </span>
@@ -350,6 +350,32 @@ export default function LandingPage({
                 <p className="text-[9px] text-gray-500 mt-0.5 leading-tight">Cepat, praktis, tanpa ribet</p>
               </div>
             </div>
+
+            {stats && (
+              <>
+                <div className="floating absolute left-1/2 -top-6 -translate-x-1/2 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-lg backdrop-blur z-20">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                    <Briefcase className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Lowongan Baru</p>
+                    <p className="text-lg font-extrabold leading-none text-gray-900">
+                      +{fmt(stats.new_jobs_month)}
+                      <span className="ml-1 text-xs font-medium text-gray-400">/ bulan</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="floating-delayed absolute right-1/4 -bottom-6 translate-x-1/2 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-lg backdrop-blur z-20">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-vip/15 text-vip">
+                    <CheckCheck className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Tingkat Penempatan</p>
+                    <p className="text-lg font-extrabold leading-none text-gray-900">{stats.placement_rate}%</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -588,7 +614,7 @@ export default function LandingPage({
         <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {REGISTER_ROLES.map((r, i) => (
             <Reveal key={r.title} delay={i * 70}>
-              <Link
+              <a
                 href={`/daftar?type=${r.type}`}
                 className="group flex h-full flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg"
               >
@@ -600,7 +626,7 @@ export default function LandingPage({
                 <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-accent transition-all group-hover:gap-2">
                   Mulai <ArrowRight className="h-3.5 w-3.5" />
                 </span>
-              </Link>
+              </a>
             </Reveal>
           ))}
         </div>
