@@ -113,6 +113,24 @@ body {
   display: none; /* Chrome, Safari, Opera */
 }
 
+/* Floating hero stat cards */
+.floating {
+  animation: floating 4s ease-in-out infinite;
+}
+.floating-delayed {
+  animation: floating 5s ease-in-out infinite;
+  animation-delay: 1s;
+}
+@keyframes floating {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 /* Accessibility: honor reduced-motion preference across the app */
 @media (prefers-reduced-motion: reduce) {
   *,

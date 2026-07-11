@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import Link from "next/link";
-import { Menu, X, Search, ChevronDown, LayoutDashboard } from "lucide-react";
+import { Menu, X, ChevronDown, LayoutDashboard, Building2, School, GraduationCap } from "lucide-react";
 
 interface NavigationProps {
   section?: string;
@@ -68,24 +68,24 @@ export default function Navigation({}: NavigationProps) {
           {/* Mitra dropdown */}
           <div className="group relative">
             <button
-              className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+              className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                 pathName.startsWith("/mitra")
-                  ? "text-accent"
-                  : "text-gray-700 hover:text-accent"
+                  ? "bg-accent text-white shadow-sm"
+                  : "text-gray-700 hover:bg-accent/5 hover:text-accent"
               }`}
             >
               Mitra
               <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
             </button>
             <div className="invisible absolute left-0 top-full w-64 translate-y-1 rounded-xl border border-gray-100 bg-white p-2 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-              <Link href="/mitra?type=company" className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-accent/5 hover:text-accent">
-                Industri
+              <Link href="/mitra?type=company" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-accent/5 hover:text-accent">
+                <Building2 className="h-4 w-4 text-gray-400" /> Industri
               </Link>
-              <Link href="/mitra?type=school" className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-accent/5 hover:text-accent">
-                Sekolah
+              <Link href="/mitra?type=school" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-accent/5 hover:text-accent">
+                <School className="h-4 w-4 text-gray-400" /> Sekolah
               </Link>
-              <Link href="/mitra?type=university" className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-accent/5 hover:text-accent">
-                Perguruan Tinggi
+              <Link href="/mitra?type=university" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-accent/5 hover:text-accent">
+                <GraduationCap className="h-4 w-4 text-gray-400" /> Perguruan Tinggi
               </Link>
             </div>
           </div>
@@ -117,10 +117,10 @@ export default function Navigation({}: NavigationProps) {
                 Masuk
               </Link>
               <Link
-                href="/lowongan"
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-accent to-accent-light px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105"
+                href="/daftar"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-accent to-accent-light px-6 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105"
               >
-                <Search className="h-4 w-4" /> Mulai Cari Magang
+                Daftar
               </Link>
             </>
           )}
@@ -168,8 +168,8 @@ export default function Navigation({}: NavigationProps) {
                 <Link href="/masuk" className="rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-semibold text-gray-700">
                   Masuk
                 </Link>
-                <Link href="/lowongan" className="rounded-lg bg-gradient-to-r from-accent to-accent-light px-4 py-2.5 text-center text-sm font-semibold text-white">
-                  Cari Magang
+                <Link href="/daftar" className="rounded-lg bg-gradient-to-r from-accent to-accent-light px-4 py-2.5 text-center text-sm font-semibold text-white">
+                  Daftar
                 </Link>
               </>
             )}
@@ -192,16 +192,11 @@ function NavItem({
   return (
     <Link
       href={href}
-      className={`relative rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-        active ? "text-accent" : "text-gray-700 hover:text-accent"
+      className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+        active ? "bg-accent text-white shadow-sm" : "text-gray-700 hover:bg-accent/5 hover:text-accent"
       }`}
     >
       {children}
-      <span
-        className={`absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-accent transition-transform duration-300 ${
-          active ? "scale-x-100" : "scale-x-0"
-        }`}
-      />
     </Link>
   );
 }

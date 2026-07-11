@@ -24,6 +24,14 @@ import {
   BarChart3,
   Palette,
   Quote,
+  CheckCheck,
+  Factory,
+  Scale,
+  Lock,
+  Landmark,
+  ListChecks,
+  Handshake,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -51,9 +59,12 @@ interface LandingStats {
   universities: number;
   students: number;
   university_students: number;
+  total_students: number;
   companies: number;
   partners: number;
   active_jobs: number;
+  new_jobs_month: number;
+  placement_rate: number;
 }
 interface Category {
   id: string;
@@ -89,10 +100,11 @@ const TRUST_BADGES = [
 ];
 
 const FEATURES = [
-  { icon: ShieldCheck, title: "Magang Terverifikasi", desc: "Setiap lowongan dan mitra melewati proses verifikasi tim kami." },
-  { icon: UserCheck, title: "Pendampingan Profesional", desc: "Dibimbing mentor berpengalaman di bidangnya hingga siap kerja." },
+  { icon: ShieldCheck, title: "Terpercaya", desc: "Bekerja sama dengan ribuan industri terverifikasi di seluruh wilayah Indonesia." },
+  { icon: Zap, title: "Mudah Digunakan", desc: "Pendaftaran, pencarian, dan pemantauan dirancang agar cepat dan praktis." },
+  { icon: ListChecks, title: "Banyak Pilihan", desc: "Ribuan lowongan prakerin dari beragam sektor industri dan keahlian." },
+  { icon: Handshake, title: "Bimbingan Penuh", desc: "Dukungan dan pendampingan komprehensif selama program berlangsung." },
   { icon: Briefcase, title: "Bangun Portofolio Nyata", desc: "Kerjakan proyek nyata dan perkuat rekam jejak kariermu." },
-  { icon: Send, title: "Proses Lamaran Mudah", desc: "Lamar cepat, praktis, dan pantau dari satu tempat." },
   { icon: Activity, title: "Pantau Status Real-Time", desc: "Lacak setiap tahap seleksi secara langsung tanpa menebak." },
 ];
 
@@ -101,6 +113,27 @@ const STEPS = [
   { icon: ClipboardList, title: "Lengkapi Profil", desc: "Isi data diri, pendidikan, dan keahlianmu." },
   { icon: Send, title: "Lamar Magang", desc: "Temukan lowongan yang sesuai dan kirim lamaran." },
   { icon: LineChart, title: "Pantau Status", desc: "Lacak proses seleksi hingga mendapat penawaran." },
+];
+
+const AUDIENCE = [
+  { icon: School, title: "Sekolah", desc: "Kelola pendaftaran siswa, administrasi, dan kerja sama industri dengan lebih tertata." },
+  { icon: Landmark, title: "Perguruan Tinggi", desc: "Fasilitasi mahasiswa mencari tempat magang dan lakukan pemantauan secara efisien." },
+  { icon: Factory, title: "Industri / Mitra", desc: "Publikasikan lowongan magang dan temukan kandidat talenta muda terbaik dengan mudah." },
+  { icon: GraduationCap, title: "Siswa & Mahasiswa", desc: "Eksplorasi dan lamar lowongan praktik kerja yang sesuai dengan minat dan jurusanmu." },
+];
+
+const SECURITY = [
+  { icon: ShieldCheck, title: "Keamanan Data", desc: "Kami menerapkan standar enkripsi tinggi untuk menjaga keamanan dan kerahasiaan data pengguna." },
+  { icon: Scale, title: "Kepatuhan Regulasi", desc: "Platform ini beroperasi mematuhi peraturan dan undang-undang (UU ITE) yang berlaku." },
+  { icon: Lock, title: "Privasi Terjamin", desc: "Informasi pribadi Anda tidak akan dibagikan kepada pihak ketiga tanpa persetujuan eksplisit." },
+];
+
+const REGISTER_ROLES = [
+  { icon: School, title: "Sekolah" },
+  { icon: Factory, title: "Industri" },
+  { icon: Landmark, title: "Perguruan Tinggi" },
+  { icon: GraduationCap, title: "Siswa" },
+  { icon: UserRound, title: "Mahasiswa" },
 ];
 
 const FAQS = [
@@ -232,32 +265,33 @@ export default function LandingPage({
               <ShieldCheck className="h-4 w-4" /> Platform Magang Terpercaya di Indonesia
             </span>
 
-            <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl">
-              Raih Pengalaman Nyata,
-              <span className="block bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">
-                Bangun Karier Impianmu.
-              </span>
+            <h1 className="mt-5 text-4xl font-extrabold leading-[1.15] tracking-tight text-gray-900 sm:text-5xl">
+              Temukan Tempat{" "}
+              <span className="bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">
+                Praktik Kerja Industri
+              </span>{" "}
+              Terbaik untuk Masa Depanmu.
             </h1>
 
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-gray-600">
-              PRAKERIN.ID membantu siswa, mahasiswa, dan lulusan muda menemukan
-              kesempatan magang terbaik serta terhubung dengan mitra industri
-              terpercaya.
+              PRAKERIN.ID menjembatani siswa, mahasiswa, perguruan tinggi, dan
+              industri dalam program praktik kerja yang berkualitas, terstruktur,
+              dan mudah diakses.
             </p>
 
             {/* Primary CTAs */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/lowongan"
+                href="/daftar"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-light px-7 py-3.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-accent/25 hover:brightness-105"
               >
-                <Search className="h-4 w-4" /> Mulai Cari Magang
+                Daftar Sekarang <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/daftar"
+                href="/lowongan"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-7 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:border-accent hover:text-accent"
               >
-                Daftar Gratis <ArrowRight className="h-4 w-4" />
+                <Search className="h-4 w-4" /> Cari Lowongan
               </Link>
             </div>
 
@@ -294,22 +328,25 @@ export default function LandingPage({
             />
             {stats && (
               <>
-                <div className="absolute -left-2 top-10 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-lg backdrop-blur animate-fade-in">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Briefcase className="h-4 w-4" />
+                <div className="floating absolute -left-2 top-10 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                    <Briefcase className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-lg font-extrabold leading-none text-gray-900">{fmt(stats.active_jobs)}</p>
-                    <p className="text-[11px] text-gray-500">Peluang Aktif</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Lowongan Baru</p>
+                    <p className="text-lg font-extrabold leading-none text-gray-900">
+                      +{fmt(stats.new_jobs_month)}
+                      <span className="ml-1 text-xs font-medium text-gray-400">/ bulan</span>
+                    </p>
                   </div>
                 </div>
-                <div className="absolute -right-2 bottom-8 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-lg backdrop-blur animate-fade-in">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-light/15 text-accent">
-                    <Building2 className="h-4 w-4" />
+                <div className="floating-delayed absolute -right-2 bottom-8 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-vip/15 text-vip">
+                    <CheckCheck className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-lg font-extrabold leading-none text-gray-900">{fmt(stats.companies)}+</p>
-                    <p className="text-[11px] text-gray-500">Mitra Bergabung</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Tingkat Penempatan</p>
+                    <p className="text-lg font-extrabold leading-none text-gray-900">{stats.placement_rate}%</p>
                   </div>
                 </div>
               </>
@@ -318,15 +355,12 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* ── STATS / TRACTION ─────────────────────────────────────────── */}
-      <StatsSection stats={stats} />
-
       {/* ── WHY CHOOSE ───────────────────────────────────────────────── */}
       <section id="keunggulan" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Keunggulan Kami"
-          title="Kenapa Harus Magang Melalui PRAKERIN.ID?"
-          subtitle="Kami menyederhanakan perjalanan magangmu—dari mencari, melamar, hingga dibimbing—dalam satu ekosistem terpercaya."
+          eyebrow="Nilai Tambah Kami"
+          title="Mengapa Memilih PRAKERIN.ID?"
+          subtitle="Kami menawarkan ekosistem terpadu yang menyederhanakan proses magang dari hulu ke hilir untuk semua pihak."
         />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {FEATURES.map((f, i) => (
@@ -340,6 +374,30 @@ export default function LandingPage({
               </article>
             </Reveal>
           ))}
+        </div>
+      </section>
+
+      {/* ── UNTUK SIAPA (Solusi Terintegrasi) ────────────────────────── */}
+      <section id="untuk-siapa" className="border-t border-gray-100 bg-white py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeading
+            eyebrow="Solusi Terintegrasi"
+            title="Untuk Siapa PRAKERIN.ID?"
+            subtitle="Menghubungkan seluruh elemen ekosistem pendidikan vokasi dan industri dalam satu platform."
+          />
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {AUDIENCE.map((a, i) => (
+              <Reveal key={a.title} delay={i * 80}>
+                <div className="group h-full rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-accent/5">
+                  <span className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
+                    <a.icon className="h-9 w-9" />
+                  </span>
+                  <h3 className="mb-3 text-lg font-bold text-gray-900">{a.title}</h3>
+                  <p className="text-sm leading-relaxed text-gray-500">{a.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -497,29 +555,53 @@ export default function LandingPage({
         </section>
       )}
 
-      {/* ── CTA ──────────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <Reveal>
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-accent to-accent-light px-6 py-14 text-center shadow-xl sm:px-12">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
-            <div className="pointer-events-none absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-white/10" />
-            <h2 className="relative text-2xl font-extrabold text-white sm:text-3xl">
-              Siap Memulai Perjalanan Kariermu?
-            </h2>
-            <p className="relative mx-auto mt-3 max-w-2xl text-white/90">
-              Temukan ribuan peluang magang terbaik dan wujudkan masa depanmu
-              bersama PRAKERIN.ID—gratis, mudah, dan terpercaya.
-            </p>
-            <div className="relative mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/daftar" className="rounded-xl bg-white px-7 py-3 text-sm font-semibold text-accent transition-transform hover:scale-105">
-                Daftar Gratis
-              </Link>
-              <Link href="/lowongan" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/60 px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10">
-                Cari Magang <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+      {/* ── KEAMANAN & PRIVASI ───────────────────────────────────────── */}
+      <section className="border-t border-gray-100 bg-gray-50 py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-8 md:grid-cols-3">
+            {SECURITY.map((s, i) => (
+              <Reveal key={s.title} delay={i * 80}>
+                <div className="flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-accent shadow-sm">
+                    <s.icon className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <h3 className="mb-1 font-bold text-gray-900">{s.title}</h3>
+                    <p className="text-sm leading-relaxed text-gray-500">{s.desc}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
-        </Reveal>
+        </div>
+      </section>
+
+      {/* ── AKSI CEPAT ───────────────────────────────────────────────── */}
+      <section id="daftar" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <SectionHeading
+          eyebrow="Aksi Cepat"
+          title="Mulai Perjalanan Anda"
+          subtitle="Pilih peran Anda dan daftar sekarang—gratis, cepat, dan mudah."
+        />
+        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {REGISTER_ROLES.map((r, i) => (
+            <Reveal key={r.title} delay={i * 70}>
+              <Link
+                href="/daftar"
+                className="group flex h-full flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg"
+              >
+                <span className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
+                  <r.icon className="h-7 w-7" />
+                </span>
+                <span className="text-xs font-medium text-gray-400">Daftar Sebagai</span>
+                <span className="text-sm font-bold text-gray-900">{r.title}</span>
+                <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-accent transition-all group-hover:gap-2">
+                  Mulai <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────────── */}
@@ -535,6 +617,9 @@ export default function LandingPage({
           ))}
         </div>
       </section>
+
+      {/* ── STATS BAND (bottom) ──────────────────────────────────────── */}
+      <StatsSection stats={stats} />
 
       {footer}
     </main>
@@ -650,22 +735,29 @@ function StoryCard({ story: s }: { story: CommentPrakerin }) {
 function StatsSection({ stats }: { stats?: LandingStats }) {
   const { ref, visible } = useReveal();
   const items = [
-    { icon: School, value: stats?.schools ?? 0, label: "Sekolah" },
-    { icon: GraduationCap, value: stats?.universities ?? 0, label: "Perguruan Tinggi" },
-    { icon: Users, value: stats?.students ?? 0, label: "Siswa" },
-    { icon: UserRound, value: stats?.university_students ?? 0, label: "Mahasiswa" },
-    { icon: Building2, value: stats?.companies ?? 0, label: "Mitra Industri" },
+    { icon: Building2, value: stats?.companies ?? 0, label: "Industri Bergabung" },
+    { icon: Landmark, value: stats?.universities ?? 0, label: "Perguruan Tinggi" },
+    { icon: Briefcase, value: stats?.active_jobs ?? 0, label: "Lowongan Tersedia" },
+    { icon: Users, value: stats?.total_students ?? 0, label: "Peserta Terdaftar" },
   ];
   return (
-    <section id="statistik" className="border-y border-gray-100 bg-white py-14">
-      <div ref={ref} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-accent">Bukti Nyata</p>
-          <p className="mx-auto mt-2 max-w-2xl text-xl font-extrabold text-gray-900 sm:text-2xl">
-            Dipercaya oleh ekosistem pendidikan dan industri di Indonesia
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+    <section
+      id="statistik"
+      className="relative overflow-hidden bg-gradient-to-br from-accent to-accent-dark py-16"
+    >
+      {/* dotted pattern overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+      <div ref={ref} className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <p className="mb-10 text-center text-xs font-bold uppercase tracking-widest text-white/70">
+          Dipercaya oleh ribuan mitra
+        </p>
+        <div className="grid grid-cols-2 gap-8 text-center md:grid-cols-4 md:divide-x md:divide-white/20">
           {items.map((it, i) => (
             <StatItem key={it.label} {...it} start={visible} delay={i * 120} />
           ))}
@@ -692,20 +784,18 @@ function StatItem({
   return (
     <div
       style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ${
+      className={`px-4 transition-all duration-700 ${
         start ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       }`}
     >
-      <div className="group flex h-full flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/20 hover:shadow-lg">
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
-          <Icon className="h-7 w-7" />
-        </span>
-        <p className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-          {fmt(n)}
-          {value > 0 && <span className="text-accent">+</span>}
-        </p>
-        <p className="text-sm font-medium text-gray-500">{label}</p>
+      <div className="mb-4 flex justify-center text-vip">
+        <Icon className="h-8 w-8" />
       </div>
+      <p className="text-3xl font-extrabold text-white sm:text-4xl">
+        {fmt(n)}
+        {value > 0 && "+"}
+      </p>
+      <p className="mt-2 text-sm font-medium text-white/80">{label}</p>
     </div>
   );
 }
