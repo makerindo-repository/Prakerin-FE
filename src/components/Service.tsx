@@ -1,3 +1,5 @@
+import { MessageSquare } from "lucide-react";
+
 export default function ServiceButton() {
   const handleClick = () => {
     window.open(
@@ -9,10 +11,10 @@ export default function ServiceButton() {
     <div className="fixed bottom-5 right-5 md:bottom-6 md:right-8 z-40 flex justify-end pointer-events-none">
       <button
         onClick={handleClick}
-        className="flex items-center space-x-2 p-3 px-4 md:px-5 bg-green-400 shadow-xl text-white rounded-full pointer-events-auto cursor-pointer hover:bg-green-500 transition-colors duration-300"
+        className="flex items-center justify-center p-4 bg-accent shadow-2xl text-white rounded-full pointer-events-auto cursor-pointer hover:bg-accent-hover transition-transform duration-300 hover:scale-105"
+        aria-label="Chat via WhatsApp"
       >
-        <img src="/icons/WhatsApp.svg" alt="whatsapp" className="w-6 h-6" />
-        <span className="font-bold">WhatsApp</span>
+        <MessageSquare className="w-7 h-7" />
       </button>
     </div>
   );

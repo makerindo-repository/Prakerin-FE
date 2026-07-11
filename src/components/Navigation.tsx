@@ -13,9 +13,9 @@ interface NavigationProps {
 
 const NAV_LINKS = [
   { label: "Beranda", href: "/" },
+  { label: "Tentang", href: "/tentang-kami" },
   { label: "Lowongan", href: "/lowongan" },
-  { label: "Tentang Kami", href: "/tentang-kami" },
-  { label: "Panduan", href: "/panduan" },
+  { label: "Kontak", href: "/tentang-kami#hubungi-kami" },
 ];
 
 export default function Navigation({}: NavigationProps) {
@@ -40,8 +40,11 @@ export default function Navigation({}: NavigationProps) {
   // Close the mobile drawer on route change.
   useEffect(() => setMobileOpen(false), [pathName]);
 
-  const isActive = (href: string) =>
-    href === "/" ? pathName === "/" : pathName.startsWith(href);
+  const isActive = (href: string) => {
+    if (href === "/") return pathName === "/";
+    if (href.includes("#")) return false; // Hash links don't get active state styling
+    return pathName.startsWith(href);
+  };
 
   return (
     <header
@@ -59,22 +62,22 @@ export default function Navigation({}: NavigationProps) {
 
         {/* Desktop nav */}
         <div className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.slice(0, 2).map((l) => (
-            <NavItem key={l.href} href={l.href} active={isActive(l.href)}>
+          {NAV_LINKS.slice(0, 3).map((l) => (
+            <NavItem key={l.label} href={l.href} active={isActive(l.href)}>
               {l.label}
             </NavItem>
           ))}
 
-          {/* Mitra dropdown */}
+          {/* Pendaftaran dropdown */}
           <div className="group relative">
             <button
               className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                 pathName.startsWith("/mitra")
-                  ? "bg-accent text-white shadow-sm"
+                  ? "bg-[#FDE047] text-gray-900 shadow-sm"
                   : "text-gray-700 hover:bg-accent/5 hover:text-accent"
               }`}
             >
-              Mitra
+              Pendaftaran
               <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
             </button>
             <div className="invisible absolute left-0 top-full w-64 translate-y-1 rounded-xl border border-gray-100 bg-white p-2 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
@@ -90,8 +93,8 @@ export default function Navigation({}: NavigationProps) {
             </div>
           </div>
 
-          {NAV_LINKS.slice(2).map((l) => (
-            <NavItem key={l.href} href={l.href} active={isActive(l.href)}>
+          {NAV_LINKS.slice(3).map((l) => (
+            <NavItem key={l.label} href={l.href} active={isActive(l.href)}>
               {l.label}
             </NavItem>
           ))}
@@ -146,17 +149,23 @@ export default function Navigation({}: NavigationProps) {
         <div className="space-y-1 px-4 py-3">
           {NAV_LINKS.map((l) => (
             <Link
-              key={l.href}
+              key={l.label}
               href={l.href}
               className={`block rounded-lg px-3 py-2.5 text-sm font-semibold ${
-                isActive(l.href) ? "bg-accent/5 text-accent" : "text-gray-700 hover:bg-gray-50"
+                isActive(l.href) ? "bg-[#FDE047] text-gray-900" : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               {l.label}
             </Link>
           ))}
           <Link href="/mitra?type=company" className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-            Mitra
+            Pendaftaran - Industri
+          </Link>
+          <Link href="/mitra?type=school" className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+            Pendaftaran - Sekolah
+          </Link>
+          <Link href="/mitra?type=university" className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+            Pendaftaran - Perguruan Tinggi
           </Link>
           <div className="grid grid-cols-2 gap-2 pt-2">
             {!mounted ? null : isLoggedIn ? (
@@ -193,7 +202,7 @@ function NavItem({
     <Link
       href={href}
       className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${
-        active ? "bg-accent text-white shadow-sm" : "text-gray-700 hover:bg-accent/5 hover:text-accent"
+        active ? "bg-[#FDE047] text-gray-900 shadow-sm" : "text-gray-700 hover:bg-accent/5 hover:text-accent"
       }`}
     >
       {children}
