@@ -30,19 +30,42 @@ export default function Navigation({}: NavigationProps) {
     setIsLoggedIn(!!Cookies.get("userToken"));
   }, []);
 
+  const [activeSection, setActiveSection] = useState("");
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8);
+
+      if (pathName === "/tentang-kami") {
+        const contactSection = document.getElementById("hubungi-kami");
+        if (contactSection) {
+          const rect = contactSection.getBoundingClientRect();
+          if (rect.top <= window.innerHeight / 2) {
+            setActiveSection("hubungi-kami");
+          } else {
+            setActiveSection("tentang");
+          }
+        }
+      } else {
+        setActiveSection("");
+      }
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [pathName]);
 
   // Close the mobile drawer on route change.
   useEffect(() => setMobileOpen(false), [pathName]);
 
   const isActive = (href: string) => {
     if (href === "/") return pathName === "/";
-    if (href.includes("#")) return false; // Hash links don't get active state styling
+    if (href === "/tentang-kami") {
+      return pathName === "/tentang-kami" && activeSection !== "hubungi-kami";
+    }
+    if (href === "/tentang-kami#hubungi-kami") {
+      return pathName === "/tentang-kami" && activeSection === "hubungi-kami";
+    }
     return pathName.startsWith(href);
   };
 
