@@ -102,9 +102,9 @@ const PrakerinRegistrationIndustryForm: React.FC<
     setShowPassword(false);
     setShowConfirmPassword(false);
     setIsSubmitting(true);
-    const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
-    recaptchaRef.current.reset();
-    formData.recaptcha_token = token;
+    // const token = await recaptchaRef.current.executeAsync(); // CAPTCHA disabled for local dev
+    // recaptchaRef.current.reset();
+    // formData.recaptcha_token = token;
 
     try {
       console.log(formData)
@@ -403,12 +403,12 @@ const PrakerinRegistrationIndustryForm: React.FC<
               disabled={isSubmitting}
               className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium flex items-center space-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ReCAPTCHA
+              {/* <ReCAPTCHA
                 sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY as string}
                 size="invisible"
                 className="mb-4"
                 ref={recaptchaRef}
-              />
+              /> */}
               <span>{isSubmitting ? "Mendaftar..." : "Daftar"}</span>
               {!isSubmitting && (
                 <svg

@@ -105,7 +105,8 @@ export const createApiCall = async (arg1: any, arg2: any = {}) => {
     // 4. Selalu kembalikan .data agar konsisten di komponen Frontend kamu
     return response.data;
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || error.message || 'API Error');
+    // Re-throw the original error so callers can inspect error.response
+    throw error;
   }
 };
 

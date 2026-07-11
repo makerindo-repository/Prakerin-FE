@@ -44,12 +44,14 @@ const accessMap: Record<string, string[]> = {
   school: ["/dashboard*", "/dashboard/profile"],
   student: [
     "/dashboard",
+    "/dashboard/ai-analytics*", // AI CV analytics for students
     "/dashboard/lowongan*", // student bisa lihat lowongan
     "/dashboard/cv*",
     "/dashboard/perusahaan*",
     "/dashboard/tasklist*",
     "/dashboard/feedback",
     "/dashboard/sertifikat*",
+    "/dashboard/my-awards*",
     "/dashboard/pembimbing",
     "/dashboard/profile",
   ],
