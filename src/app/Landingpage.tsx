@@ -341,15 +341,7 @@ export default function LandingPage({
               </div>
             </div>
 
-            <div className="floating-delayed absolute -right-2 bottom-12 flex max-w-[200px] items-center gap-3 rounded-2xl border border-gray-100 bg-white/95 px-4 py-3 shadow-xl backdrop-blur z-20">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                <Zap className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-[11px] font-bold text-gray-800 leading-tight">Proses Lamaran Mudah</p>
-                <p className="text-[9px] text-gray-500 mt-0.5 leading-tight">Cepat, praktis, tanpa ribet</p>
-              </div>
-            </div>
+
 
             {stats && (
               <>
