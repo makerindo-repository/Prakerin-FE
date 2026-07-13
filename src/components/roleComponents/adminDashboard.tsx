@@ -141,6 +141,14 @@ interface PreInternshipSummary {
   needs_review: number;
 }
 
+interface MatchingScoreItem {
+  label: string;
+  full_name: string;
+  value: number;
+  color: string;
+  icon: string | React.ElementType;
+}
+
 interface DashboardResponse {
   summary: DashboardSummary;
   system_metrics: SystemMetrics;
@@ -150,6 +158,10 @@ interface DashboardResponse {
   recommendations: Recommendation[];
   recent_activities: RecentActivity[];
   pre_internship_summary: PreInternshipSummary;
+  matching_scores?: {
+    smk: MatchingScoreItem[];
+    mahasiswa: MatchingScoreItem[];
+  };
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -174,9 +186,27 @@ const ICON_MAP: Record<string, React.ElementType> = {
   RefreshCw,
 };
 
+const MAJOR_ICON_MAP: Record<string, React.ElementType> = {
+  Monitor,
+  Code2,
+  Network,
+  ImageIcon,
+  Cpu,
+  LineChart,
+  Zap,
+  Users,
+};
+
 export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
   const [matchMode, setMatchMode] = useState<"smk" | "mahasiswa">("smk");
-  const matchingData = matchMode === "smk" ? MATCHING_SCORE_SMK : MATCHING_SCORE_MAHASISWA;
+  const [matchingScores, setMatchingScores] = useState<{
+    smk: MatchingScoreItem[];
+    mahasiswa: MatchingScoreItem[];
+  } | null>(null);
+
+  const matchingData = matchingScores
+    ? (matchMode === "smk" ? matchingScores.smk : matchingScores.mahasiswa)
+    : (matchMode === "smk" ? MATCHING_SCORE_SMK : MATCHING_SCORE_MAHASISWA);
 
   const [isFetching, setIsFetching] = useState<boolean>(true);
 
@@ -210,7 +240,7 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
           signal: controller.signal,
         });
 
-        const { summary, system_metrics, insights: ins, recommendations: rec, recent_activities, placement_status, regional_data, pre_internship_summary } = response.data;
+        const { summary, system_metrics, insights: ins, recommendations: rec, recent_activities, placement_status, regional_data, pre_internship_summary, matching_scores } = response.data;
 
         setTotalSiswa(summary.total_students);
         setTotalMahasiswa(summary.total_mahasiswa);
@@ -225,6 +255,7 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
         setPlacementStatus(placement_status ?? []);
         setRegionalData(regional_data ?? []);
         setPreInternship(pre_internship_summary ?? { total: 0, ongoing: 0, needs_review: 0 });
+        setMatchingScores(matching_scores ?? null);
       } catch (error: any) {
         if (error.name !== "CanceledError" && error.name !== "AbortError") {
           console.error("Gagal memuat data dashboard:", error);
@@ -431,12 +462,15 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
           <div className="space-y-4 mb-5">
             {matchingData.map((item) => {
               const c = COLOR_MAP[item.color];
+              const IconComponent = typeof item.icon === "string" 
+                ? (MAJOR_ICON_MAP[item.icon] || Monitor) 
+                : item.icon;
               return (
                 <div key={item.label}>
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
                       <div className={`w-6 h-6 rounded-md flex items-center justify-center ${c.bg}`}>
-                        <item.icon className={`w-3.5 h-3.5 ${c.text}`} />
+                        <IconComponent className={`w-3.5 h-3.5 ${c.text}`} />
                       </div>
                       <span className="text-xs font-medium text-gray-700">{item.label}</span>
                     </div>
