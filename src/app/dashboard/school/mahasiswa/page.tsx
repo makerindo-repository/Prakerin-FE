@@ -100,6 +100,7 @@ const DaftarMahasiswaPage: React.FC = () => {
           page: pages.activePages,
           limit: 10,
           role: "student",
+          school_type: "university", // hanya mahasiswa (institusi type=university)
           status: status,
           search: searchTerm,
         },
@@ -493,4 +494,4 @@ const DaftarMahasiswaPage: React.FC = () => {
     </main>
   );
 };
-export default DaftarMahasiswaPage; 
+export default DaftarMahasiswaPage;

@@ -100,6 +100,7 @@ const DaftarSiswaPage: React.FC = () => {
           page: pages.activePages,
           limit: 10,
           role: "student",
+          school_type: "school", // hanya siswa (institusi type=school)
           status: status,
           search: searchTerm,
         },
