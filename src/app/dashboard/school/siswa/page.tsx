@@ -103,7 +103,6 @@ const DaftarSiswaPage: React.FC = () => {
           school_type: "school", // hanya siswa (institusi type=school)
           status: status,
           search: searchTerm,
-          school_type: "school",
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,

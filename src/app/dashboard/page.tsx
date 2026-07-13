@@ -3,8 +3,8 @@ import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { UserCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import Cookies from "js-cookie";
-import { createApiCall, ENDPOINTS } from "@/utils/config";
-import { getGreeting } from "@/utils/getGreeting";
+import { createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
+import { getGreeting, getGreetingDetails } from "@/utils/getGreeting";
 import Image from "next/image";
 import { alertSuccess } from "@/libs/alert";
 import Loader from "@/components/loader";
@@ -27,6 +27,20 @@ interface Profile {
   photo_profile?: string | null;
   name: string;
   username?: string;
+  role?: string;
+  student?: {
+    photo_profile?: string | null;
+    school?: {
+      type?: string | null;
+    };
+  };
+  school?: {
+    photo_profile?: string | null;
+    type?: string | null;
+  };
+  company?: {
+    photo_profile?: string | null;
+  };
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('api/', ''); //BASE_URL to fetch profile pictures correctly since previous added /api into the path
@@ -38,6 +52,7 @@ const Dashboard: React.FC = () => {
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const greetingDetails = getGreetingDetails();
 
   const fetchProfile = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -46,10 +61,11 @@ const Dashboard: React.FC = () => {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      }, signal);
+        signal,
+      });
       
-      if (response.status === 200) {
-        const data = response.data.data;
+      if (response && response.data) {
+        const data = response.data;
         
         // Optimize role mapping
         const roleMap: Record<string, string> = {
@@ -59,8 +75,20 @@ const Dashboard: React.FC = () => {
           super_admin: "Super Admin",
         };
         
+        let photoProfile = null;
+        if (data.role === "student" && data.student?.photo_profile) {
+          photoProfile = data.student.photo_profile;
+        } else if (data.role === "school" && data.school?.photo_profile) {
+          photoProfile = data.school.photo_profile;
+        } else if (data.role === "company" && data.company?.photo_profile) {
+          photoProfile = data.company.photo_profile;
+        } else if (data.photo_profile) {
+          photoProfile = data.photo_profile;
+        }
+        
         setProfile({
           ...data,
+          photo_profile: photoProfile,
           role: roleMap[data.role] || "",
         });
       }
@@ -107,22 +135,22 @@ const Dashboard: React.FC = () => {
           <div className="bg-gradient-to-r from-accent-light to-accent rounded-lg p-6 text-white mb-8">
             <div className="flex items-center space-x-4">
               {profile.photo_profile ? (
-                <div className="w-16 h-16 relative rounded-full border-white border">
-                  <Image
-                    src={`${BASE_URL}/storage/photo-profile/${profile.photo_profile}`}
+                <div className="w-16 h-16 rounded-full border-white border overflow-hidden flex-shrink-0">
+                  <img
+                    src={getPhotoProfileUrl(profile.photo_profile) || ""}
                     alt="Photo Profile"
-                    fill
-                    sizes="100%"
-                    className="object-cover rounded-full"
+                    className="w-full h-full object-cover rounded-full"
                   />
                 </div>
               ) : (
-                <UserCircle className="w-16 h-16 text-white" />
+                <UserCircle className="w-16 h-16 text-white flex-shrink-0" />
               )}
               {/*There should be something that made a random text appear, with the content of current page name / username if in profile page*/}
               <div>
-                <p className="text-sm opacity-90">{getGreeting()}</p>
-                <h1 className="text-xl font-semibold">{profile.name ? profile.name : profile?.username}</h1>
+                <h1 className="text-xl font-semibold">
+                  Selamat {greetingDetails.timeOfDay}, {profile.name || profile.username || "User"}.
+                </h1>
+                <p className="text-sm opacity-90 mt-0.5">{greetingDetails.sentence}</p>
               </div>
             </div>
           </div>
