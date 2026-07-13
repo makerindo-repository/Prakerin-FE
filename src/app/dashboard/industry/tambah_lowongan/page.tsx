@@ -12,6 +12,7 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import Select from "react-select";
 import  useDebounce  from "@/hooks/useDebounce";
+import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 
 const Editor = dynamic<EditorProps & { error?: string }>(
   () => import("@/components/Editor"),
@@ -119,11 +120,11 @@ const tambahLowonganPage: React.FC = () => {
         closing_date: formatDateTime(new Date(formData.closing_date)),
       };
 
-      await API.post(ENDPOINTS.JOB_OPENINGS, payload, {
+      await suppressErrorForSuperAdmin(() => API.post(ENDPOINTS.JOB_OPENINGS, payload, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      });
+      }), { showSuccessMessage: true, successMessage: "Lowongan berhasil ditambahkan!" });
 
       route.replace("/dashboard/lowongan");
       await alertSuccess("Lowongan berhasil ditambahkan!");

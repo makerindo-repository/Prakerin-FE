@@ -1,4 +1,4 @@
-﻿import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/authStore';
 
 /**
  * Hook for checking user permissions.
@@ -16,6 +16,7 @@ export function usePermission() {
    * Returns true if the user has the specified permission.
    */
   const can = (permission: string): boolean => {
+    if (role === 'super_admin') return true;
     return permissions.includes(permission);
   };
 
@@ -23,6 +24,7 @@ export function usePermission() {
    * Returns true if the user has ANY of the specified permissions.
    */
   const canAny = (perms: string[]): boolean => {
+    if (role === 'super_admin') return true;
     return perms.some((p) => permissions.includes(p));
   };
 
@@ -30,6 +32,7 @@ export function usePermission() {
    * Returns true if the user has ALL of the specified permissions.
    */
   const canAll = (perms: string[]): boolean => {
+    if (role === 'super_admin') return true;
     return perms.every((p) => permissions.includes(p));
   };
 

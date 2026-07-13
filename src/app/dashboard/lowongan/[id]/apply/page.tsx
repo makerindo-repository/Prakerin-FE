@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { AxiosError } from "axios";
 import Loader from "@/components/loader";
+import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 
 const Editor = dynamic<EditorProps & { error?: string }>(
   () => import("@/components/Editor"),
@@ -106,7 +107,7 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
     try {
       setIsSubmitting(true);
-      await API.post(
+      await suppressErrorForSuperAdmin(() => API.post(
         ENDPOINTS.INTERNSHIP_APPLICATIONS,
         {
           curriculum_vitae_id: formData.curriculum_vitae_id,
@@ -118,7 +119,7 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
-      );
+      ), { showSuccessMessage: true, successMessage: "Lamaran berhasil dikirim!" });
 
       setFormData({ curriculum_vitae_id: "", cover_letter: "" });
       await alertSuccess("Lamaran berhasil dikirim!");

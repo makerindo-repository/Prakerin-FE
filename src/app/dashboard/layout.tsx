@@ -13,6 +13,7 @@ import {
   FileText,
   Building,
   MessageSquare,
+  Mail,
   Award,
   User,
   Menu,
@@ -133,6 +134,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: Newspaper, label: "Isi Halaman", href: "/dashboard/isi-halaman", permission: "view_isi_halaman" },
         { icon: HelpCircle, label: "Panduan", isDev: true, permission: "view_panduan" },
         { icon: MessageSquareText, label: "Feedback Pengguna", href: "/dashboard/feedback", permission: "view_feedback" },
+        { icon: Mail, label: "Hubungi Kami", href: "/dashboard/contact-messages", permission: "view_feedback" },
       ],
     },
     {
@@ -429,7 +431,34 @@ export default function DashboardLayout({
       return true;
     };
 
-    return navGroups
+    let baseGroups = navGroups;
+
+    if (profile.rawRole === "super_admin" || userRole === "super_admin") {
+      const mergedGroups: NavGroup[] = [];
+      Object.keys(NAV_GROUPS).forEach((roleKey) => {
+        const roleGroups = NAV_GROUPS[roleKey];
+        roleGroups.forEach((group) => {
+          let existingGroup = mergedGroups.find((g) => g.label === group.label);
+          if (!existingGroup) {
+            existingGroup = { label: group.label, items: [] };
+            mergedGroups.push(existingGroup);
+          }
+          group.items.forEach((item) => {
+            const duplicate = existingGroup!.items.some(
+              (existingItem) =>
+                existingItem.label === item.label ||
+                (existingItem.href && existingItem.href === item.href)
+            );
+            if (!duplicate) {
+              existingGroup!.items.push(item);
+            }
+          });
+        });
+      });
+      baseGroups = mergedGroups;
+    }
+
+    return baseGroups
       .map((group) => {
         const filteredItems = group.items.filter((item) => {
           // 1. Cek active status check

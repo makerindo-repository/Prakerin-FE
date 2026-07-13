@@ -29,15 +29,25 @@ export const PermissionProvider = ({
   children: ReactNode;
 }) => {
   const storePermissions = useAuthStore((s) => s.permissions);
+  const storeRole = useAuthStore((s) => s.role);
 
   const permissions = useMemo(
     () => propPermissions ?? storePermissions,
     [propPermissions, storePermissions]
   );
 
-  const can = (permission: string) => permissions.includes(permission);
-  const canAny = (perms: string[]) => perms.some((p) => permissions.includes(p));
-  const canAll = (perms: string[]) => perms.every((p) => permissions.includes(p));
+  const can = (permission: string) => {
+    if (storeRole === "super_admin") return true;
+    return permissions.includes(permission);
+  };
+  const canAny = (perms: string[]) => {
+    if (storeRole === "super_admin") return true;
+    return perms.some((p) => permissions.includes(p));
+  };
+  const canAll = (perms: string[]) => {
+    if (storeRole === "super_admin") return true;
+    return perms.every((p) => permissions.includes(p));
+  };
 
   return (
     <PermissionContext.Provider value={{ permissions, can, canAny, canAll }}>

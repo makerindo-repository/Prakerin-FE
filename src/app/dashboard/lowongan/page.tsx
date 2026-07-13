@@ -11,7 +11,7 @@ const LowonganPage: React.FC = () => {
     setRole(Cookies.get("authorization"));
   }, []);
   const RolePage: React.FC = () => {
-    if (role === "company") return <IndustryLowongan />;
+    if (role === "company" || role === "super_admin") return <IndustryLowongan />;
     if (role === "student") return <SiswaLowongan />;
     if (role === "school") return null;
   };

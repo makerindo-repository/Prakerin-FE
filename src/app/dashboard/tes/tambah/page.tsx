@@ -7,6 +7,7 @@ import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
+import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 import { useRouter } from "next/navigation";
 
 interface FormData {
@@ -46,11 +47,11 @@ const tambahLowonganPage: React.FC = () => {
     try {
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-      await API.post(ENDPOINTS.TESTS, formData, {
+      await suppressErrorForSuperAdmin(() => API.post(ENDPOINTS.TESTS, formData, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      });
+      }), { showSuccessMessage: true, successMessage: "Tes berhasil ditambahkan!" });
 
       await alertSuccess("Tes berhasil ditambahkan!");
 

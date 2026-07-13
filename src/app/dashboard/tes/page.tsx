@@ -19,6 +19,7 @@ import Link from "next/link";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
+import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 import TabsComponent from "@/components/TabsCompenent";
 import Loader from "@/components/loader";
 import PaginationComponent from "@/components/PaginationComponent";
@@ -124,11 +125,11 @@ const TestListPage: React.FC = () => {
     setFormError({});
 
     try {
-      await API.patch(`${ENDPOINTS.TESTS}/${editingId}`, formData, {
+      await suppressErrorForSuperAdmin(() => API.patch(`${ENDPOINTS.TESTS}/${editingId}`, formData, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      });
+      }), { showSuccessMessage: true, successMessage: "Tes berhasil diubah!" });
 
       await fetchTests();
       setFormData({
@@ -164,11 +165,11 @@ const TestListPage: React.FC = () => {
     if (!confirm) return;
 
     try {
-      await API.delete(`${ENDPOINTS.TESTS}/${id}`, {
+      await suppressErrorForSuperAdmin(() => API.delete(`${ENDPOINTS.TESTS}/${id}`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      });
+      }), { showSuccessMessage: true, successMessage: `Tes ${name} berhasil dihapus!` });
       if (tests.length == 1) {
         setPages({ ...pages, activePages: pages.activePages - 1 });
       } else {

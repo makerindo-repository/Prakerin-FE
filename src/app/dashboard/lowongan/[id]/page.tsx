@@ -23,6 +23,7 @@ import { getDurationUnit } from "@/utils/getDurationUnit";
 import Loader from "@/components/loader";
 import { useRouter } from "next/navigation";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
+import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 
 
 interface JobOpening {
@@ -134,7 +135,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const handleClickFavorite = async (id: string) => {
     try {
-      const response = await API.post(
+      const response = await suppressErrorForSuperAdmin(() => API.post(
         `${ENDPOINTS.SAVE_JOB_OPENINGS}`,
         {
           job_opening_id: id,
@@ -144,8 +145,8 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
-      );
-      if (response.status === 200 || response.status === 201) {
+      ), { showSuccessMessage: true, successMessage: "Lowongan berhasil disimpan!" });
+      if (response && (response.status === 200 || response.status === 201)) {
         setJobOpening((prevJob) => ({
           ...prevJob,
           save_job_opening: !prevJob.save_job_opening,
@@ -220,11 +221,11 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       if (!isConfirm) return;
 
       setIsDeleting(true);
-      await API.delete(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
+      await suppressErrorForSuperAdmin(() => API.delete(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      });
+      }), { showSuccessMessage: true, successMessage: "Lowongan berhasil dihapus!" });
 
       router.push("/dashboard/lowongan");
       await alertSuccess("Lowongan berhasil dihapus!");

@@ -78,6 +78,7 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
 
   useEffect(() => {
     fetchRating();
+    fetchFeedback();
   }, []);
 
   const ratingColors = ["#ff0000", "#ff6600", "#ffcc00", "#66cc00", "#009900"]; // contoh warna
@@ -155,85 +156,65 @@ const NonStudentFeedback = ({ authorization }: { authorization: string }) => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {/* {internshipApplications.map((application, index) => (
-                <tr key={application.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {application.student.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {application.school.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    Masih dummy
-                  </td>
-                  <td
-                    className={`px-6 py-4 whitespace-nowrap text-sm ${changeStatusColor(
-                      application.status
-                    )}`}
-                  >
-                    {changeStatus(application.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                    <span className="bg-green-500 rounded-full p-1">Unduh</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => router.push(`lamaran/${application.id}`)}
-                        className="text-blue-600 hover:text-blue-800 cursor-pointer"
-                      >
-                        <CircleAlert size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))} */}
+                {fedback.map((item, index) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {(page.activePages - 1) * 10 + index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {/* created_at not in model yet — show em-dash until API includes it */}
+                      —
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                      {item.text || <span className="text-gray-400 italic">Tidak ada ulasan</span>}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <span key={i} className={i < item.rate ? "text-yellow-400" : "text-gray-200"}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <Link href={`#`} className="flex items-center gap-1 text-accent font-medium">
+                        <CircleArrowRight size={16} />
+                        Detail
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
 
           {/* Mobile Cards */}
           <div className="md:hidden">
-            {/* {internshipApplications.map((application, index) => (
-            <div key={application.id} className="p-4 -b -gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">
-                  {application.student.name}
-                </h3>
-                <span className="text-sm text-gray-500">#{index + 1}</span>
+            {fedback.map((item, index) => (
+              <div key={item.id} className="p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium text-gray-900">{item.name}</h3>
+                  <span className="text-sm text-gray-500">#{(page.activePages - 1) * 10 + index + 1}</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{item.text}</p>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} className={i < item.rate ? "text-yellow-400" : "text-gray-200"}>★</span>
+                  ))}
+                </div>
               </div>
+            ))}
+          </div>
 
-              <div className="flex flex-wrap gap-2 mb-3">
-                <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium flex items-center">
-                  <Download size={12} className="mr-1" />
-                  Unduh
-                </button>
-                <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium flex items-center">
-                  <Eye size={12} className="mr-1" />
-                  Lihat
-                </button>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <button className="text-blue-600 hover:text-blue-800 p-1">
-                  <Edit size={16} />
-                </button>
-                <button className="text-red-600 hover:text-red-800 p-1">
-                  <Trash2 size={16} />
-                </button>
-              </div>
+          {fedback.length === 0 && (
+            <div className="text-center py-12 col-span-2">
+              <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
             </div>
-          ))} */}
-          </div>
-
-          {/* {internshipApplications.length === 0 && ( */}
-          <div className="text-center py-12 col-span-2 ">
-            <NotFoundComponent text="Tidak ada ulasan yang ditemukan." />
-          </div>
-          {/* )} */}
+          )}
         </div>
       </div>
     </div>

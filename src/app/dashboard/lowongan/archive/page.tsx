@@ -8,6 +8,7 @@ import { timeAgo } from "@/utils/timeAgo";
 import Image from "next/image";
 import Loader from "@/components/loader";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 
 interface SaveJobOpening {
   id: string;
@@ -63,7 +64,7 @@ const LowonganArchivePage: React.FC = () => {
     e.stopPropagation();
     try {
       setIsLoading(true);
-      const response = await API.post(
+      const response = await suppressErrorForSuperAdmin(() => API.post(
         `${ENDPOINTS.SAVE_JOB_OPENINGS}`,
         {
           job_opening_id: id,
@@ -73,8 +74,8 @@ const LowonganArchivePage: React.FC = () => {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
-      );
-      if (response.status === 200 || response.status === 201) {
+      ), { showSuccessMessage: true, successMessage: "Lowongan berhasil disimpan!" });
+      if (response && (response.status === 200 || response.status === 201)) {
         await fetchSaveJobOpenings();
       }
     } catch (error) {

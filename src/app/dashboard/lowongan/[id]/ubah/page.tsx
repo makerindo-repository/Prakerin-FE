@@ -24,6 +24,7 @@ import dynamic from "next/dynamic";
 import { EditorProps } from "@/components/Editor";
 import { AxiosError } from "axios";
 import useDebounce from "@/hooks/useDebounce";
+import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 
 const Editor = dynamic<EditorProps & { error?: string }>(
   () => import("@/components/Editor"),
@@ -165,7 +166,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const handleClickFavorite = async (id: string) => {
     try {
-      const response = await API.post(
+      const response = await suppressErrorForSuperAdmin(() => API.post(
         `${ENDPOINTS.SAVE_JOB_OPENINGS}`,
         {
           job_opening_id: id,
@@ -175,8 +176,8 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
-      );
-      if (response.status === 200 || response.status === 201) {
+      ), { showSuccessMessage: true, successMessage: "Lowongan berhasil disimpan!" });
+      if (response && (response.status === 200 || response.status === 201)) {
         setJobOpening((prevJob) => ({
           ...prevJob,
           save_job_opening: !prevJob.save_job_opening,
@@ -195,11 +196,11 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       if (!isConfirm) return;
 
       setIsDeleting(true);
-      await API.delete(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
+      await suppressErrorForSuperAdmin(() => API.delete(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      });
+      }), { showSuccessMessage: true, successMessage: "Lowongan berhasil dihapus!" });
 
       await alertSuccess("Lowongan berhasil dihapus!");
       router.push("/dashboard/lowongan");
@@ -240,11 +241,11 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         closing_date: formatDateTime(new Date(formData.closing_date)),
       };
 
-      await API.patch(`${ENDPOINTS.JOB_OPENINGS}/${id}`, payload, {
+      await suppressErrorForSuperAdmin(() => API.patch(`${ENDPOINTS.JOB_OPENINGS}/${id}`, payload, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-      });
+      }), { showSuccessMessage: true, successMessage: "Lowongan berhasil diperbarui!" });
 
       await alertSuccess("Lowongan berhasil diperbarui!");
       setIsEditMode(false);
