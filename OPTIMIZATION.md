@@ -81,7 +81,7 @@ Aplikasi Next.js PrakerinID telah dioptimalkan untuk mengatasi masalah nginx gat
 ```bash
 # Production settings
 NEXT_PUBLIC_API_URL=https://api.prakerin.id
-NEXT_PUBLIC_API_TIMEOUT=30000
+NEXT_PUBLIC_API_TIMEOUT=60000 #timeout diubah dari 30000 jadi 60000 biar ngga gampang timeout pas generate cv dan ai analytics
 NEXT_PUBLIC_ENABLE_CACHE=true
 ```
 

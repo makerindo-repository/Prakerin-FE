@@ -102,6 +102,7 @@ const DaftarMahasiswaPage: React.FC = () => {
           role: "student",
           status: status,
           search: searchTerm,
+          school_type: "university",
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -337,7 +338,7 @@ const DaftarMahasiswaPage: React.FC = () => {
                   Nama
                 </th>
                 <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
-                  Kelas
+                  Semester
                 </th>
                 <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                   Jurusan
@@ -359,7 +360,7 @@ const DaftarMahasiswaPage: React.FC = () => {
                     </td>
                     <td className="p-4 text-gray-800 text-sm">{task.student?.name ?? "-"}</td>
                     <td className="p-4 text-gray-800 text-sm">
-                      {task.student?.class ?? "-"}
+                      {task.student?.class ? `Semester ${task.student.class}` : "-"}
                     </td>
                     <td className="p-4 text-gray-800 text-sm">
                       {task.major?.name ?? "-"}
@@ -435,9 +436,9 @@ const DaftarMahasiswaPage: React.FC = () => {
                 
                 <div className="space-y-1.5 text-xs">
                   <div className="flex">
-                    <span className="text-gray-500 w-16 flex-shrink-0">Kelas:</span>
+                    <span className="text-gray-500 w-16 flex-shrink-0">Semester:</span>
                     <span className="text-gray-900 font-medium break-words">
-                      {task.student?.class ?? "-"}
+                      {task.student?.class ? `Semester ${task.student.class}` : "-"}
                     </span>
                   </div>
                   <div className="flex">

@@ -390,7 +390,6 @@ const EditSiswaPage: React.FC = () => {
                       <option value="10">10</option>
                       <option value="11">11</option>
                       <option value="12">12</option>
-                      <option value="collage">Kuliah</option>
                     </select>
                     {errors.class && (
                       <p className="mt-1 text-sm text-red-500">{errors.class}</p>

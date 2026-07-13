@@ -75,7 +75,7 @@ npm start
 ```bash
 # API Configuration
 NEXT_PUBLIC_API_URL=https://api.prakerin.id
-NEXT_PUBLIC_API_TIMEOUT=30000
+NEXT_PUBLIC_API_TIMEOUT=60000
 
 # Performance Settings
 NEXT_PUBLIC_ENABLE_CACHE=true

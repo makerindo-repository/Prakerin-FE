@@ -433,6 +433,27 @@ export default function DashboardLayout({
 
     let baseGroups = navGroups;
 
+    if (profile.rawRole === "school") {
+      baseGroups = baseGroups.map((group) => {
+        if (group.label === "MANAJEMEN") {
+          return {
+            ...group,
+            items: group.items.map((item) => {
+              if (item.label === "Daftar Siswa/Mahasiswa") {
+                if (profile.role === "Perguruan Tinggi") {
+                  return { ...item, label: "Daftar Mahasiswa", href: "/dashboard/school/mahasiswa" };
+                } else {
+                  return { ...item, label: "Daftar Siswa", href: "/dashboard/school/siswa" };
+                }
+              }
+              return item;
+            }),
+          };
+        }
+        return group;
+      });
+    }
+
     if (profile.rawRole === "super_admin" || userRole === "super_admin") {
       const mergedGroups: NavGroup[] = [];
       Object.keys(NAV_GROUPS).forEach((roleKey) => {

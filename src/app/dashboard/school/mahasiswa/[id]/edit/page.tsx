@@ -376,7 +376,7 @@ const EditSiswaPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Kelas
+                      Semester
                     </label>
                     <select
                       name="class"
@@ -386,11 +386,21 @@ const EditSiswaPage: React.FC = () => {
                         errors.class ? "border-red-500" : "border-gray-300"
                       }`}
                     >
-                      <option value="">Pilih Kelas</option>
-                      <option value="10">10</option>
-                      <option value="11">11</option>
-                      <option value="12">12</option>
-                      <option value="collage">Kuliah</option>
+                      <option value="">Pilih Semester</option>
+                      <option value="1">Semester 1</option>
+                      <option value="2">Semester 2</option>
+                      <option value="3">Semester 3</option>
+                      <option value="4">Semester 4</option>
+                      <option value="5">Semester 5</option>
+                      <option value="6">Semester 6</option>
+                      <option value="7">Semester 7</option>
+                      <option value="8">Semester 8</option>
+                      <option value="9">Semester 9</option>
+                      <option value="10">Semester 10</option>
+                      <option value="11">Semester 11</option>
+                      <option value="12">Semester 12</option>
+                      <option value="13">Semester 13</option>
+                      <option value="14">Semester 14</option>
                     </select>
                     {errors.class && (
                       <p className="mt-1 text-sm text-red-500">{errors.class}</p>

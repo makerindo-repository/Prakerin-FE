@@ -102,6 +102,7 @@ const DaftarSiswaPage: React.FC = () => {
           role: "student",
           status: status,
           search: searchTerm,
+          school_type: "school",
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,

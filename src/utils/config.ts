@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.prakerin.id';
-const TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000;
+const TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 60000;
 
 export const ENDPOINTS = {
   // Authentication & User
