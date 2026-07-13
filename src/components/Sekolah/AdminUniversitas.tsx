@@ -38,7 +38,7 @@ interface Data {
   };
 }
 
-const AdminSekolah: React.FC = () => {
+const AdminUniversitas: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
   const debouncedQuery = useDebounce(inputSearch, 1000);
@@ -85,7 +85,7 @@ const AdminSekolah: React.FC = () => {
           search: inputSearch,
           limit: 10,
           page: pages.activePages,
-          is_school: true, // Data Sekolah = khusus institusi type "school"
+          is_school: false, // Data Universitas = khusus institusi type "university"
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -106,7 +106,7 @@ const AdminSekolah: React.FC = () => {
 
   const handleDelete = async (id: string, name: string) => {
     const confirm = await alertConfirm(
-      `Apakah anda yakin ingin menghapus sekolah "${name}"?`
+      `Apakah anda yakin ingin menghapus universitas "${name}"?`
     );
     if (!confirm) return;
 
@@ -118,7 +118,7 @@ const AdminSekolah: React.FC = () => {
       });
 
       await fetchData();
-      await alertSuccess(`Sekolah ${name} berhasil dihapus!`);
+      await alertSuccess(`Universitas ${name} berhasil dihapus!`);
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -130,7 +130,7 @@ const AdminSekolah: React.FC = () => {
 
   const handleAccept = async (id: string, name: string) => {
     const confirm = await alertConfirm(
-      `Apakah anda yakin ingin menerima sekolah "${name}"?`
+      `Apakah anda yakin ingin menerima universitas "${name}"?`
     );
     if (!confirm) return;
     try {
@@ -146,7 +146,7 @@ const AdminSekolah: React.FC = () => {
         }
       );
       await fetchData();
-      await alertSuccess(`Sekolah ${name} berhasil diterima!`);
+      await alertSuccess(`Universitas ${name} berhasil diterima!`);
     } catch (error) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -203,7 +203,7 @@ const AdminSekolah: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Cari sekolah..."
+            placeholder="Cari universitas..."
             value={inputSearch}
             onChange={(e) => setInputSearch(e.target.value)}
             className="w-full bg-accent text-white pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-transparent transition-colors"
@@ -304,7 +304,7 @@ const AdminSekolah: React.FC = () => {
 
         {data.length === 0 && loading === false && (
           <div className="text-center py-12 col-span-2 ">
-            <NotFoundComponent text="Tidak ada sekolah yang ditemukan." />
+            <NotFoundComponent text="Tidak ada universitas yang ditemukan." />
           </div>
         )}
       </div>
@@ -318,4 +318,4 @@ const AdminSekolah: React.FC = () => {
     </>
   );
 };
-export default AdminSekolah;
+export default AdminUniversitas;

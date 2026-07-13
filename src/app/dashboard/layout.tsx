@@ -47,6 +47,7 @@ import {
   Activity,
   Newspaper,
   Shield,
+  Landmark,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -65,6 +66,7 @@ interface NavItem {
   isDev?: boolean; // halaman belum dibuat → badge "Dev"
   permission?: string;
   isLms?: boolean; // LMS link
+  onlyForSchoolType?: "school" | "university"; // item cuma tampil kalau institusi login match tipe ini
 }
 
 interface NavGroup {
@@ -78,6 +80,7 @@ interface Profile {
   email: string;
   role: Role;
   rawRole?: string;
+  schoolType?: "school" | "university" | null; // dipakai buat nentuin menu Data Siswa vs Data Mahasiswa
   username: string;
 }
 
@@ -113,7 +116,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: GraduationCap, label: "Data Jurusan Siswa", href: "/dashboard/master-data/jurusan", permission: "view_data_jurusan_siswa" },
         { icon: BriefcaseBusiness, label: "Data Bidang Magang", href: "/dashboard/master-data/bidang", permission: "view_data_bidang_magang" },
         { icon: School, label: "Data Sekolah", href: "/dashboard/sekolah", permission: "view_data_sekolah" },
-        { icon: School, label: "Data Perguruan Tinggi", isDev: true, permission: "view_data_perguruan_tinggi" },
+        { icon: Landmark, label: "Data Universitas", href: "/dashboard/universitas", permission: "view_data_perguruan_tinggi" },
         { icon: Building, label: "Data Industri", href: "/dashboard/perusahaan", permission: "view_data_industri" },
       ],
     },
@@ -219,7 +222,8 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "MANAJEMEN",
       items: [
-        { icon: UsersRound, label: "Daftar Siswa/Mahasiswa", href: "/dashboard/school/siswa", permission: "view_manajemen_user" },
+        { icon: UsersRound, label: "Data Siswa", href: "/dashboard/school/siswa", permission: "view_manajemen_user", onlyForSchoolType: "school" },
+        { icon: GraduationCap, label: "Data Mahasiswa", href: "/dashboard/school/mahasiswa", permission: "view_manajemen_user", onlyForSchoolType: "university" },
         { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
         { icon: BookOpen, label: "Kelas Pra-Magang", href: "https://makerindo.myr.id/", isLms: true, permission: "view_kelas" },
         { icon: Building, label: "Perusahaan", href: "/dashboard/perusahaan", permission: "view_kelas" },
@@ -329,7 +333,13 @@ export default function DashboardLayout({
         photoProfile = data.photo_profile;
       }
 
-      setProfile({ ...data, photo_profile: photoProfile, role: roleLabel, rawRole: data.role });
+      setProfile({
+        ...data,
+        photo_profile: photoProfile,
+        role: roleLabel,
+        rawRole: data.role,
+        schoolType: data.school?.type ?? null,
+      });
       setNavGroups(NAV_GROUPS[data.role] ?? []);
 
       // Fetch and restore permissions in Zustand on reload
@@ -431,28 +441,15 @@ export default function DashboardLayout({
       return true;
     };
 
-    let baseGroups = navGroups;
+    const matchesSchoolType = (item: NavItem) => {
+      if (profile.rawRole === "super_admin" || userRole === "super_admin") return true;
+      if (!item.onlyForSchoolType) return true;
+      // Selama tipe institusi belum kebaca (masih loading), item disembunyikan
+      // dulu (aman) daripada nampilin dua-duanya sekilas.
+      return profile.schoolType === item.onlyForSchoolType;
+    };
 
-    if (profile.rawRole === "school") {
-      baseGroups = baseGroups.map((group) => {
-        if (group.label === "MANAJEMEN") {
-          return {
-            ...group,
-            items: group.items.map((item) => {
-              if (item.label === "Daftar Siswa/Mahasiswa") {
-                if (profile.role === "Perguruan Tinggi") {
-                  return { ...item, label: "Daftar Mahasiswa", href: "/dashboard/school/mahasiswa" };
-                } else {
-                  return { ...item, label: "Daftar Siswa", href: "/dashboard/school/siswa" };
-                }
-              }
-              return item;
-            }),
-          };
-        }
-        return group;
-      });
-    }
+    let baseGroups = navGroups;
 
     if (profile.rawRole === "super_admin" || userRole === "super_admin") {
       const mergedGroups: NavGroup[] = [];
@@ -484,7 +481,9 @@ export default function DashboardLayout({
         const filteredItems = group.items.filter((item) => {
           // 1. Cek active status check
           if (!isActive && isProtectedHref(item.href)) return false;
-          // 2. Cek permission check
+          // 2. Cek cocok tipe institusi (Data Siswa vs Data Mahasiswa, dst)
+          if (!matchesSchoolType(item)) return false;
+          // 3. Cek permission check
           return hasPermission(item);
         });
         return filteredItems.length > 0
@@ -492,7 +491,7 @@ export default function DashboardLayout({
           : null;
       })
       .filter(Boolean) as NavGroup[];
-  }, [navGroups, isActive, permissions, profile.rawRole, userRole]);
+  }, [navGroups, isActive, permissions, profile.rawRole, profile.schoolType, userRole]);
 
   // ── Active link check ─────────────────────────────────────────────────────
   const isActiveLink = (href?: string) => {
