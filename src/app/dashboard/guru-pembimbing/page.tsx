@@ -1,8 +1,14 @@
-import UnderConstruction from "@/components/UnderConstruction";
-import React from "react";
+"use client";
+import PembimbingManager from "@/components/Pembimbing/PembimbingManager";
 
 const GuruPembimbingPage = () => {
-  return <UnderConstruction />;
+  return (
+    <PembimbingManager
+      roleFilter="school"
+      title="Guru Pembimbing"
+      eyebrow="Manajemen Guru Pembimbing"
+    />
+  );
 };
 
 export default GuruPembimbingPage;

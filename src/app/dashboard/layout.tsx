@@ -13,7 +13,6 @@ import {
   FileText,
   Building,
   MessageSquare,
-  Mail,
   Award,
   User,
   Menu,
@@ -137,7 +136,6 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: Newspaper, label: "Isi Halaman", href: "/dashboard/isi-halaman", permission: "view_isi_halaman" },
         { icon: HelpCircle, label: "Panduan", isDev: true, permission: "view_panduan" },
         { icon: MessageSquareText, label: "Feedback Pengguna", href: "/dashboard/feedback", permission: "view_feedback" },
-        { icon: Mail, label: "Hubungi Kami", href: "/dashboard/contact-messages", permission: "view_feedback" },
       ],
     },
     {
@@ -151,7 +149,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "SISTEM",
       items: [
         { icon: Shield, label: "Role & Hak Akses", href: "/dashboard/master-data/roles", permission: "manage_permissions" },
-        { icon: Settings, label: "Pengaturan", isDev: true, permission: "view_pengaturan" },
+        { icon: Settings, label: "Pengaturan", href: "/dashboard/pengaturan", permission: "view_pengaturan" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
       ],
     },
@@ -205,7 +203,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: Award, label: "Penghargaan", href: "/dashboard/awards", permission: "view_laporan" },
         { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
         { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat", permission: "view_profil" },
-        { icon: UserRound, label: "Pembimbing Perusahaan", isDev: true, permission: "view_pembimbing" },
+        { icon: UserRound, label: "Pembimbing Perusahaan", href: "/dashboard/pembimbing-perusahaan", permission: "view_pembimbing" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
       ],
     },
@@ -230,7 +228,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou", permission: "view_kelas" },
         { icon: Award, label: "Penghargaan", href: "/dashboard/awards", permission: "view_laporan" },
         { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
-        { icon: UserRound, label: "Guru Pembimbing", isDev: true, permission: "view_pembimbing" },
+        { icon: UserRound, label: "Guru Pembimbing", href: "/dashboard/guru-pembimbing", permission: "view_pembimbing" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
       ],
     },
@@ -442,41 +440,13 @@ export default function DashboardLayout({
     };
 
     const matchesSchoolType = (item: NavItem) => {
-      if (profile.rawRole === "super_admin" || userRole === "super_admin") return true;
       if (!item.onlyForSchoolType) return true;
       // Selama tipe institusi belum kebaca (masih loading), item disembunyikan
       // dulu (aman) daripada nampilin dua-duanya sekilas.
       return profile.schoolType === item.onlyForSchoolType;
     };
 
-    let baseGroups = navGroups;
-
-    if (profile.rawRole === "super_admin" || userRole === "super_admin") {
-      const mergedGroups: NavGroup[] = [];
-      Object.keys(NAV_GROUPS).forEach((roleKey) => {
-        const roleGroups = NAV_GROUPS[roleKey];
-        roleGroups.forEach((group) => {
-          let existingGroup = mergedGroups.find((g) => g.label === group.label);
-          if (!existingGroup) {
-            existingGroup = { label: group.label, items: [] };
-            mergedGroups.push(existingGroup);
-          }
-          group.items.forEach((item) => {
-            const duplicate = existingGroup!.items.some(
-              (existingItem) =>
-                existingItem.label === item.label ||
-                (existingItem.href && existingItem.href === item.href)
-            );
-            if (!duplicate) {
-              existingGroup!.items.push(item);
-            }
-          });
-        });
-      });
-      baseGroups = mergedGroups;
-    }
-
-    return baseGroups
+    return navGroups
       .map((group) => {
         const filteredItems = group.items.filter((item) => {
           // 1. Cek active status check
