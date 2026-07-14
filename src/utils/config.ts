@@ -46,6 +46,7 @@ export const ENDPOINTS = {
   FIELDS: '/api/v1/fields',
   STUDENTS: '/api/v1/students',
   COMPANIES: '/api/v1/companies',
+  SETTINGS: '/api/v1/settings',
 };
 
 export const API = axios.create({
