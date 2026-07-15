@@ -118,7 +118,7 @@ export default function AboutPage() {
               <div className="mt-12 grid grid-cols-3 gap-5">
                 <div className="rounded-3xl border border-accent/10 bg-white/80 backdrop-blur-sm shadow-lg shadow-gray-100/50 p-6 hover:-translate-y-2 hover:shadow-xl hover:shadow-accent/5 duration-300">
                   <h2 className="text-4xl font-extrabold text-accent">
-                    20+
+                    30+
                   </h2>
                   <p className="mt-2 text-sm text-gray-500 font-medium">
                     Perusahaan Partner
