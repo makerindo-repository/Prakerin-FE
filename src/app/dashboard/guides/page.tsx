@@ -51,7 +51,9 @@ const GuidesAdminPage: React.FC = () => {
   const [editForm, setEditForm] = useState({
     title: "",
     description: "",
+    type: "student" as "student" | "school" | "company",
     is_published: true,
+    file: null as File | null,
   });
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -141,7 +143,9 @@ const GuidesAdminPage: React.FC = () => {
     setEditForm({
       title: guide.title,
       description: guide.description || "",
+      type: guide.type,
       is_published: guide.is_published,
+      file: null,
     });
     setShowEditModal(true);
   };
@@ -154,11 +158,40 @@ const GuidesAdminPage: React.FC = () => {
     setEditErrors({});
 
     try {
-      await API.patch(`/api/v1/guides/${selectedGuide.id}`, editForm, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
+      if (editForm.file) {
+        // Laravel gak parse multipart body buat method PATCH asli, jadi
+        // pakai POST + _method spoofing biar file-nya kebaca tapi tetap
+        // ke-handle sama method update() di backend.
+        const data = new FormData();
+        data.append("_method", "PATCH");
+        data.append("title", editForm.title);
+        data.append("description", editForm.description);
+        data.append("type", editForm.type);
+        data.append("is_published", editForm.is_published ? "1" : "0");
+        data.append("file", editForm.file);
+
+        await API.post(`/api/v1/guides/${selectedGuide.id}`, data, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        });
+      } else {
+        await API.patch(
+          `/api/v1/guides/${selectedGuide.id}`,
+          {
+            title: editForm.title,
+            description: editForm.description,
+            type: editForm.type,
+            is_published: editForm.is_published,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("userToken")}`,
+            },
+          }
+        );
+      }
 
       await alertSuccess("Panduan berhasil diperbarui!");
       setShowEditModal(false);
@@ -488,14 +521,17 @@ const GuidesAdminPage: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Target Penerima (Read-only)
+                  Target Penerima
                 </label>
-                <input
-                  type="text"
-                  value={getRoleLabel(selectedGuide.type)}
-                  className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
-                  readOnly
-                />
+                <select
+                  value={editForm.type}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, type: e.target.value as "student" | "school" | "company" }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-accent"
+                >
+                  <option value="student">Siswa / Mahasiswa</option>
+                  <option value="school">Sekolah</option>
+                  <option value="company">Perusahaan</option>
+                </select>
               </div>
 
               <div>
@@ -528,6 +564,36 @@ const GuidesAdminPage: React.FC = () => {
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-accent"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ganti File PDF <span className="text-gray-400 font-normal">(opsional)</span>
+                </label>
+                <div className="relative border-2 border-dashed border-gray-300 hover:border-accent rounded-lg p-4 bg-slate-50 hover:bg-slate-100/50 transition-colors flex flex-col items-center justify-center cursor-pointer text-center">
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.type !== "application/pdf") {
+                        alert("Hanya file PDF yang diperbolehkan!");
+                        return;
+                      }
+                      if (file.size > 10 * 1024 * 1024) {
+                        alert("Ukuran file maksimal 10MB!");
+                        return;
+                      }
+                      setEditForm((prev) => ({ ...prev, file }));
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                  <span className="text-xs font-medium text-gray-600">
+                    {editForm.file ? editForm.file.name : "Biarkan kosong kalau tidak ingin mengganti file"}
+                  </span>
+                </div>
               </div>
 
               <div className="flex items-center justify-between py-2">

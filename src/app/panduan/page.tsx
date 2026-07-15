@@ -14,9 +14,12 @@ import {
     Building2,
     Headphones,
     ChevronRight,
+    FileX,
 } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { API } from "@/utils/config";
+import Loader from "@/components/loader";
 
 /*
 |--------------------------------------------------------------------------
@@ -34,23 +37,54 @@ const PdfViewer = dynamic(
     }
 );
 
+interface Guide {
+    id: string;
+    type: string;
+    title: string;
+    description: string | null;
+    file_path: string;
+    created_at: string;
+}
+
+type GuideCategory = "student" | "school" | "company";
+
 export default function GuidePage() {
 
-    const [selectedGuide, setSelectedGuide] = useState<
-        "student" | "school" | "company"
-    >("student");
+    const [selectedGuide, setSelectedGuide] = useState<GuideCategory>("student");
+    const [guide, setGuide] = useState<Guide | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const pdfs = {
-        student: "/doc/placeholder.pdf",
-        school: "/doc/placeholder.pdf",
-        company: "/doc/placeholder.pdf",
-    };
-
-    const guideTitle = {
+    const guideTitle: Record<GuideCategory, string> = {
         student: "Panduan Siswa / Mahasiswa",
         school: "Panduan Sekolah",
         company: "Panduan Perusahaan",
     };
+
+    useEffect(() => {
+        const fetchGuide = async () => {
+            setIsLoading(true);
+            try {
+                // Publik, gak butuh login — ambil panduan terbaru yang
+                // sudah dipublikasikan untuk kategori yang dipilih.
+                const response = await API.get("/api/v1/guides", {
+                    params: { type: selectedGuide },
+                });
+                const guides: Guide[] = response.data.data || [];
+                setGuide(guides[0] || null);
+            } catch (error) {
+                console.error("Error fetching guide:", error);
+                setGuide(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchGuide();
+    }, [selectedGuide]);
+
+    const fileUrl = guide
+        ? `${process.env.NEXT_PUBLIC_API_URL || "https://api.prakerin.id"}/storage/${guide.file_path}`
+        : "";
 
     return (
         <>
@@ -104,7 +138,7 @@ export default function GuidePage() {
                                     {/* STUDENT */}
                                     <button
                                         onClick={() => setSelectedGuide("student")}
-                                        className={`w-full rounded-2xl border p-5 transition-all duration-300 flex justify-between items-center
+                                        className={`w-full rounded-2xl border p-5 transition-all duration-300 flex justify-between items-center cursor-pointer
                                         ${
                                             selectedGuide === "student"
                                                 ? "border-accent bg-cyan-50"
@@ -134,7 +168,7 @@ export default function GuidePage() {
                                     {/* SCHOOL */}
                                     <button
                                         onClick={() => setSelectedGuide("school")}
-                                        className={`w-full rounded-2xl border p-5 transition-all duration-300 flex justify-between items-center
+                                        className={`w-full rounded-2xl border p-5 transition-all duration-300 flex justify-between items-center cursor-pointer
                                         ${
                                             selectedGuide === "school"
                                                 ? "border-accent bg-cyan-50"
@@ -165,7 +199,7 @@ export default function GuidePage() {
                                     {/* COMPANY */}
                                     <button
                                         onClick={() => setSelectedGuide("company")}
-                                        className={`w-full rounded-2xl border p-5 transition-all duration-300 flex justify-between items-center
+                                        className={`w-full rounded-2xl border p-5 transition-all duration-300 flex justify-between items-center cursor-pointer
 
                                         ${
                                             selectedGuide === "company"
@@ -208,18 +242,39 @@ export default function GuidePage() {
                                     Hubungi tim kami apabila mengalami
                                     kendala ketika menggunakan Prakerin.id.
                                 </p>
-                                <button className="mt-6 w-full rounded-xl bg-white py-3 font-semibold text-cyan-700">
+                                <a
+                                    href="mailto:makerdotindo@gmail.com"
+                                    className="mt-6 block text-center w-full rounded-xl bg-white py-3 font-semibold text-cyan-700 hover:bg-cyan-50 transition-colors"
+                                >
                                     Hubungi Kami
-                                </button>
+                                </a>
                             </div>
                         </div>
                         
                         {/* ================= PDF VIEWER ================= */}
                         <div className="lg:col-span-8">
-                            <PdfViewer
-                                title={guideTitle[selectedGuide]}
-                                file={pdfs[selectedGuide]}
-                            />
+                            {isLoading ? (
+                                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm h-[600px] flex items-center justify-center">
+                                    <Loader />
+                                </div>
+                            ) : guide ? (
+                                <PdfViewer
+                                    title={guide.title}
+                                    file={fileUrl}
+                                />
+                            ) : (
+                                <div className="rounded-3xl border border-dashed border-slate-300 bg-white shadow-sm h-[600px] flex flex-col items-center justify-center text-center p-10">
+                                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                                        <FileX className="w-8 h-8 text-slate-400" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-slate-700">
+                                        {guideTitle[selectedGuide]} Belum Tersedia
+                                    </h3>
+                                    <p className="text-sm text-slate-500 mt-1 max-w-xs">
+                                        Dokumen panduan untuk kategori ini belum diunggah oleh admin. Silakan cek kategori lain atau kembali lagi nanti.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
