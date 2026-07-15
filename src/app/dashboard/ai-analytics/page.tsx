@@ -25,6 +25,8 @@ import {
 import Cookies from "js-cookie";
 import { createApiCall, API } from "@/utils/config";
 import { alertSuccess, alertError, alertConfirm } from "@/libs/alert";
+import { usePermission } from "@/hooks/usePermission";
+import Link from "next/link";
 
 interface ProfileSummary {
   name: string;
@@ -69,6 +71,7 @@ export default function AiAnalyticsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { can, role } = usePermission();
 
   // Fetch latest analysis
   const fetchLatest = useCallback(async () => {
@@ -333,22 +336,44 @@ export default function AiAnalyticsPage() {
           </div>
           <div className="space-y-2 flex-1">
             <h3 className="text-lg font-bold text-amber-800">Gemini API Key Belum Dikonfigurasi</h3>
-            <p className="text-sm text-amber-700 leading-relaxed">
-              Layanan AI Analytics memerlukan API Key Gemini untuk membaca dan menganalisis file resume.
-            </p>
-            <div className="bg-white border border-amber-100 rounded-xl p-4 text-xs font-mono text-gray-700 space-y-2 max-w-2xl mt-3">
-              <p className="font-bold text-amber-800 mb-1">💡 Cara Mengonfigurasi:</p>
-              <p>1. Dapatkan kunci API gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[#035a70] underline font-bold">Google AI Studio</a>.</p>
-              <p>2. Buka file <code className="bg-gray-100 px-1 py-0.5 rounded">.env</code> di dalam folder backend proyek Anda (<code className="bg-gray-100 px-1 py-0.5 rounded">Prakerin-BE</code>).</p>
-              <p>3. Tambahkan baris konfigurasi berikut dan simpan file:</p>
-              <p className="bg-amber-50/50 p-2 border-l-2 border-amber-500 text-amber-900 select-all font-bold">GEMINI_API_KEY=Kunci_API_Anda_Disini</p>
-            </div>
-            <button
-              onClick={() => setApiKeyMissing(false)}
-              className="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
-            >
-              Saya sudah menambahkannya, coba lagi
-            </button>
+            
+            {can("edit_pengaturan") || role === "super_admin" ? (
+              <>
+                <p className="text-sm text-amber-700 leading-relaxed">
+                  Layanan AI Analytics memerlukan Kunci API Gemini. Sebagai administrator, Anda dapat mengonfigurasinya secara dinamis di menu Pengaturan Sistem tanpa harus mengubah file .env di server.
+                </p>
+                <div className="bg-white border border-amber-100 rounded-xl p-4 text-xs font-mono text-gray-700 space-y-2 max-w-2xl mt-3">
+                  <p className="font-bold text-amber-800 mb-1">💡 Cara Mengonfigurasi:</p>
+                  <p>1. Dapatkan kunci API gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[#035a70] underline font-bold">Google AI Studio</a>.</p>
+                  <p>2. Konfigurasikan di halaman Pengaturan &gt; Integrasi &amp; API.</p>
+                  <p className="font-semibold text-gray-500 mt-2">Atau tambahkan ke file backend .env:</p>
+                  <p className="bg-amber-50/50 p-2 border-l-2 border-amber-500 text-amber-900 select-all font-bold">GEMINI_API_KEY=Kunci_API_Anda_Disini</p>
+                </div>
+                <div className="flex flex-wrap gap-3 mt-4">
+                  <Link
+                    href="/dashboard/pengaturan"
+                    className="px-4 py-2 bg-[#035a70] hover:bg-[#035a70]/90 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                  >
+                    Buka Pengaturan Sistem
+                  </Link>
+                  <button
+                    onClick={() => setApiKeyMissing(false)}
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+                  >
+                    Saya sudah menambahkannya, coba lagi
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-amber-700 leading-relaxed">
+                  Layanan AI Analytics belum siap karena Kunci API Gemini belum dikonfigurasi oleh administrator sistem.
+                </p>
+                <p className="text-xs text-amber-600 mt-2 font-medium">
+                  Silakan hubungi administrator Anda untuk mengaktifkan fitur ini melalui menu Pengaturan Sistem.
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}

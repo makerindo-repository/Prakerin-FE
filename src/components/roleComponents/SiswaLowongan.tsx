@@ -283,7 +283,7 @@ export default function SiswaLowongan() {
   const handlePageChange = (selectedPage: number) => {
     setPage((prev) => ({
       ...prev,
-      activePage: selectedPage,
+      activePages: selectedPage,
     }));
   };
 
