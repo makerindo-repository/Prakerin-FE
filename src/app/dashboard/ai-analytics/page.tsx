@@ -550,7 +550,7 @@ export default function AiAnalyticsPage() {
           )}
 
           {/* ──── NO ANALYSIS EXIST OR START NEW SCAN (UPLOADER VIEW) ──── */}
-          {!latestAnalysis && !scanning && (
+          {(!latestAnalysis || !latestAnalysis.analysis_result?.profile_summary) && !scanning && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left description */}
               <div className="lg:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
@@ -664,7 +664,7 @@ export default function AiAnalyticsPage() {
           )}
 
           {/* ──── REPORT PANEL (ACTIVE ANALYSIS REPORT VIEW) ──── */}
-          {latestAnalysis && !scanning && (
+          {latestAnalysis && !scanning && latestAnalysis.analysis_result?.profile_summary && (
             <div className="space-y-6">
               
               {/* Resume Source Banner */}
