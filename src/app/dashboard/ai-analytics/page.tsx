@@ -86,6 +86,8 @@ interface Credibility {
 }
 
 interface AnalysisResult {
+  status?: string;
+  message?: string;
   profile_summary: ProfileSummary;
   recommendations: Recommendation[];
   improvement_suggestions: string[];
@@ -169,6 +171,75 @@ export default function AiAnalyticsPage() {
     init();
   }, [fetchLatest, fetchHistory]);
 
+  // Polling useEffect for active background CV scans
+  useEffect(() => {
+    if (!latestAnalysis || latestAnalysis.analysis_result?.status !== "processing") {
+      return;
+    }
+
+    setScanning(true);
+    setScanProgress(15);
+    setScanStatusMsg("Mengekstrak informasi profil...");
+
+    let attempts = 0;
+    const maxAttempts = 60; // 3 minutes max (since Gemini CV scan takes 50-70+ seconds)
+
+    const interval = setInterval(async () => {
+      attempts++;
+      
+      // Update scan message dynamically based on attempts
+      if (attempts === 5) setScanStatusMsg("Menganalisis keterampilan & kualifikasi...");
+      if (attempts === 15) setScanStatusMsg("Mencocokkan dengan lowongan magang aktif...");
+      if (attempts === 25) setScanStatusMsg("Menyelesaikan rekomendasi karir...");
+
+      setScanProgress((prev) => {
+        if (prev < 90) return prev + 5;
+        return prev;
+      });
+
+      try {
+        const response = await createApiCall({
+          url: "/ai-analytics/latest",
+          headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
+        });
+
+        if (response && response.data) {
+          const result = response.data.analysis_result;
+          
+          if (result && result.status !== "processing") {
+            clearInterval(interval);
+            setScanProgress(100);
+            
+            if (result.status === "failed") {
+              alertError(result.message || "Gagal memproses resume menggunakan AI Gemini.");
+              setLatestAnalysis(null);
+            } else {
+              alertSuccess("Analisis CV Berhasil!");
+              setLatestAnalysis(response.data);
+              await fetchHistory();
+            }
+            setScanning(false);
+            setScanProgress(0);
+            setScanStatusMsg("");
+          }
+        }
+      } catch (err) {
+        console.error("Error polling scan status:", err);
+      }
+
+      if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        setScanning(false);
+        setScanProgress(0);
+        setScanStatusMsg("");
+        alertError("Timeout: Analisis CV memakan waktu terlalu lama. Silakan cek riwayat Anda beberapa saat lagi.");
+        setLatestAnalysis(null);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [latestAnalysis, fetchHistory]);
+
   // Handle Drag Over & Leave
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -246,16 +317,11 @@ export default function AiAnalyticsPage() {
       });
 
       const response = res.data;
-
       clearInterval(progressInterval);
-      setScanProgress(100);
-      setScanStatusMsg("Analisis Selesai!");
 
       if (response && response.data) {
-        alertSuccess("Analisis CV Berhasil!");
         setLatestAnalysis(response.data);
         setSelectedFile(null);
-        await fetchHistory();
       }
     } catch (err: any) {
       clearInterval(progressInterval);
@@ -269,7 +335,6 @@ export default function AiAnalyticsPage() {
       } else {
         alertError(errMsg);
       }
-    } finally {
       setScanning(false);
       setScanProgress(0);
       setScanStatusMsg("");
