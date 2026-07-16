@@ -1264,18 +1264,28 @@ export default function AiAnalyticsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1">
-                          {item.analysis_result.profile_summary.skills.slice(0, 3).map((skill, idx) => (
-                            <span 
-                              key={idx} 
-                              className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded font-semibold"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                          {item.analysis_result.profile_summary.skills.length > 3 && (
-                            <span className="text-[9px] text-gray-400 font-bold px-1 py-0.5">
-                              +{item.analysis_result.profile_summary.skills.length - 3}
-                            </span>
+                          {item.analysis_result.profile_summary?.skills ? (
+                            <>
+                              {item.analysis_result.profile_summary.skills.slice(0, 3).map((skill, idx) => (
+                                <span 
+                                  key={idx} 
+                                  className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded font-semibold"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                              {item.analysis_result.profile_summary.skills.length > 3 && (
+                                <span className="text-[9px] text-gray-400 font-bold px-1 py-0.5">
+                                  +{item.analysis_result.profile_summary.skills.length - 3}
+                                </span>
+                              )}
+                            </>
+                          ) : item.analysis_result.status === "processing" ? (
+                            <span className="text-[10px] text-[#035a70] font-semibold animate-pulse">Processing...</span>
+                          ) : item.analysis_result.status === "failed" ? (
+                            <span className="text-[10px] text-red-500 font-semibold">Failed</span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic font-semibold">N/A</span>
                           )}
                         </div>
                       </td>
@@ -1288,15 +1298,17 @@ export default function AiAnalyticsPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <a
-                            href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/v1/ai-analytics/${item.id}/pdf`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 border border-gray-200 hover:border-[#035a70] hover:text-[#035a70] rounded-lg transition-colors bg-white flex items-center justify-center"
-                            title="Unduh PDF"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </a>
+                          {item.analysis_result.profile_summary && (
+                            <a
+                              href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001"}/api/v1/ai-analytics/${item.id}/pdf`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 border border-gray-200 hover:border-[#035a70] hover:text-[#035a70] rounded-lg transition-colors bg-white flex items-center justify-center"
+                              title="Unduh PDF"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </a>
+                          )}
                           <button
                             onClick={() => handleDelete(item.id)}
                             className="p-1.5 border border-gray-200 hover:border-red-200 hover:text-red-500 rounded-lg transition-colors bg-white"
