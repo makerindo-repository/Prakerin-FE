@@ -38,7 +38,7 @@ import {
   Medal,
   LayoutDashboard,
   Search,
-  Bell,
+  // Bell, // nonaktif sementara — dipakai lagi kalau notifikasi bell diaktifkan
   ChevronDown,
   School,
   Settings,
@@ -50,7 +50,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
+import { API, createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import { usePathname } from "next/navigation";
 import { alertConfirm } from "@/libs/alert";
 import { getUserPermissions } from "@/libs/permissionApi";
@@ -80,6 +80,8 @@ interface Profile {
   role: Role;
   rawRole?: string;
   schoolType?: "school" | "university" | null; // dipakai buat nentuin menu Data Siswa vs Data Mahasiswa
+  timezone?: string; // mis. "Asia/Jakarta" — dipakai buat jam dashboard
+  timezoneLabel?: string; // mis. "WIB"
   username: string;
 }
 
@@ -265,6 +267,23 @@ export default function DashboardLayout({
   });
   const pathName = usePathname();
 
+  // ── Link "Kelas Pra-Magang" (dari Pengaturan, fallback ke URL lama) ────────
+  const [lmsUrl, setLmsUrl] = useState<string>("https://makerindo.myr.id/");
+  useEffect(() => {
+    const token = Cookies.get("userToken");
+    if (!token) return;
+    API.get("/api/v1/settings/public", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        const url = res.data?.data?.pre_internship_class_url;
+        if (url) setLmsUrl(url);
+      })
+      .catch(() => {
+        // Diamkan saja — sidebar tetap pakai fallback URL di atas.
+      });
+  }, []);
+
   // ── Click outside dropdown ────────────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -340,6 +359,8 @@ export default function DashboardLayout({
         role: roleLabel,
         rawRole: data.role,
         schoolType: data.school?.type ?? null,
+        timezone: data.timezone ?? "Asia/Jakarta",
+        timezoneLabel: data.timezone_label ?? "WIB",
       });
       setNavGroups(NAV_GROUPS[data.role] ?? []);
 
@@ -385,7 +406,10 @@ export default function DashboardLayout({
   }, []);
 
   const timeString = time
-    ? time.toLocaleTimeString("id-ID", { hour12: false })
+    ? time.toLocaleTimeString("id-ID", {
+        hour12: false,
+        timeZone: profile.timezone || "Asia/Jakarta",
+      })
     : "--:--:--";
   const dateString = time
     ? time.toLocaleDateString("id-ID", {
@@ -393,6 +417,7 @@ export default function DashboardLayout({
         day: "numeric",
         month: "long",
         year: "numeric",
+        timeZone: profile.timezone || "Asia/Jakarta",
       })
     : "-";
 
@@ -451,20 +476,26 @@ export default function DashboardLayout({
 
     return navGroups
       .map((group) => {
-        const filteredItems = group.items.filter((item) => {
-          // 1. Cek active status check
-          if (!isActive && isProtectedHref(item.href)) return false;
-          // 2. Cek cocok tipe institusi (Data Siswa vs Data Mahasiswa, dst)
-          if (!matchesSchoolType(item)) return false;
-          // 3. Cek permission check
-          return hasPermission(item);
-        });
+        const filteredItems = group.items
+          .filter((item) => {
+            // 1. Cek active status check
+            if (!isActive && isProtectedHref(item.href)) return false;
+            // 2. Cek cocok tipe institusi (Data Siswa vs Data Mahasiswa, dst)
+            if (!matchesSchoolType(item)) return false;
+            // 3. Cek permission check
+            return hasPermission(item);
+          })
+          .map((item) =>
+            // Link "Kelas Pra-Magang" diatur dari Pengaturan (bukan hardcode),
+            // jadi timpa href-nya di sini pas render.
+            item.isLms ? { ...item, href: lmsUrl } : item
+          );
         return filteredItems.length > 0
           ? { ...group, items: filteredItems }
           : null;
       })
       .filter(Boolean) as NavGroup[];
-  }, [navGroups, isActive, permissions, profile.rawRole, profile.schoolType, userRole]);
+  }, [navGroups, isActive, permissions, profile.rawRole, profile.schoolType, userRole, lmsUrl]);
 
   // ── Active link check ─────────────────────────────────────────────────────
   const isActiveLink = (href?: string) => {
@@ -502,7 +533,12 @@ export default function DashboardLayout({
               <Clock className="w-7 h-7" />
             </div>
             <div>
-              <div className="text-lg font-bold text-gray-800 leading-tight">{timeString}</div>
+              <div className="text-lg font-bold text-gray-800 leading-tight">
+                {timeString}
+                <span className="ml-1.5 align-middle text-[10px] font-semibold text-accent">
+                  {profile.timezoneLabel || "WIB"}
+                </span>
+              </div>
               <div className="text-[10px] text-gray-500">{dateString}</div>
             </div>
           </div>
@@ -623,13 +659,15 @@ export default function DashboardLayout({
 
             {/* Right: notification + profile */}
             <div className="flex items-center gap-4">
-              {/* Notification Bell */}
-              <div className="relative">
+              {/* Notification Bell — disembunyikan sementara (belum terhubung
+                  ke notifikasi asli, badge "3" di bawah ini masih hardcode).
+                  Tinggal hapus komentar ini kalau fiturnya sudah siap. */}
+              {/* <div className="relative">
                 <Bell className="w-5 h-5 text-gray-600" />
                 <span className="absolute -top-1.5 -right-1.5 bg-[#035a70] text-white text-[10px] w-4.5 h-4.5 flex items-center justify-center rounded-full font-bold">
                   3
                 </span>
-              </div>
+              </div> */}
 
               {/* Profile dropdown */}
               <div className="relative" ref={dropdownRef}>

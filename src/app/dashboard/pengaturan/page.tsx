@@ -50,6 +50,7 @@ function PengaturanContent() {
     cert_number_prefix: "CERT/{YEAR}/{ID}",
     min_internship_duration: 1,
     max_internship_duration: 52,
+    pre_internship_class_url: "https://makerindo.myr.id/",
     ai_provider: "gemini",
     ai_api_key: "",
     recaptcha_enabled: false,
@@ -483,6 +484,24 @@ function PengaturanContent() {
                         placeholder="CERT/{YEAR}/{ID}"
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
                       />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Link Kelas Pra-Magang (LMS)
+                      </label>
+                      <input
+                        type="url"
+                        name="pre_internship_class_url"
+                        value={form.pre_internship_class_url}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="https://makerindo.myr.id/"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
+                      />
+                      <p className="text-gray-400 text-xs mt-1">
+                        URL yang dituju menu &quot;Kelas Pra-Magang&quot; di sidebar semua role (siswa/mahasiswa, sekolah, perusahaan, admin).
+                      </p>
                     </div>
                   </div>
                 </div>

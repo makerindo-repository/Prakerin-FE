@@ -26,6 +26,7 @@ import {
   UserCircle,
   UserX,
   ChevronRight,
+  ChevronLeft,
   Info,
   Cpu,
   LineChart,
@@ -207,6 +208,20 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
   const matchingData = matchingScores
     ? (matchMode === "smk" ? matchingScores.smk : matchingScores.mahasiswa)
     : (matchMode === "smk" ? MATCHING_SCORE_SMK : MATCHING_SCORE_MAHASISWA);
+
+  // AI Matching Score cuma nampilin 4 baris per halaman, sisanya di-geser
+  // pakai panah/dot kalau datanya lebih dari 4.
+  const MATCH_PAGE_SIZE = 4;
+  const [matchPage, setMatchPage] = useState(0);
+  const matchTotalPages = Math.max(1, Math.ceil(matchingData.length / MATCH_PAGE_SIZE));
+  const visibleMatchingData = matchingData.slice(
+    matchPage * MATCH_PAGE_SIZE,
+    matchPage * MATCH_PAGE_SIZE + MATCH_PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setMatchPage(0);
+  }, [matchMode, matchingScores]);
 
   const [isFetching, setIsFetching] = useState<boolean>(true);
 
@@ -460,7 +475,7 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
           </div>
 
           <div className="space-y-4 mb-5">
-            {matchingData.map((item) => {
+            {visibleMatchingData.map((item) => {
               const c = COLOR_MAP[item.color];
               const IconComponent = typeof item.icon === "string" 
                 ? (MAJOR_ICON_MAP[item.icon] || Monitor) 
@@ -483,6 +498,37 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
               );
             })}
           </div>
+
+          {matchTotalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 mb-5">
+              <button
+                onClick={() => setMatchPage((p) => (p - 1 + matchTotalPages) % matchTotalPages)}
+                className="p-1 rounded-full border border-gray-200 text-gray-500 hover:text-accent hover:border-accent transition-colors cursor-pointer"
+                aria-label="Sebelumnya"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: matchTotalPages }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setMatchPage(idx)}
+                    aria-label={`Halaman ${idx + 1}`}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                      idx === matchPage ? "w-5 bg-accent" : "w-1.5 bg-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => setMatchPage((p) => (p + 1) % matchTotalPages)}
+                className="p-1 rounded-full border border-gray-200 text-gray-500 hover:text-accent hover:border-accent transition-colors cursor-pointer"
+                aria-label="Selanjutnya"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           <p className="text-[11px] text-gray-400 mb-3">
             Mode Siswa SMK: skor berdasarkan jurusan dan kebutuhan industri.
