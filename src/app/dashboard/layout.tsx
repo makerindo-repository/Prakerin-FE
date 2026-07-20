@@ -137,7 +137,6 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       items: [
         { icon: Newspaper, label: "Isi Halaman", href: "/dashboard/isi-halaman", permission: "view_isi_halaman" },
         { icon: HelpCircle, label: "Panduan", href: "/dashboard/guides", permission: "view_panduan" },
-        { icon: MessageSquareText, label: "Feedback Pengguna", href: "/dashboard/feedback", permission: "view_feedback" },
       ],
     },
     {

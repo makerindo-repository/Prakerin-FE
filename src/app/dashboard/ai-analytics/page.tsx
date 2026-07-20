@@ -1062,6 +1062,35 @@ export default function AiAnalyticsPage() {
                       </p>
                     </div>
 
+                    {/* ── No DB-matched vacancies info banner ── */}
+                    {latestAnalysis.analysis_result.recommendations.length > 0 &&
+                      latestAnalysis.analysis_result.recommendations.every(
+                        (r) => !r.job_opening_id || r.is_general_recommendation
+                      ) && (
+                        <div className="flex items-start gap-3 bg-blue-50/60 border border-blue-200 rounded-xl p-4 mb-4">
+                          <div className="shrink-0 p-1.5 bg-blue-100 text-blue-600 rounded-lg mt-0.5">
+                            <AlertCircle className="w-4 h-4" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold text-blue-800">
+                              Tidak ada lowongan aktif yang cocok dengan CV Anda saat ini
+                            </p>
+                            <p className="text-xs text-blue-700 leading-relaxed">
+                              Rekomendasi di bawah ini adalah saran umum yang dihasilkan oleh AI berdasarkan profil Anda,
+                              namun belum terhubung ke lowongan yang tersedia di database Prakerin. Coba jelajahi halaman
+                              lowongan secara manual atau perbarui CV Anda dengan keahlian yang lebih relevan.
+                            </p>
+                            <a
+                              href="/dashboard/lowongan"
+                              className="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-blue-700 hover:text-blue-900 underline underline-offset-2 transition-colors"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                              Lihat semua lowongan tersedia
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
                     <div className="space-y-4">
                       {latestAnalysis.analysis_result.recommendations.length === 0 ? (
                         <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-gray-200 rounded-xl space-y-3 bg-gray-50/30 py-12">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import Cookies from "js-cookie";
 import { API, ENDPOINTS } from "@/utils/config";
 import {
@@ -58,23 +59,6 @@ const COLOR_MAP: Record<string, { bg: string; text: string; badgeBg: string; bad
 };
 
 // ══════════════════════════════════════════════════════════════════════════
-// Static matching score data (demand by major — intentionally static;
-// replace with real queries when student×job join data is available)
-// ══════════════════════════════════════════════════════════════════════════
-
-const MATCHING_SCORE_SMK = [
-  { icon: Monitor,   label: "Teknik Komputer", value: 92, color: "blue" },
-  { icon: Code2,     label: "RPL",             value: 88, color: "green" },
-  { icon: Network,   label: "TKJ",             value: 84, color: "purple" },
-  { icon: ImageIcon, label: "Multimedia",      value: 79, color: "orange" },
-];
-
-const MATCHING_SCORE_MAHASISWA = [
-  { icon: Cpu,       label: "Informatika",      value: 90, color: "blue" },
-  { icon: LineChart, label: "Sistem Informasi", value: 85, color: "green" },
-  { icon: Zap,       label: "Teknik Elektro",   value: 80, color: "purple" },
-  { icon: Users,     label: "Manajemen",        value: 75, color: "orange" },
-];
 
 // ══════════════════════════════════════════════════════════════════════════
 
@@ -207,7 +191,7 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
 
   const matchingData = matchingScores
     ? (matchMode === "smk" ? matchingScores.smk : matchingScores.mahasiswa)
-    : (matchMode === "smk" ? MATCHING_SCORE_SMK : MATCHING_SCORE_MAHASISWA);
+    : [];
 
   // AI Matching Score cuma nampilin 4 baris per halaman, sisanya di-geser
   // pakai panah/dot kalau datanya lebih dari 4.
@@ -441,9 +425,12 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
               Kelas Pra-Magang aktif: <b>{isFetching ? "…" : preInternship.ongoing} kelas</b> &nbsp;&nbsp;{" "}
               {isFetching ? "…" : preInternship.needs_review} kelas pra-magang perlu evaluasi
             </span>
-            <button className="flex items-center gap-1 font-semibold shrink-0">
+            <Link
+              href="/dashboard/pre-internship-classes/manage"
+              className="flex items-center gap-1 font-semibold shrink-0 hover:underline"
+            >
               Lihat detail <ChevronRight className="w-3 h-3" />
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -475,28 +462,34 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
           </div>
 
           <div className="space-y-4 mb-5">
-            {visibleMatchingData.map((item) => {
-              const c = COLOR_MAP[item.color];
-              const IconComponent = typeof item.icon === "string" 
-                ? (MAJOR_ICON_MAP[item.icon] || Monitor) 
-                : item.icon;
-              return (
-                <div key={item.label}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${c.bg}`}>
-                        <IconComponent className={`w-3.5 h-3.5 ${c.text}`} />
+            {isFetching ? (
+              <p className="text-xs text-gray-400 text-center py-4">Memuat data…</p>
+            ) : visibleMatchingData.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-4">Belum ada data jurusan tersedia.</p>
+            ) : (
+              visibleMatchingData.map((item) => {
+                const c = COLOR_MAP[item.color];
+                const IconComponent = typeof item.icon === "string"
+                  ? (MAJOR_ICON_MAP[item.icon] || Monitor)
+                  : item.icon;
+                return (
+                  <div key={item.label}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${c.bg}`}>
+                          <IconComponent className={`w-3.5 h-3.5 ${c.text}`} />
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">{item.label}</span>
                       </div>
-                      <span className="text-xs font-medium text-gray-700">{item.label}</span>
+                      <span className="text-xs font-bold text-gray-900">{item.value}%</span>
                     </div>
-                    <span className="text-xs font-bold text-gray-900">{item.value}%</span>
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-accent rounded-full" style={{ width: `${item.value}%` }} />
+                    </div>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent rounded-full" style={{ width: `${item.value}%` }} />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {matchTotalPages > 1 && (
