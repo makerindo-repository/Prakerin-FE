@@ -5,7 +5,7 @@ import FooterPage from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useEffect, useState } from "react";
 import Loader from "@/components/loader";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, Rocket, Handshake, Lightbulb, Globe } from "lucide-react";
 import { API, ENDPOINTS } from "@/utils/config";
 
 const cards = [
@@ -118,7 +118,7 @@ export default function AboutPage() {
               <div className="mt-12 grid grid-cols-3 gap-5">
                 <div className="rounded-3xl border border-accent/10 bg-white/80 backdrop-blur-sm shadow-lg shadow-gray-100/50 p-6 hover:-translate-y-2 hover:shadow-xl hover:shadow-accent/5 duration-300">
                   <h2 className="text-4xl font-extrabold text-accent">
-                    30+
+                    20+
                   </h2>
                   <p className="mt-2 text-sm text-gray-500 font-medium">
                     Perusahaan Partner
@@ -255,8 +255,8 @@ export default function AboutPage() {
             {/* VISION */}
             <div className="group rounded-[32px] bg-gradient-to-br from-accent via-accent-light to-accent-dark p-[1.5px] shadow-xl hover:shadow-2xl transition-all duration-300">
               <div className="rounded-[32px] bg-white p-10 h-full transition-all duration-300 group-hover:-translate-y-1">
-                <div className="w-16 h-16 rounded-2xl bg-accent/5 flex items-center justify-center text-4xl mb-8 border border-accent/10 shadow-inner">
-                  👁️
+                <div className="w-16 h-16 rounded-2xl bg-accent/5 flex items-center justify-center mb-8 border border-accent/10 shadow-inner">
+                  <Eye className="w-8 h-8 text-accent" />
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900 mb-6">
                   Visi
@@ -274,7 +274,7 @@ export default function AboutPage() {
             <div className="group rounded-[32px] bg-gradient-to-br from-accent-dark via-accent to-accent-light p-[1.5px] shadow-xl hover:shadow-2xl transition-all duration-300">
               <div className="rounded-[32px] bg-white p-10 h-full transition-all duration-300 group-hover:-translate-y-1">
                 <div className="w-16 h-16 rounded-2xl bg-accent/5 flex items-center justify-center text-4xl mb-8 border border-accent/10 shadow-inner">
-                  🚀
+                  <Rocket className="w-8 h-8 text-accent" />
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900 mb-8">
                   Misi Kami
@@ -320,7 +320,7 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="rounded-[28px] bg-white border border-gray-100 shadow-xl shadow-slate-100/40 p-10 hover:-translate-y-2 transition-all duration-300">
               <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-3xl mb-6">
-                🤝
+                <Handshake className="w-7 h-7 text-accent" />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4">
                 Terpercaya
@@ -333,7 +333,7 @@ export default function AboutPage() {
 
             <div className="rounded-[28px] bg-white border border-gray-100 shadow-xl shadow-slate-100/40 p-10 hover:-translate-y-2 transition-all duration-300">
               <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-3xl mb-6">
-                💡
+                <Lightbulb className="w-7 h-7 text-accent" />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4">
                 Inovatif
@@ -346,7 +346,7 @@ export default function AboutPage() {
 
             <div className="rounded-[28px] bg-white border border-gray-100 shadow-xl shadow-slate-100/40 p-10 hover:-translate-y-2 transition-all duration-300">
               <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-3xl mb-6">
-                🌎
+                <Globe className="w-7 h-7 text-accent" />
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4">
                 Berdampak

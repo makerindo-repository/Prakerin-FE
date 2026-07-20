@@ -56,6 +56,7 @@ import { alertConfirm } from "@/libs/alert";
 import { getUserPermissions } from "@/libs/permissionApi";
 import { useAuthStore } from "@/stores/authStore";
 
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface NavItem {
@@ -257,6 +258,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDesktopClosed, setIsDesktopClosed] = useState(false);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [profile, setProfile] = useState<Profile>({
@@ -320,9 +322,6 @@ export default function DashboardLayout({
         signal,
       });
 
-      // FIX: createApiCall (lihat utils/config.ts) sudah `return response.data`,
-      // jadi `response` di sini ADALAH body API, bukan objek axios mentah.
-      // Tidak ada `.status` di sini, dan cukup `.data` (bukan `.data.data`).
       const data = response.data;
 
       const getRoleLabel = (role: string, userData: any) => {
@@ -511,8 +510,10 @@ export default function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-[#f0f4f8]">
       {/* ─── SIDEBAR ─────────────────────────────────────────────────────── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col h-full bg-white border-r border-gray-200 shadow-sm transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col h-full bg-white border-r border-gray-200 shadow-sm transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } ${
+          !isDesktopClosed ? "lg:translate-x-0" : "lg:-translate-x-full"
         }`}
       >
         {/* Logo — tetap pakai aset original PrakerinID_ico.svg */}
@@ -621,28 +622,36 @@ export default function DashboardLayout({
           ))}
         </nav>
 
-        {/* Sidebar Footer — tombol Kembali (gaya referensi) */}
+        {/* Sidebar Footer — tombol Hide*/}
         <div className="p-4 border-t border-gray-100" data-purpose="sidebar-footer">
           <button
-            onClick={handleBack}
-            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium"
+            onClick={() => {
+              if (window.innerWidth >= 1024) setIsDesktopClosed(true); // Hide di desktop
+              else setSidebarOpen(false); // Tutup overlay di mobile
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium group"
           >
-            <CircleArrowLeft className="w-4 h-4" />
-            <span>Kembali</span>
+            <CircleArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Sembunyikan</span>
           </button>
         </div>
       </aside>
 
       {/* ─── MAIN CONTENT ────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col lg:ml-64 min-w-0">
+      <div className={`flex-1 flex flex-col ${isDesktopClosed ? "lg:ml-0" : "lg:ml-64"} min-w-0`}>
         {/* Header — gaya referensi (white, search, notif, profile) */}
         <header className="bg-white border-b border-gray-200 shadow-sm">
           <div className="flex items-center justify-between px-6 py-3">
             {/* Left: hamburger + search */}
             <div className="flex items-center gap-4 flex-1">
               <button
-                onClick={openSidebar}
-                className="lg:hidden text-gray-600 cursor-pointer"
+                onClick={() => {
+                  if (window.innerWidth >= 1024) setIsDesktopClosed(false);
+                  else setSidebarOpen(true);
+                }}
+                className={`text-gray-600 cursor-pointer ${
+                  !isDesktopClosed ? "lg:hidden" : ""
+                }`}
               >
                 <Menu className="w-6 h-6" />
               </button>
