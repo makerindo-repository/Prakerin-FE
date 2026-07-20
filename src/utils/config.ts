@@ -131,3 +131,12 @@ export const getCommentPhotoUrl = (photo: string | null | undefined): string | n
   }
   return `${BASE_URL}/storage/comment-prakerin/${cleanPhoto}`;
 };
+
+export const getPosterUrl = (poster: string | null | undefined): string | null => {
+  if (!poster) return null;
+  if (poster.startsWith("http://") || poster.startsWith("https://")) {
+    return poster;
+  }
+  const cleanPoster = poster.startsWith("/") ? poster.slice(1) : poster;
+  return `${BASE_URL}/storage/job-opening-posters/${cleanPoster}`;
+};

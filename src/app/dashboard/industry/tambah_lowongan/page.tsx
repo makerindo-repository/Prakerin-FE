@@ -1,17 +1,15 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Briefcase, BriefcaseBusiness, CirclePlus, Trash } from "lucide-react";
+import { Briefcase, BriefcaseBusiness, CirclePlus, Image as ImageIcon, Trash, Type, AlignLeft } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EditorProps } from "@/components/Editor";
 import { API, ENDPOINTS } from "@/utils/config";
-import { getDurationUnit } from "@/utils/getDurationUnit";
 import Cookies from "js-cookie";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import Select from "react-select";
-import  useDebounce  from "@/hooks/useDebounce";
+import useDebounce from "@/hooks/useDebounce";
 import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 
 const Editor = dynamic<EditorProps & { error?: string }>(
@@ -59,6 +57,15 @@ const tambahLowonganPage: React.FC = () => {
   const [tests, setTests] = useState<Test[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // Description mode: 'rich' or 'plain'
+  const [descMode, setDescMode] = useState<"rich" | "plain">("rich");
+  const [plainText, setPlainText] = useState("");
+
+  // Poster upload
+  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [posterPreview, setPosterPreview] = useState<string | null>(null);
+  const posterInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState<CreateJobOpening>({
     title: "",
     type: "",
@@ -76,7 +83,7 @@ const tambahLowonganPage: React.FC = () => {
   });
 
   
-  // ✅ Tambahan state untuk search dan data bidang/durasi
+  // State untuk search dan data bidang/durasi
   const [searchField, setSearchField] = useState("");
   const [searchDuration, setSearchDuration] = useState("");
 
@@ -89,7 +96,6 @@ const tambahLowonganPage: React.FC = () => {
   const [isLoadingDuration, setIsLoadingDuration] = useState(false);
 
   const formatDateTime = (date: Date) => {
-    // Pastikan date adalah objek Date
     const pad = (n: number) => n.toString().padStart(2, "0");
     return (
       date.getFullYear() +
@@ -110,21 +116,51 @@ const tambahLowonganPage: React.FC = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      formData.is_available = formData.is_available === "true" ? true : false;
-      formData.is_paid = formData.is_paid === "true" ? true : false;
 
-      // Format tanggal sebelum dikirim
-      const payload = {
-        ...formData,
-        start_date: formatDateTime(new Date(formData.start_date)),
-        closing_date: formatDateTime(new Date(formData.closing_date)),
-      };
+      const isAvailable = formData.is_available === "true" ? true : false;
+      const isPaid = formData.is_paid === "true" ? true : false;
 
-      await suppressErrorForSuperAdmin(() => API.post(ENDPOINTS.JOB_OPENINGS, payload, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      }), { showSuccessMessage: true, successMessage: "Lowongan berhasil ditambahkan!" });
+      // Build FormData for multipart (needed for file upload)
+      const fd = new FormData();
+      fd.append("title", formData.title);
+      fd.append("type", formData.type);
+      fd.append("location", formData.location);
+      fd.append("grade", formData.grade);
+      fd.append("is_paid", isPaid ? "1" : "0");
+      fd.append("qouta", String(formData.qouta));
+      fd.append("is_available", isAvailable ? "1" : "0");
+      fd.append("field_id", formData.field_id);
+      fd.append("duration_id", formData.duration_id);
+      fd.append("start_date", formatDateTime(new Date(formData.start_date)));
+      fd.append("closing_date", formatDateTime(new Date(formData.closing_date)));
+
+      // Description: plain string or rich JSON
+      const descValue =
+        descMode === "plain"
+          ? plainText
+          : JSON.stringify(formData.description);
+      fd.append("description", descValue);
+
+      // Tests array
+      formData.tests.forEach((testId) => {
+        if (testId) fd.append("tests[]", testId);
+      });
+
+      // Poster file (optional)
+      if (posterFile) {
+        fd.append("poster", posterFile);
+      }
+
+      await suppressErrorForSuperAdmin(
+        () =>
+          API.post(ENDPOINTS.JOB_OPENINGS, fd, {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("userToken")}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }),
+        { showSuccessMessage: true, successMessage: "Lowongan berhasil ditambahkan!" }
+      );
 
       route.replace("/dashboard/lowongan");
       await alertSuccess("Lowongan berhasil ditambahkan!");
@@ -142,6 +178,7 @@ const tambahLowonganPage: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleEditorChange = (data: any) => {
     setFormData((prev) => ({
       ...prev,
@@ -159,36 +196,25 @@ const tambahLowonganPage: React.FC = () => {
   const handleChangeStartDate = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = new Date(e.target.value);
     const today = new Date();
-    // Set jam ke 00:00:00 agar hanya membandingkan tanggal
     today.setHours(0, 0, 0, 0);
     selectedDate.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      // alertError("Tanggal mulai tidak boleh kurang dari hari ini!");
-      return;
-    }
+    if (selectedDate < today) return;
     setFormData({ ...formData, start_date: selectedDate });
   };
 
   const handleChangeCloseDate = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = new Date(e.target.value);
     const today = new Date();
-    // Set jam ke 00:00:00 agar hanya membandingkan tanggal
     today.setHours(0, 0, 0, 0);
     selectedDate.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      // alertError("Tanggal mulai tidak boleh kurang dari hari ini!");
-      return;
-    }
+    if (selectedDate < today) return;
     setFormData({ ...formData, closing_date: selectedDate });
   };
-
 
   const handleAddTest = () => {
     setFormData((prev) => ({
       ...prev,
-      tests: [...prev.tests, ""], // tambah satu select kosong
+      tests: [...prev.tests, ""],
     }));
   };
 
@@ -205,6 +231,31 @@ const tambahLowonganPage: React.FC = () => {
       newTests[index] = value;
       return { ...prev, tests: newTests };
     });
+  };
+
+  // Poster handlers
+  const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPosterFile(file);
+    const url = URL.createObjectURL(file);
+    setPosterPreview(url);
+  };
+
+  const handlePosterDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    setPosterFile(file);
+    const url = URL.createObjectURL(file);
+    setPosterPreview(url);
+  };
+
+  const handleRemovePoster = () => {
+    setPosterFile(null);
+    if (posterPreview) URL.revokeObjectURL(posterPreview);
+    setPosterPreview(null);
+    if (posterInputRef.current) posterInputRef.current.value = "";
   };
 
   // 🔹 Fetch bidang magang (FIELD)
@@ -260,27 +311,22 @@ const tambahLowonganPage: React.FC = () => {
     fetchDurations();
   }, [debouncedDuration]);
 
- const fetchData = async () => {
+  const fetchData = async () => {
     try {
-
       const response = await API.get(ENDPOINTS.TESTS, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-
-
       setTests(response.data.data);
     } catch (error) {
-      console.error("Error fetching durations:", error);
+      console.error("Error fetching tests:", error);
     }
   };
 
   useEffect(() => {
     fetchData();
   }, []);
-  
-  // ... (fungsi handleSubmit dan lainnya tetap sama)
 
   return (
     <main className="p-6">
@@ -333,7 +379,6 @@ const tambahLowonganPage: React.FC = () => {
                 setFormData({ ...formData, title: e.target.value })
               }
             />
-
             {errors.title && (
               <p className="mt-1 text-sm text-red-500">{errors.title}</p>
             )}
@@ -439,7 +484,7 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="number"
-              value={formData.qouta} //actual value in migration is named qouta, rather updating table
+              value={formData.qouta}
               onChange={handleChangeQuota}
               disabled={isSubmitting}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
@@ -631,7 +676,7 @@ const tambahLowonganPage: React.FC = () => {
                   </select>
                   <button
                     type="button"
-                    className="p-1 px-3 bg-red-500 rounded text-white hove:bg-red-600 cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-1 px-3 bg-red-500 rounded text-white hover:bg-red-600 cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isSubmitting}
                     onClick={() => handleRemoveTest(index)}
                   >
@@ -658,31 +703,70 @@ const tambahLowonganPage: React.FC = () => {
 
           {/* Deskripsi */}
           <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Deskripsi
-            </label>
-
-            {/* <Editor onChange={handleEditorChange} /> */}
+            {/* Label + Mode Toggle */}
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Deskripsi
+              </label>
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setDescMode("rich")}
+                  disabled={isSubmitting}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    descMode === "rich"
+                      ? "bg-white text-accent shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <BriefcaseBusiness className="w-3.5 h-3.5" />
+                  Rich Text
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDescMode("plain")}
+                  disabled={isSubmitting}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    descMode === "plain"
+                      ? "bg-white text-accent shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <AlignLeft className="w-3.5 h-3.5" />
+                  Mode Teks
+                </button>
+              </div>
+            </div>
 
             <div className="relative">
-              {/* Konten editor dengan opacity saat submit */}
-              <div
-                className={`${isSubmitting ? "opacity-50" : ""}`}
-                aria-disabled={isSubmitting}
-              >
-                <Editor
-                  onChange={handleEditorChange}
-                  error={errors.cover_letter}
+              {descMode === "rich" ? (
+                <>
+                  <div
+                    className={`${isSubmitting ? "opacity-50" : ""}`}
+                    aria-disabled={isSubmitting}
+                  >
+                    <Editor
+                      onChange={handleEditorChange}
+                      error={errors.cover_letter}
+                    />
+                  </div>
+                  {isSubmitting && (
+                    <div
+                      className="absolute inset-0 z-10 cursor-not-allowed"
+                      style={{ pointerEvents: "auto" }}
+                      aria-hidden="true"
+                    ></div>
+                  )}
+                </>
+              ) : (
+                <textarea
+                  value={plainText}
+                  onChange={(e) => setPlainText(e.target.value)}
+                  disabled={isSubmitting}
+                  rows={8}
+                  placeholder="Tulis deskripsi lowongan di sini..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed resize-y text-sm text-gray-700"
                 />
-              </div>
-
-              {/* Overlay untuk blok interaksi + cursor not-allowed */}
-              {isSubmitting && (
-                <div
-                  className="absolute inset-0 z-10 cursor-not-allowed"
-                  style={{ pointerEvents: "auto" }}
-                  aria-hidden="true"
-                ></div>
               )}
 
               {errors.description && (
@@ -691,6 +775,85 @@ const tambahLowonganPage: React.FC = () => {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* ===== Poster / Leaflet Upload ===== */}
+          <div className="lg:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Poster / Leaflet{" "}
+              <span className="text-gray-400 font-normal">(opsional)</span>
+            </label>
+
+            {posterPreview ? (
+              /* Preview */
+              <div className="relative w-full rounded-lg overflow-hidden border border-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={posterPreview}
+                  alt="Preview poster"
+                  className="w-full max-h-80 object-contain bg-gray-50"
+                />
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => posterInputRef.current?.click()}
+                    disabled={isSubmitting}
+                    className="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Ganti
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemovePoster}
+                    disabled={isSubmitting}
+                    className="px-3 py-1.5 bg-red-500 rounded-md text-xs font-medium text-white hover:bg-red-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Hapus
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 px-3 py-2 bg-white border-t border-gray-100">
+                  {posterFile?.name}
+                </p>
+              </div>
+            ) : (
+              /* Drop zone */
+              <div
+                onDrop={handlePosterDrop}
+                onDragOver={(e) => e.preventDefault()}
+                onClick={() => !isSubmitting && posterInputRef.current?.click()}
+                className={`w-full border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center gap-3 transition-colors ${
+                  isSubmitting
+                    ? "opacity-50 cursor-not-allowed border-gray-200"
+                    : "cursor-pointer border-gray-300 hover:border-accent hover:bg-accent/5"
+                }`}
+              >
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                  <ImageIcon className="w-6 h-6 text-gray-400" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-700">
+                    Klik atau seret gambar ke sini
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PNG, JPG, GIF, WebP — maks. 4 MB
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Hidden file input */}
+            <input
+              ref={posterInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
+              onChange={handlePosterChange}
+              disabled={isSubmitting}
+            />
+
+            {errors.poster && (
+              <p className="mt-1 text-sm text-red-500">{errors.poster}</p>
+            )}
           </div>
         </div>
 
