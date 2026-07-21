@@ -86,9 +86,11 @@ export default function LowonganDetail({
         {/* Top Row */}
         <div className="flex justify-between items-start mb-4">
             <div className="flex flex-wrap gap-2">
-            <span className="px-3 py-1 rounded-full border border-cyan-200 bg-cyan-50 text-cyan-600 text-sm">
-                {data.duration.duration_value} {getDurationUnit(data.duration.duration_unit)}
-            </span>
+            {data.duration && (
+              <span className="px-3 py-1 rounded-full border border-cyan-200 bg-cyan-50 text-cyan-600 text-sm">
+                  {data.duration.duration_value} {getDurationUnit(data.duration.duration_unit)}
+              </span>
+            )}
 
             <span className="px-3 py-1 rounded-full border border-cyan-200 bg-cyan-50 text-cyan-600 text-sm">
                 {getLocation(data.location)}

@@ -415,8 +415,9 @@ const DetailLowonganPage = ({
                       <div>
                         <p className="text-gray-500">Durasi Magang</p>
                         <p className="font-medium text-gray-900">
-                          {data.duration.duration_value}{" "}
-                          {getDurationUnit(data.duration.duration_unit)}
+                          {data.duration
+                            ? `${data.duration.duration_value} ${getDurationUnit(data.duration.duration_unit)}`
+                            : "-"}
                         </p>
                       </div>
                     </div>

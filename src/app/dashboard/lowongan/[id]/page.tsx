@@ -436,8 +436,9 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                     <div>
                       <p className="text-gray-500">Durasi Magang</p>
                       <p className="font-medium text-gray-900">
-                        {jobOpening.duration.duration_value}{" "}
-                        {getDurationUnit(jobOpening.duration.duration_unit)}
+                        {jobOpening.duration
+                          ? `${jobOpening.duration.duration_value} ${getDurationUnit(jobOpening.duration.duration_unit)}`
+                          : "-"}
                       </p>
                     </div>
                   </div>
