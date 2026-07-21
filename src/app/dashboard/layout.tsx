@@ -47,6 +47,8 @@ import {
   Newspaper,
   Shield,
   Landmark,
+  Brain,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -105,7 +107,14 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "UTAMA",
       items: [
         { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
-        { icon: Activity, label: "AI Analytics", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+      ],
+    },
+    {
+      label: "AI Features",
+      items: [
+        { icon: Brain, label: "AI CV Analyzer", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+        { icon: Sparkles, label: "AI Smart CV Generator", href: "/dashboard/cv/cv-pintar", permission: "view_ai_analytics" },
+        { icon: FileText, label: "AI Report", href: "/dashboard/ai-report", permission: "view_ai_analytics" },
       ],
     },
     {
@@ -163,7 +172,14 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "UTAMA",
       items: [
         { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
-        { icon: Activity, label: "AI Analytics", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+      ],
+    },
+    {
+      label: "AI Features",
+      items: [
+        { icon: Brain, label: "AI CV Analyzer", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+        { icon: Sparkles, label: "AI Smart CV Generator", href: "/dashboard/cv/cv-pintar", permission: "view_profil" },
+        { icon: FileText, label: "AI Report", href: "/dashboard/ai-report", permission: "view_dashboard" },
       ],
     },
     {
@@ -219,6 +235,12 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "UTAMA",
       items: [
         { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
+      ],
+    },
+    {
+      label: "AI Features",
+      items: [
+        { icon: FileText, label: "AI Report", href: "/dashboard/ai-report", permission: "view_dashboard" },
       ],
     },
     {
@@ -422,7 +444,6 @@ export default function DashboardLayout({
   // ── Back to homepage ──────────────────────────────────────────────────────
   const handleBack = () => {
     window.location.href = "/";
-    console.log("Force returned");
   };
 
   // ── Sidebar & dropdown helpers ────────────────────────────────────────────
@@ -500,6 +521,9 @@ export default function DashboardLayout({
     if (!href) return false;
     if (href === "/dashboard")
       return pathName === href;
+    if (href === "/dashboard/cv") {
+      return pathName === "/dashboard/cv" || (pathName.startsWith("/dashboard/cv/") && !pathName.startsWith("/dashboard/cv/cv-pintar"));
+    }
     return pathName === href || pathName.startsWith(href + "/");
   };
 

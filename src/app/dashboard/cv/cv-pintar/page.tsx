@@ -1,6 +1,6 @@
 "use client";
 import UnderConstruction from "@/components/UnderConstruction";
-import { FileText } from "lucide-react";
+import { FileText, Sparkles } from "lucide-react";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
 import CVAts from "@/components/cv-templates/CVAts";
@@ -131,6 +131,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
       }
     } catch (err: any) {
       console.log("Fetch Failed: " + err);
+      setError(err.response?.data?.message || "Terjadi kesalahan saat menghubungi layanan AI.");
     } finally {
       setLoading(false);
     }
@@ -313,19 +314,19 @@ const BuatPintarPage = () => {
         >
           Curiculum Vitae
         </Link>{" "}
-        -&gt; CV Pintar
+        -&gt; AI Smart CV Generator
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
-          <FileText className="w-5 h-5" />
-          <h2 className="text-2xl">cv-pintar</h2>
+          <Sparkles className="w-5 h-5 text-amber-500 animate-pulse shrink-0" />
+          <h2 className="text-2xl">AI Smart CV Generator</h2>
         </div>
       </div>
       {/* Two-column layout: left = prompt, right = templates + preview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-accent mb-3">
-            Buat CV Pintar
+            AI Smart CV Generator
           </h3>
 
           <p className="text-sm text-gray-600 mb-4">

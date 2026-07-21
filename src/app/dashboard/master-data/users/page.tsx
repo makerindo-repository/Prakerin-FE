@@ -1,5 +1,5 @@
 "use client";
-import { Check, Mail, Pencil, Plus, Search, Trash, UsersRound, X } from "lucide-react";
+import { Pencil, Plus, Search, Trash, UsersRound, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
@@ -50,7 +50,7 @@ const Users: React.FC = () => {
 
   const [data, setData] = useState<Data[]>([]);
 
-  const [isReload, setIsReload] = useState(false);
+  const [isReload, setIsReload] = useState(0); // BUG-09 fix: counter instead of boolean toggle
 
   const router = useRouter();
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -85,6 +85,56 @@ const Users: React.FC = () => {
       fetchSchools();
     }
   }, [showAddModal]);
+
+  const fetchData = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      let roles: string | undefined = undefined;
+      let schoolType: string | undefined = undefined;
+      switch (activeTab) {
+        case "Sekolah":
+          roles = "school";
+          break;
+        case "Perusahaan":
+          roles = "company";
+          break;
+        case "Siswa":
+          roles = "student";
+          schoolType = "school";
+          break;
+        case "Mahasiswa":
+          roles = "student";
+          schoolType = "university";
+          break;
+        default:
+          break;
+      }
+
+      const response = await API.get(ENDPOINTS.USERS, {
+        params: {
+          role: roles,
+          school_type: schoolType,
+          search: debouncedQuery, // BUG-04 fix: send debounced value, not raw input
+          limit: 10,
+          page: pages.activePages,
+        },
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      setData(response.data.data);
+      setPages({
+        activePages: response.data.current_page,
+        pages: response.data.last_page,
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddSubmit = async () => {
     setIsAdding(true);
@@ -133,56 +183,7 @@ const Users: React.FC = () => {
     }));
   };
 
-  const fetchData = async () => {
-    if (loading) return;
-    setLoading(true);
 
-    try {
-      let roles: string | undefined = undefined;
-      let schoolType: string | undefined = undefined;
-      switch (activeTab) {
-        case "Sekolah":
-          roles = "school";
-          break;
-        case "Perusahaan":
-          roles = "company";
-          break;
-        case "Siswa":
-          roles = "student";
-          schoolType = "school";
-          break;
-        case "Mahasiswa":
-          roles = "student";
-          schoolType = "university";
-          break;
-        default:
-          break;
-      }
-
-      const response = await API.get(ENDPOINTS.USERS, {
-        params: {
-          role: roles,
-          school_type: schoolType,
-          search: inputSearch,
-          limit: 10,
-          page: pages.activePages,
-        },
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-      console.log(response.data.data);
-      setData(response.data.data);
-      setPages({
-        activePages: response.data.current_page,
-        pages: response.data.last_page,
-      });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getRoleLabel = (role: string): string => {
     switch (role) {
@@ -260,7 +261,7 @@ const Users: React.FC = () => {
     }
 
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
+    setIsReload((k) => k + 1); // BUG-09 fix: always increment, never cancel-out
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
@@ -334,7 +335,21 @@ const Users: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {data && loading !== true ? (
+              {loading ? (
+                // BUG-08 fix: show loader only while loading
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    <LoaderData />
+                  </td>
+                </tr>
+              ) : data.length === 0 ? (
+                // BUG-08 fix: show accurate empty state only when not loading
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    <NotFoundComponent text="Tidak ada pengguna yang ditemukan." />
+                  </td>
+                </tr>
+              ) : (
                 data.map((item, index) => (
                   <tr key={item.id} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-gray-800">
@@ -357,22 +372,10 @@ const Users: React.FC = () => {
                     </td>
                   </tr>
                 ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500">
-                    <LoaderData />
-                  </td>
-                </tr>
               )}
             </tbody>
           </table>
         </div>
-
-        {data.length === 0 && loading === false && (
-          <div className="text-center py-12 col-span-2 ">
-            <NotFoundComponent text="Tidak ada perusahaan yang ditemukan." />
-          </div>
-        )}
       </div>
 
       <PaginationComponent

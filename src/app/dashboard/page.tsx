@@ -43,7 +43,6 @@ interface Profile {
   };
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('api/', ''); //BASE_URL to fetch profile pictures correctly since previous added /api into the path
 
 const Dashboard: React.FC = () => {
   const [role, setRole] = useState<string>("");
@@ -114,6 +113,7 @@ const Dashboard: React.FC = () => {
       localStorage.removeItem("login-success");
     }
   };
+
 
   useEffect(() => {
     const controller = new AbortController();

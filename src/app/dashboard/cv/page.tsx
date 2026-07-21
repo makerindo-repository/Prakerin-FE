@@ -7,6 +7,7 @@ import {
   Plus,
   Search,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -181,8 +182,8 @@ const CvPage: React.FC = () => {
             href="/dashboard/cv/cv-pintar"
             className="bg-vip hover:bg-orange-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center "
           >
-            <Plus size={16} className="mr-1" />
-            Buat CV Pintar
+            <Sparkles size={16} className="mr-1.5 text-amber-300 animate-pulse" />
+            AI Smart CV Generator
           </Link>
           <button
             onClick={() => router.push("cv/create")}

@@ -83,7 +83,7 @@ const SiswMagangPage: React.FC = () => {
   const handlePageChange = (selectedPage: number) => {
     setPage((prev) => ({
       ...prev,
-      activePage: selectedPage,
+      activePages: selectedPage,
     }));
   };
 
