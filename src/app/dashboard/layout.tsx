@@ -193,7 +193,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: MessageSquare, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
         { icon: Medal, label: "Sertifikat", href: "/dashboard/sertifikat", permission: "view_profil" },
         { icon: Award, label: "Penghargaan Saya", href: "/dashboard/my-awards", permission: "view_profil" },
-        { icon: UserRound, label: "Pembimbing", href: "/dashboard/pembimbing", permission: "view_pembimbing" },
+        { icon: UserRound, label: "Pembimbing", href: "/dashboard/mentors", permission: "view_pembimbing" },
         { icon: HelpCircle, label: "Panduan", href: "/panduan/student", permission: "view_panduan" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
       ],
