@@ -41,10 +41,23 @@ const accessMap: Record<string, string[]> = {
     "/dashboard/lowongan/*", // company bisa akses fitur lowongan (buat, edit, dll)
     "/dashboard/profile",
   ],
-  school: ["/dashboard*", "/dashboard/profile"],
+  school: [
+    "/dashboard",
+    "/dashboard/school/siswa",
+    "/dashboard/school/mahasiswa",
+    "/dashboard/school/penempatan",
+    "/dashboard/perusahaan*",
+    "/dashboard/mou*",
+    "/dashboard/awards*",
+    "/dashboard/feedback",
+    "/dashboard/guru-pembimbing",
+    "/dashboard/profile",
+    "/dashboard/ai-report*",
+  ],
   student: [
     "/dashboard",
     "/dashboard/ai-analytics*", // AI CV analytics for students
+    "/dashboard/ai-report*",
     "/dashboard/lowongan*", // student bisa lihat lowongan
     "/dashboard/cv*",
     "/dashboard/perusahaan*",
@@ -123,7 +136,13 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Default: tolak ke dashboard
+  // BUG-10 fix: if role is unrecognised/empty on a dashboard route, redirect to login
+  // to avoid a /dashboard → /dashboard silent loop for users with corrupt cookies.
+  if (!role || !(role in accessMap)) {
+    return NextResponse.redirect(new URL("/masuk", req.url));
+  }
+
+  // Default: deny back to dashboard
   return NextResponse.redirect(new URL("/dashboard", req.url));
 }
 

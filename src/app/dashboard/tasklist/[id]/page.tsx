@@ -166,7 +166,7 @@ const DetailTasklistPage = ({
                 </div>
               </div>
               <div className="flex items-center gap-8">
-                {authorization === "company" && (
+                {(authorization === "company" || authorization === "student") && (
                   <div className="flex gap-4 items-center">
                     <label htmlFor="status" className="font-medium">
                       Pilih Status Tugas

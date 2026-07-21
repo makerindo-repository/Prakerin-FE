@@ -438,7 +438,7 @@ export default function AiAnalyticsPage() {
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-gray-800 flex items-center gap-2">
-                AI Analytics & Rekomendasi Magang
+                AI CV Analyzer
                 <Sparkles className="w-5 h-5 text-amber-500 animate-pulse shrink-0" />
               </h2>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">

@@ -182,6 +182,14 @@ const MAJOR_ICON_MAP: Record<string, React.ElementType> = {
   Users,
 };
 
+// Maps each recommendation key → the dashboard page it should navigate to
+const RECOMMENDATION_LINKS: Record<string, string> = {
+  no_mentor:           "/dashboard/siswa-magang",
+  zero_applicants:     "/dashboard/lowongan",
+  low_progress_classes:"/dashboard/pre-internship-classes",
+  unverified_schools:  "/dashboard/sekolah",
+};
+
 export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
   const [matchMode, setMatchMode] = useState<"smk" | "mahasiswa">("smk");
   const [matchingScores, setMatchingScores] = useState<{
@@ -541,9 +549,9 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Distribusi Pengguna</h2>
-                <button className="flex items-center gap-1 text-xs text-accent font-medium">
+                <Link href="/dashboard/master-data/users" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
                   Lihat detail <ChevronRight className="w-3 h-3" />
-                </button>
+                </Link>
               </div>
               <div className="flex items-center gap-4">
                 <div className="w-36 h-36 shrink-0">
@@ -584,9 +592,9 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Distribusi Regional</h2>
-                <button className="flex items-center gap-1 text-xs text-accent font-medium">
+                <Link href="/dashboard/master-data/provinsi" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
                   Lihat detail <ChevronRight className="w-3 h-3" />
-                </button>
+                </Link>
               </div>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
@@ -616,9 +624,9 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Aktivitas Terbaru</h2>
-                <button className="flex items-center gap-1 text-xs text-accent font-medium">
+                <Link href="/dashboard/log-aktivitas" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
                   Lihat semua <ChevronRight className="w-3 h-3" />
-                </button>
+                </Link>
               </div>
               <div className="space-y-4">
                 {recentActivities.length === 0 && !isFetching ? (
@@ -647,9 +655,9 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Status Penempatan</h2>
-                <button className="flex items-center gap-1 text-xs text-accent font-medium">
+                <Link href="/dashboard/school/penempatan" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
                   Lihat detail <ChevronRight className="w-3 h-3" />
-                </button>
+                </Link>
               </div>
               <div className="flex items-center gap-4">
                 <div className="relative w-32 h-32 shrink-0">
@@ -701,7 +709,7 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
               <Sparkles className="w-4 h-4 text-accent" />
               Rekomendasi AI
             </h2>
-            <button className="text-xs text-accent font-medium">Lihat semua</button>
+            <Link href="/dashboard/ai-analytics" className="text-xs text-accent font-medium hover:underline">Lihat semua</Link>
           </div>
           <div className="space-y-4">
             {recommendations.length === 0 && !isFetching ? (
@@ -711,13 +719,18 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
                 const c  = COLOR_MAP[item.color]       ?? COLOR_MAP["blue"];
                 const pc = COLOR_MAP[item.priorityColor] ?? COLOR_MAP["blue"];
                 const IconComp = ICON_MAP[item.icon] ?? Building2;
+                const href = RECOMMENDATION_LINKS[item.key] ?? "#";
                 return (
-                  <div key={item.key ?? idx} className="flex items-start gap-3 pb-4 border-b border-gray-50 last:border-0 last:pb-0">
+                  <Link
+                    key={item.key ?? idx}
+                    href={href}
+                    className="flex items-start gap-3 pb-4 border-b border-gray-50 last:border-0 last:pb-0 group rounded-lg -mx-2 px-2 py-2 hover:bg-gray-50 transition-colors"
+                  >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.bg}`}>
                       <IconComp className={`w-4 h-4 ${c.text}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-800 mb-1">{item.title}</p>
+                      <p className="text-xs font-semibold text-gray-800 mb-1 group-hover:text-accent transition-colors">{item.title}</p>
                       <p className="text-[11px] text-gray-500 mb-2">{item.desc}</p>
                       <span
                         className={`inline-block text-[10px] font-medium px-2 py-0.5 rounded-md ${pc.badgeBg} ${pc.badgeText}`}
@@ -725,8 +738,8 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
                         {item.priority}
                       </span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-1" />
-                  </div>
+                    <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-1 group-hover:text-accent transition-colors" />
+                  </Link>
                 );
               })
             )}
