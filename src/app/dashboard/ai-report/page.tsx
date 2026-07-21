@@ -74,6 +74,133 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
     alertSuccess("Laporan berhasil disalin ke clipboard!");
   };
 
+  const exportToWord = () => {
+    if (!report) return;
+    
+    const content = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <title>Laporan Analisis AI</title>
+        <!--[if gte mso 9]>
+        <xml>
+          <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+          </w:WordDocument>
+        </xml>
+        <![endif]-->
+        <style>
+          body { font-family: 'Arial', sans-serif; line-height: 1.6; padding: 20px; }
+          h1 { color: #035a70; font-size: 24px; border-bottom: 2px solid #035a70; padding-bottom: 10px; margin-bottom: 20px; }
+          h2 { color: #04829e; font-size: 18px; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+          p { font-size: 14px; color: #333; margin-bottom: 15px; }
+          ul { margin-left: 20px; margin-bottom: 20px; }
+          li { font-size: 14px; color: #444; margin-bottom: 8px; }
+          .footer { font-size: 12px; color: #777; margin-top: 50px; text-align: center; border-top: 1px solid #eee; padding-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <h1>LAPORAN ANALISIS SISTEM (AI GENERATED)</h1>
+        <p style="font-style: italic; color: #666;">Dibuat otomatis oleh AI Core pada: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        
+        <h2>1. Ringkasan Eksekutif</h2>
+        <p>${report.summary.replace(/\n/g, '<br/>')}</p>
+        
+        <h2>2. Wawasan Utama (Insights)</h2>
+        <ul>
+          ${report.insights.map(ins => `<li>${ins}</li>`).join('')}
+        </ul>
+        
+        <h2>3. Rekomendasi Tindakan</h2>
+        <ul>
+          ${report.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+        </ul>
+        
+        <div class="footer">
+          Laporan ini digenerate secara otomatis oleh sistem Prakerin.id menggunakan Google Gemini AI.
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const blob = new Blob(['\ufeff' + content], {
+      type: 'application/msword'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Laporan_AI_${new Date().toISOString().slice(0, 10)}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const printPdf = () => {
+    if (!report) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const content = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Laporan AI - Prakerin.id</title>
+        <style>
+          body { font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.6; padding: 40px; color: #1f2937; }
+          .header { display: flex; align-items: center; border-bottom: 2px solid #035a70; padding-bottom: 20px; margin-bottom: 30px; }
+          .logo { font-size: 24px; font-weight: 800; color: #035a70; }
+          .subtitle { font-size: 14px; color: #6b7280; margin-top: 4px; }
+          h1 { font-size: 20px; font-weight: 800; color: #111827; margin-top: 0; }
+          h2 { font-size: 16px; font-weight: 700; color: #035a70; margin-top: 30px; margin-bottom: 12px; }
+          p { font-size: 14px; margin-bottom: 16px; white-space: pre-line; }
+          ul { margin: 0 0 20px 20px; padding: 0; }
+          li { font-size: 14px; margin-bottom: 8px; }
+          .footer { font-size: 12px; color: #9ca3af; text-align: center; margin-top: 60px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+          @media print {
+            body { padding: 20px; }
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="logo">Prakerin.id AI Core</div>
+            <div class="subtitle">Laporan Analisis Eksekutif Otomatis • ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          </div>
+        </div>
+        
+        <h2>Ringkasan Eksekutif</h2>
+        <p>${report.summary}</p>
+        
+        <h2>Wawasan Utama (Insights)</h2>
+        <ul>
+          ${report.insights.map(ins => `<li>${ins}</li>`).join('')}
+        </ul>
+        
+        <h2>Rekomendasi Tindakan</h2>
+        <ul>
+          ${report.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+        </ul>
+        
+        <div class="footer">
+          Dihasilkan secara otomatis oleh sistem Prakerin.id menggunakan Google Gemini AI.
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(content);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  };
+
   return (
     <main className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-8">
       {/* ─── HEADER ─── */}
@@ -95,18 +222,6 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
             </div>
           </div>
         </div>
-
-        {report && (
-          <div className="flex gap-2.5">
-            <button
-              onClick={copyToClipboard}
-              className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs sm:text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <Copy className="w-4 h-4" />
-              Salin Laporan
-            </button>
-          </div>
-        )}
       </div>
 
       {/* ─── GENERATE TRIGGER PANEL ─── */}
@@ -149,22 +264,53 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
 
       {/* ─── REPORT OUTPUT DISPLAY ─── */}
       {report && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Summary Section */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white border border-gray-150 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4">
-              <h3 className="text-lg font-black text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-[#035a70]" />
-                Ringkasan Analisis Eksekutif
-              </h3>
-              <div className="text-gray-600 text-sm sm:text-base leading-relaxed whitespace-pre-line space-y-4">
-                {report.summary}
-              </div>
+        <div className="space-y-8">
+          {/* 1: Summary Card (Full Width) */}
+          <div className="bg-white border border-gray-150 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4">
+            <h3 className="text-lg font-black text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#035a70]" />
+              Ringkasan Analisis Eksekutif
+            </h3>
+            <div className="text-gray-600 text-sm sm:text-base leading-relaxed whitespace-pre-line">
+              {report.summary}
             </div>
           </div>
 
-          {/* Sidebar Insights & Recommendations */}
-          <div className="space-y-6">
+          {/* Action Row */}
+          <div className="flex flex-wrap items-center justify-center gap-3 bg-gray-50 border border-gray-150 rounded-2xl p-4 shadow-sm">
+            <button
+              onClick={copyToClipboard}
+              className="px-5 py-2.5 bg-white border border-gray-250 hover:bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Copy className="w-4 h-4" />
+              Salin Laporan
+            </button>
+            <button
+              onClick={exportToWord}
+              className="px-5 py-2.5 bg-white border border-gray-250 hover:bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Download className="w-4 h-4" />
+              Download Word
+            </button>
+            <button
+              onClick={printPdf}
+              className="px-5 py-2.5 bg-white border border-gray-250 hover:bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              <FileText className="w-4 h-4" />
+              Cetak / PDF
+            </button>
+            <div className="h-6 w-px bg-gray-300 mx-2 hidden sm:block"></div>
+            <button
+              onClick={generateReport}
+              className="px-6 py-2.5 bg-[#035a70] hover:bg-[#035a70]/90 text-white rounded-xl text-sm font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+              Perbarui Laporan (AI)
+            </button>
+          </div>
+
+          {/* 1/1: Side by side columns for Insights and Recommendations */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Insights Panel */}
             <div className="bg-white border border-gray-150 rounded-2xl p-6 shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 border-b border-gray-50 pb-2">
@@ -196,14 +342,6 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
                 ))}
               </div>
             </div>
-            
-            <button
-              onClick={generateReport}
-              className="w-full py-3.5 bg-gradient-to-r from-[#035a70] to-[#04829e] hover:opacity-90 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              Perbarui Laporan (AI)
-            </button>
           </div>
         </div>
       )}

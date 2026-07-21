@@ -128,10 +128,69 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
         console.log(response.data);
         setCv(response.data);
         setResult(JSON.stringify(response.data));
+        if (onResult) {
+          onResult(JSON.stringify(response.data, null, 2));
+        }
       }
     } catch (err: any) {
       console.log("Fetch Failed: " + err);
       setError(err.response?.data?.message || "Terjadi kesalahan saat menghubungi layanan AI.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!cv) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await API.post(
+        "/api/v1/dev/download-cv",
+        cv,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+          responseType: "blob",
+        }
+      );
+
+      if (response.status === 200) {
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement("a");
+        link.href = url;
+        const defaultFilename = `cv_${cv.full_name.replace(/\s+/g, "_")}.pdf`;
+        link.setAttribute("download", defaultFilename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        const saveName = window.prompt(
+          "Masukkan nama untuk menyimpan CV ini ke Dashboard/Daftar CV (kosongkan/batal jika tidak ingin menyimpan):",
+          `CV Pintar - ${cv.full_name}`
+        );
+
+        if (saveName) {
+          const formData = new FormData();
+          formData.append("name", saveName);
+          formData.append("file", blob, defaultFilename);
+
+          await API.post("/api/v1/curriculum-vitaes", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${Cookies.get("userToken")}`,
+            },
+          });
+          alert("CV berhasil disimpan ke dashboard!");
+        }
+      }
+    } catch (err: any) {
+      console.error("Error downloading/saving CV:", err);
+      setError("Terjadi kesalahan saat mengunduh/menyimpan CV.");
     } finally {
       setLoading(false);
     }
@@ -230,7 +289,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
           </button>
         ) : (
           <button
-            // onClick={handleDownload}
+            onClick={handleDownload}
             className="px-4 py-2 rounded-md text-sm bg-accent text-white hover:opacity-90 disabled:opacity-60"
             disabled={loading}
           >
@@ -279,34 +338,9 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
 };
 
 const BuatPintarPage = () => {
-  const templates = ["Classic", "Modern", "Minimal"];
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(
-    templates[0]
-  );
-  const [previewText, setPreviewText] = useState<string | null>(null);
-  const previewRef = React.useRef<HTMLDivElement | null>(null);
-
-  const handlePrint = () => {
-    if (!previewRef.current) return;
-    const printWindow = window.open("", "_blank", "width=800,height=600");
-    if (!printWindow) return;
-    printWindow.document.write(
-      `<!doctype html><html><head><title>CV Preview</title>`
-    );
-    printWindow.document.write(
-      `<style>body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;} .container{padding:20px;}</style>`
-    );
-    printWindow.document.write(
-      `</head><body><div class='container'>${previewRef.current.innerHTML}</div></body></html>`
-    );
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
-
   // return <UnderConstruction />;
   return (
-    <main className="p-6">
+    <main className="p-6 max-w-5xl mx-auto">
       <h1 className="text-accent-dark text-sm mb-5">
         <Link
           className="hover:underline hover:text-accent"
@@ -322,83 +356,18 @@ const BuatPintarPage = () => {
           <h2 className="text-2xl">AI Smart CV Generator</h2>
         </div>
       </div>
-      {/* Two-column layout: left = prompt, right = templates + preview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-accent mb-3">
-            AI Smart CV Generator
-          </h3>
 
-          <p className="text-sm text-gray-600 mb-4">
-            Masukkan instruksi atau ringkasan pengalaman yang ingin diolah
-            menjadi bagian CV. Gunakan contoh cepat di bawah untuk memulai.
-          </p>
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <h3 className="text-lg font-semibold text-accent mb-3">
+          AI Smart CV Generator
+        </h3>
 
-          <PromptField
-            onResult={(s) => setPreviewText(s)}
-            selectedTemplate={selectedTemplate}
-          />
-        </div>
+        <p className="text-sm text-gray-600 mb-4">
+          Masukkan instruksi atau ringkasan pengalaman yang ingin diolah
+          menjadi bagian CV. Gunakan contoh cepat di bawah untuk memulai.
+        </p>
 
-        <aside className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-2">Pilih Template</h4>
-            <div className="flex flex-col gap-2">
-              {templates.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setSelectedTemplate(t)}
-                  className={`text-sm text-left px-3 py-2 rounded-md border ${
-                    selectedTemplate === t
-                      ? "border-accent bg-accent/10"
-                      : "border-gray-200 bg-white"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-2 flex-1">
-            <h4 className="font-semibold text-gray-800 mb-2">Preview CV</h4>
-            <div
-              ref={previewRef}
-              className="border border-gray-100 rounded-md p-3 bg-white min-h-[220px]"
-            >
-              {previewText ? (
-                <div>
-                  <div className="text-sm text-gray-600 mb-2">
-                    Template:{" "}
-                    <span className="font-medium">{selectedTemplate}</span>
-                  </div>
-                  <pre className="whitespace-pre-wrap text-sm text-gray-800">
-                    {previewText}
-                  </pre>
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500">
-                  Belum ada preview. Tekan Generate untuk membuat preview CV.
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPreviewText(null)}
-              className="px-3 py-2 text-sm rounded-md border border-gray-200 bg-white"
-            >
-              Reset
-            </button>
-            <button
-              onClick={handlePrint}
-              className="px-3 py-2 text-sm rounded-md bg-accent text-white"
-            >
-              Print / Download
-            </button>
-          </div>
-        </aside>
+        <PromptField />
       </div>
     </main>
   );
