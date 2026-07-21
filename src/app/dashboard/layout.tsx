@@ -105,7 +105,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "UTAMA",
       items: [
         { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
-        { icon: Activity, label: "AI Analytics", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+        { icon: Activity, label: "CV Analytics", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
       ],
     },
     {
@@ -163,7 +163,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "UTAMA",
       items: [
         { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
-        { icon: Activity, label: "AI Analytics", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+        { icon: Activity, label: "CV Analytics", href: "/dashboard/ai-analytics", permission: "view_cV_analytics" },
       ],
     },
     {

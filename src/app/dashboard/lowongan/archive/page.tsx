@@ -1,5 +1,5 @@
 "use client";
-import { Bookmark, BriefcaseBusiness, Building, MapPin } from "lucide-react";
+import { Bookmark, BriefcaseBusiness, Building, MapPin, FileText, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "@/utils/config";
@@ -13,6 +13,7 @@ import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 interface SaveJobOpening {
   id: string;
   title: string;
+  poster: string | null;
   company: {
     name: string;
   };
@@ -112,9 +113,31 @@ const LowonganArchivePage: React.FC = () => {
               href={`/dashboard/lowongan/${job.id}`}
               className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow flex flex-col"
             >
-              <h3 className="font-semibold text-gray-900 text-lg mb-3">
-                {job.title}
-              </h3>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <h3 className="font-semibold text-gray-900 text-lg">
+                  {job.title}
+                </h3>
+                {job.poster && (
+                  <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                    {job.poster.toLowerCase().endsWith(".pdf") ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-red-400" />
+                      </div>
+                    ) : (
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/job-opening-posters/${job.poster}`}
+                        alt={`Poster ${job.title}`}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    )}
+                    <div className="absolute bottom-0 inset-x-0 bg-black/50 flex items-center justify-center py-0.5">
+                      <ImageIcon className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-3">
                   {job.user.photo_profile ? (

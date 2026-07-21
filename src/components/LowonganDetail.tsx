@@ -224,6 +224,27 @@ export default function LowonganDetail({
             </div>
         </div>
 
+        {/* Poster/Leaflet Lowongan (opsional, dari perusahaan) */}
+        {data.poster && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Poster Lowongan
+            </h3>
+            <a
+              href={`${process.env.NEXT_PUBLIC_API_URL}/storage/job-opening-posters/${data.poster}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`${process.env.NEXT_PUBLIC_API_URL}/storage/job-opening-posters/${data.poster}`}
+                alt={`Poster lowongan ${data.title}`}
+                className="w-full max-w-xl rounded-2xl border object-contain"
+              />
+            </a>
+          </div>
+        )}
+
         {/* Content Area - Placeholder for job description */}
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Deskripsi

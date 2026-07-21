@@ -234,27 +234,44 @@ const tambahLowonganPage: React.FC = () => {
   };
 
   // Poster handlers
+  const posterErrorsClear = () =>
+    setErrors((prev) => ({ ...prev, poster: undefined }));
+
+  const applyPosterFile = (file: File) => {
+    const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      alertError("Format poster harus PNG, JPG, GIF, atau WebP.");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      alertError("Ukuran poster maksimal 4MB.");
+      return;
+    }
+    // Buang preview lama dulu biar gak numpuk object URL di memory.
+    if (posterPreview) URL.revokeObjectURL(posterPreview);
+    setPosterFile(file);
+    setPosterPreview(URL.createObjectURL(file));
+    posterErrorsClear();
+  };
+
   const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPosterFile(file);
-    const url = URL.createObjectURL(file);
-    setPosterPreview(url);
+    applyPosterFile(file);
   };
 
   const handlePosterDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    setPosterFile(file);
-    const url = URL.createObjectURL(file);
-    setPosterPreview(url);
+    if (!file) return;
+    applyPosterFile(file);
   };
 
   const handleRemovePoster = () => {
     setPosterFile(null);
     if (posterPreview) URL.revokeObjectURL(posterPreview);
     setPosterPreview(null);
+    posterErrorsClear();
     if (posterInputRef.current) posterInputRef.current.value = "";
   };
 
