@@ -168,25 +168,7 @@ export default function AwardsPage() {
     setLoadingRecipients(true);
     try {
       const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
-      // Retrieve award details which lists count, or query student awards if we want custom recipient list.
-      // Wait, we can get student awards using custom query or retrieve from award's relations. Let's make an API call.
-      // In AwardController.php, single award get shows: Show: full info + count. We can write a quick query or let controller load relations.
-      const res = await createApiCall({ url: `/awards/${award.id}`, headers });
-      // If we don't have separate endpoint for recipient list, we can call student awards where award_id matches
-      // Or we can mock the list or fetch it if there is endpoint. Let's look at the database: student_awards table exists.
-      // Let's implement a quick mock/list if not directly queryable, or use backend.
-      // In AwardController.php: we don't have separate GET /student-awards, but we can query or retrieve relations.
-      // Let's assume we can fetch list. If we don't have a list of all student_awards, we can request details.
-      // Let's look at our controller: AwardController.php `show($id)` loads `studentAwards` count. We can load studentAwards relation as well!
-      // In show method: `Award::withCount('studentAwards')->findOrFail($id)`. Let's ensure show loads relation if needed.
-      // Let's fetch the details:
       const details = await createApiCall({ url: `/awards/${award.id}`, headers });
-      // Since details only has count, let's load student awards via student awards endpoint or custom query.
-      // Wait, we can use student-awards delete with the student_award id. Let's get the list of student awards.
-      // Wait! Does AwardController show method load student awards?
-      // Let's write `show` to load studentAwards with student information so we can display them!
-      // In AwardController.php line 57: `public function show($id) { $award = Award::with('studentAwards.student.student')->findOrFail($id); return response()->json(['data' => $award]); }`
-      // Let's check: Yes! It has `studentAwards` load. Let's see:
       setRecipients(details?.data?.student_awards || []);
     } catch (err) {
       console.error(err);
