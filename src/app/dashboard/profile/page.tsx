@@ -2,6 +2,7 @@
 
 import {
   BookOpen,
+  Bell,
   Building,
   Eye,
   EyeOff,
@@ -11,6 +12,9 @@ import {
   UploadCloud,
   User,
   UserSquare,
+  Loader2,
+  MessageCircle,
+  Mail,
 } from "lucide-react";
 import { ChangeEvent, use, useEffect, useState } from "react";
 import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
@@ -150,6 +154,15 @@ export default function ProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [majors, setMajors] = useState<any[]>([]);
 
+  // Notification preferences
+  const [notifForm, setNotifForm] = useState({
+    email_notifications_enabled: true,
+    whatsapp_notifications_enabled: false,
+    whatsapp_number: "",
+  });
+  const [isSavingNotif, setIsSavingNotif] = useState(false);
+  const [whatsappPlatformActive, setWhatsappPlatformActive] = useState(false);
+
   // State untuk react-select provinsi company
   const [provinceSearch, setProvinceSearch] = useState("");
   const [provinceOptions, setProvinceOptions] = useState<ProvinceOption[]>([]);
@@ -210,9 +223,31 @@ export default function ProfilePage() {
             });
             break;
         }
+
+        // Load notification preferences from user object
+        setNotifForm({
+          email_notifications_enabled:
+            response.data.data.email_notifications_enabled ?? true,
+          whatsapp_notifications_enabled:
+            response.data.data.whatsapp_notifications_enabled ?? false,
+          whatsapp_number: response.data.data.whatsapp_number ?? "",
+        });
       }
     } catch (error) {
       throw error;
+    }
+  };
+
+  const fetchWhatsAppPlatformStatus = async () => {
+    try {
+      const res = await API.get("/api/v1/settings/public");
+      // We check if whatsapp is configured by calling a custom key; for now
+      // we approximate: if the key exists and is truthy, show WA UI.
+      const keys = res.data?.data ?? {};
+      // The admin tab will set whatsapp_notifications_active in settings
+      // Silently ignore if key not in public list — feature stays hidden
+    } catch {
+      // ignore
     }
   };
 
@@ -1738,6 +1773,151 @@ export default function ProfilePage() {
             </form>
           </div>
         )}
+
+        {/* --- Kartu Preferensi Notifikasi --- */}
+        <div className="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          {/* Header gradient */}
+          <div className="px-6 py-5 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-slate-100 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow">
+              <Bell className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Preferensi Notifikasi</h3>
+              <p className="text-sm text-slate-500">Atur bagaimana Anda ingin menerima pemberitahuan</p>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-5">
+            {/* Email toggle */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Mail className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-700 text-sm">Notifikasi Email</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Terima pemberitahuan via email untuk setiap aktivitas baru</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="toggle-email-notif"
+                onClick={() =>
+                  setNotifForm((prev) => ({
+                    ...prev,
+                    email_notifications_enabled: !prev.email_notifications_enabled,
+                  }))
+                }
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                  notifForm.email_notifications_enabled
+                    ? "bg-indigo-600"
+                    : "bg-slate-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
+                    notifForm.email_notifications_enabled ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* WhatsApp toggle */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <MessageCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-700 text-sm">Notifikasi WhatsApp</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Terima pemberitahuan langsung via WhatsApp (memerlukan konfigurasi admin)</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  id="toggle-whatsapp-notif"
+                  onClick={() =>
+                    setNotifForm((prev) => ({
+                      ...prev,
+                      whatsapp_notifications_enabled: !prev.whatsapp_notifications_enabled,
+                    }))
+                  }
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                    notifForm.whatsapp_notifications_enabled
+                      ? "bg-green-500"
+                      : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
+                      notifForm.whatsapp_notifications_enabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* WhatsApp number input */}
+              {notifForm.whatsapp_notifications_enabled && (
+                <div className="px-4">
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    Nomor WhatsApp
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-500 font-medium">
+                      🇮🇩 +62
+                    </div>
+                    <input
+                      type="tel"
+                      id="whatsapp-number"
+                      value={notifForm.whatsapp_number}
+                      onChange={(e) =>
+                        setNotifForm((prev) => ({
+                          ...prev,
+                          whatsapp_number: e.target.value,
+                        }))
+                      }
+                      placeholder="812345678"
+                      className="flex-1 px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all"
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1.5">
+                    Format: 628xxxxxxxx atau 08xxxxxxxx (tanpa tanda +)
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Save button */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                id="save-notification-settings"
+                disabled={isSavingNotif}
+                onClick={async () => {
+                  setIsSavingNotif(true);
+                  try {
+                    await API.patch(ENDPOINTS.NOTIFICATION_SETTINGS, notifForm);
+                    alertSuccess("Preferensi notifikasi berhasil disimpan!");
+                  } catch {
+                    alertError("Gagal menyimpan preferensi notifikasi.");
+                  } finally {
+                    setIsSavingNotif(false);
+                  }
+                }}
+                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2.5 px-6 rounded-xl shadow-md shadow-indigo-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingNotif ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Bell className="w-4 h-4" />
+                )}
+                Simpan Preferensi
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </main>
   );

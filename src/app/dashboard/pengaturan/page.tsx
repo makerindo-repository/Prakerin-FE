@@ -19,6 +19,7 @@ import {
   Globe,
   Database,
   ArrowRight,
+  MessageSquare,
 } from "lucide-react";
 
 export default function PengaturanPage() {
@@ -30,11 +31,12 @@ export default function PengaturanPage() {
 }
 
 function PengaturanContent() {
-  const [activeTab, setActiveTab] = useState<"umum" | "kebijakan" | "integrasi" | "smtp">("umum");
+  const [activeTab, setActiveTab] = useState<"umum" | "kebijakan" | "integrasi" | "smtp" | "whatsapp">("umum");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isTestingSmtp, setIsTestingSmtp] = useState(false);
   const [isTestingAi, setIsTestingAi] = useState(false);
+  const [isTestingWa, setIsTestingWa] = useState(false);
 
   // Form states mapping directly to backend setting keys
   const [form, setForm] = useState({
@@ -63,12 +65,17 @@ function PengaturanContent() {
     smtp_encryption: "tls",
     smtp_from_email: "noreply@prakerin.com",
     smtp_from_name: "Prakerin Support",
+    whatsapp_notifications_active: false,
+    whatsapp_api_provider: "twilio",
+    whatsapp_api_key: "",
+    whatsapp_sender_number: "",
   });
 
   // Password visibility toggles
   const [showAiKey, setShowAiKey] = useState(false);
   const [showRecaptchaSecret, setShowRecaptchaSecret] = useState(false);
   const [showSmtpPassword, setShowSmtpPassword] = useState(false);
+  const [showWaKey, setShowWaKey] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -93,6 +100,7 @@ function PengaturanContent() {
           auto_approve_companies: fetched.auto_approve_companies === true || fetched.auto_approve_companies === "true",
           auto_approve_students: fetched.auto_approve_students === true || fetched.auto_approve_students === "true",
           recaptcha_enabled: fetched.recaptcha_enabled === true || fetched.recaptcha_enabled === "true",
+          whatsapp_notifications_active: fetched.whatsapp_notifications_active === true || fetched.whatsapp_notifications_active === "true",
           max_concurrent_applications: Number(fetched.max_concurrent_applications || 3),
           min_internship_duration: Number(fetched.min_internship_duration || 1),
           max_internship_duration: Number(fetched.max_internship_duration || 52),
@@ -229,6 +237,44 @@ function PengaturanContent() {
     }
   };
 
+  const testWaConnection = async () => {
+    setIsTestingWa(true);
+    try {
+      // First save settings so backend has latest config
+      await API.post(
+        ENDPOINTS.SETTINGS,
+        { settings: form },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      const response = await API.post(
+        `${ENDPOINTS.SETTINGS}/test-whatsapp`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      if (response.data?.status === "success") {
+        alertSuccess(response.data.message || "Koneksi WhatsApp API Berhasil!");
+      } else {
+        alertError(response.data?.message || "Koneksi WhatsApp API Gagal.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Gagal menguji koneksi WhatsApp.";
+      alertError(msg);
+    } finally {
+      setIsTestingWa(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
@@ -295,6 +341,17 @@ function PengaturanContent() {
           >
             <Mail className={`w-5 h-5 ${activeTab === "smtp" ? "text-indigo-600" : "text-gray-400"}`} />
             Server Email (SMTP)
+          </button>
+          <button
+            onClick={() => setActiveTab("whatsapp")}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all border text-left cursor-pointer ${
+              activeTab === "whatsapp"
+                ? "bg-green-50 border-green-200 text-green-700 shadow-sm"
+                : "bg-white hover:bg-gray-50 border-gray-100 text-gray-600"
+            }`}
+          >
+            <MessageSquare className={`w-5 h-5 ${activeTab === "whatsapp" ? "text-green-600" : "text-gray-400"}`} />
+            WhatsApp Gateway
           </button>
         </div>
 
@@ -780,6 +837,98 @@ function PengaturanContent() {
                 </div>
               </div>
             )}
+
+            {/* TAB 5: WHATSAPP GATEWAY */}
+            {activeTab === "whatsapp" && (
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                  <div>
+                    <h3 className="font-bold text-gray-800 text-lg">Konfigurasi WhatsApp Gateway</h3>
+                    <p className="text-gray-500 text-sm">Integrasi Twilio WhatsApp untuk push notifikasi pesan langsung ke pengguna</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={testWaConnection}
+                    disabled={isTestingWa}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-50 text-green-700 hover:bg-green-100 font-semibold text-sm transition-all border border-green-200 cursor-pointer disabled:opacity-50"
+                  >
+                    {isTestingWa ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                    Uji Koneksi WhatsApp
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-green-50/50 rounded-2xl border border-green-100">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 text-sm">Aktifkan Notifikasi WhatsApp Platform</h4>
+                    <p className="text-gray-500 text-xs mt-0.5">Jika nonaktif, pengguna tidak dapat menerima notifikasi WhatsApp dari sistem.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleChange("whatsapp_notifications_active", !form.whatsapp_notifications_active)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                      form.whatsapp_notifications_active ? "bg-green-600" : "bg-gray-200"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        form.whatsapp_notifications_active ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Penyedia API (Provider)</label>
+                    <select
+                      name="whatsapp_api_provider"
+                      value={form.whatsapp_api_provider}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm bg-white"
+                    >
+                      <option value="twilio">Twilio (Official Support)</option>
+                      <option value="disabled">Nonaktifkan Provider</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp Pengirim (Twilio Sandbox / Sender)</label>
+                    <input
+                      type="text"
+                      name="whatsapp_sender_number"
+                      value={form.whatsapp_sender_number}
+                      onChange={handleInputChange}
+                      placeholder="+14155238886"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Format internasional dengan tanda +, contoh: +14155238886</p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Twilio API Key (Account SID : Auth Token)</label>
+                    <div className="relative">
+                      <input
+                        type={showWaKey ? "text" : "password"}
+                        name="whatsapp_api_key"
+                        value={form.whatsapp_api_key}
+                        onChange={handleInputChange}
+                        placeholder="ACxxxxxxxxxxxxxxxx:your_auth_token_here"
+                        className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowWaKey(!showWaKey)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      >
+                        {showWaKey ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Gabungkan Account SID dan Auth Token dipisah dengan titik dua (:)</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
 
             {/* STICKY CARD ACTION FOOTER */}
             <div className="bg-gray-50 border-t border-gray-100 px-6 py-4 flex items-center justify-between">

@@ -31,6 +31,10 @@ export const ENDPOINTS = {
   CERTIFICATES: '/api/v1/certificates',
   FEEDBACKS: '/api/v1/feedbacks',
 
+  // Notifications & Inbox
+  INBOX: '/api/v1/inbox',
+  NOTIFICATION_SETTINGS: '/api/v1/users/notification-settings',
+
   // Master & Supporting Data
   MAJORS: '/api/v1/majors',
   TESTS: '/api/v1/tests',
