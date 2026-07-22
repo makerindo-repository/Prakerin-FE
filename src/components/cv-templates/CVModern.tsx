@@ -35,14 +35,39 @@ const CVModernPDF: React.FC<{data?: CVResult| null}> = ({ data }) => {
         color: '#ffffff',
         padding: '32px',
       }}>
-        <header style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <div style={{
-            width: '100px',
-            height: '100px',
-            backgroundColor: ACCENT_COLOR,
-            borderRadius: '50%',
-            margin: '0 auto 16px',
-          }}>{/*  */}</div>
+        <header style={{ textAlign: 'center', marginBottom: '32px' }}>
+          {data?.photo_profile ? (
+            <img
+              src={data.photo_profile}
+              alt={fullName}
+              style={{
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                margin: '0 auto 16px',
+                display: 'block',
+                border: `3px solid ${ACCENT_COLOR}`,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              }}
+            />
+          ) : (
+            <div style={{
+              width: '100px',
+              height: '100px',
+              backgroundColor: ACCENT_COLOR,
+              borderRadius: '50%',
+              margin: '0 auto 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24pt',
+              fontWeight: 'bold',
+              color: '#ffffff',
+            }}>
+              {fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <h1 style={{ fontSize: '24pt', fontWeight: 'bold', color: '#ffffff', margin: '0 0 4px 0' }}>{fullName}</h1>
           <h2 style={{ fontSize: '12pt', color: ACCENT_COLOR, fontWeight: '300', margin: '0' }}>{jobTitle}</h2>
         </header>

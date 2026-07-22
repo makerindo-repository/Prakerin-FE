@@ -9,7 +9,6 @@ import {
   AlertCircle,
   Lightbulb,
   CheckCircle,
-  Download,
   Copy
 } from "lucide-react";
 import Cookies from "js-cookie";
@@ -80,69 +79,6 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
       .split(/\n\s*\n/)
       .map((p) => `<p style="margin-bottom: 16px; line-height: 1.6;">${p.trim().replace(/\n/g, "<br/>")}</p>`)
       .join("");
-  };
-
-  const exportToWord = () => {
-    if (!report) return;
-    
-    const content = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head>
-        <title>Laporan Analisis AI</title>
-        <!--[if gte mso 9]>
-        <xml>
-          <w:WordDocument>
-            <w:View>Print</w:View>
-            <w:Zoom>100</w:Zoom>
-          </w:WordDocument>
-        </xml>
-        <![endif]-->
-        <style>
-          body { font-family: 'Arial', sans-serif; line-height: 1.6; padding: 20px; }
-          h1 { color: #035a70; font-size: 24px; border-bottom: 2px solid #035a70; padding-bottom: 10px; margin-bottom: 20px; }
-          h2 { color: #04829e; font-size: 18px; margin-top: 30px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-          p { font-size: 14px; color: #333; margin-bottom: 15px; }
-          ul { margin-left: 20px; margin-bottom: 20px; }
-          li { font-size: 14px; color: #444; margin-bottom: 8px; }
-          .footer { font-size: 12px; color: #777; margin-top: 50px; text-align: center; border-top: 1px solid #eee; padding-top: 10px; }
-        </style>
-      </head>
-      <body>
-        <h1>LAPORAN ANALISIS SISTEM (AI GENERATED)</h1>
-        <p style="font-style: italic; color: #666;">Dibuat otomatis oleh AI Core pada: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        
-        <h2>1. Ringkasan Eksekutif & Format Laporan</h2>
-        ${formatSummaryHtml(report.summary)}
-        
-        <h2>2. Wawasan Utama (Insights)</h2>
-        <ul>
-          ${report.insights.map(ins => `<li>${ins}</li>`).join('')}
-        </ul>
-        
-        <h2>3. Rekomendasi Tindakan</h2>
-        <ul>
-          ${report.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-        </ul>
-        
-        <div class="footer">
-          Laporan ini digenerate secara otomatis oleh sistem Prakerin.id menggunakan Google Gemini AI.
-        </div>
-      </body>
-      </html>
-    `;
-    
-    const blob = new Blob(['\ufeff' + content], {
-      type: 'application/msword'
-    });
-    
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Laporan_AI_${new Date().toISOString().slice(0, 10)}.doc`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   const printPdf = () => {
@@ -292,13 +228,6 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
             >
               <Copy className="w-4 h-4" />
               Salin Laporan
-            </button>
-            <button
-              onClick={exportToWord}
-              className="px-5 py-2.5 bg-white border border-gray-250 hover:bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
-            >
-              <Download className="w-4 h-4" />
-              Download Word
             </button>
             <button
               onClick={printPdf}

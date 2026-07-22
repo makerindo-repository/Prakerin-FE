@@ -3,6 +3,7 @@ export interface CVResult{
     email: string
     phone_number:string
     linkedin_url:string
+    photo_profile?: string
     summary:string
     skills:string[]
     work_experience: {

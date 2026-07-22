@@ -65,6 +65,8 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
         skills: { technical: [], languages: [] },
       };
 
+      let userPfpUrl: string | undefined = undefined;
+
       try {
         const profileRes = await API.get(`${ENDPOINTS.USERS}/profile`, {
           headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
@@ -72,6 +74,13 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
         if (profileRes.status === 200 && profileRes.data?.data) {
           const uData = profileRes.data.data;
           const sData = uData.student || {};
+
+          if (uData.photo_profile) {
+            userPfpUrl = uData.photo_profile.startsWith("http")
+              ? uData.photo_profile
+              : `${process.env.NEXT_PUBLIC_API_URL || 'https://api.prakerin.id'}/storage/photo-profile/${uData.photo_profile}`;
+          }
+
           profileUserPayload = {
             personal_details: {
               full_name: sData.name || uData.username || "Siswa Prakerin",
@@ -103,7 +112,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
         `${ENDPOINTS.CURRICULUM_VITAE}/generate-cv`,
         {
           profile_user: profileUserPayload,
-          prompt_user: prompt,
+          prompt_user: `${prompt}\n(Gaya Bahasa / Tone: ${tone})`,
         },
         {
           headers: {
@@ -113,11 +122,15 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
       );
 
       if (response.status === 200) {
-        console.log(response.data);
-        setCv(response.data);
-        setResult(JSON.stringify(response.data));
+        const resultWithPhoto = {
+          ...response.data,
+          photo_profile: userPfpUrl,
+        };
+        console.log(resultWithPhoto);
+        setCv(resultWithPhoto);
+        setResult(JSON.stringify(resultWithPhoto));
         if (onResult) {
-          onResult(JSON.stringify(response.data, null, 2));
+          onResult(JSON.stringify(resultWithPhoto, null, 2));
         }
       }
     } catch (err: any) {
@@ -244,16 +257,16 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Tone:</label>
+          <label className="text-sm font-medium text-gray-700">Tone:</label>
           <select
             value={tone}
             onChange={(e) => setTone(e.target.value)}
-            className="p-2 border border-gray-200 rounded-md text-sm"
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-800 bg-white cursor-pointer focus:ring-2 focus:ring-accent focus:border-accent shadow-sm"
             disabled={loading}
           >
-            <option>Professional</option>
-            <option>Formal</option>
-            <option>Casual</option>
+            <option value="Professional">Professional</option>
+            <option value="Formal">Formal</option>
+            <option value="Casual">Casual</option>
           </select>
         </div>
       </div>
