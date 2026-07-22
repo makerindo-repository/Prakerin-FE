@@ -241,6 +241,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "AI Features",
       items: [
         { icon: FileText, label: "AI Report", href: "/dashboard/ai-report", permission: "view_dashboard" },
+        { icon: ScrollText, label: "Template Laporan", href: "/dashboard/school/template-laporan", permission: "view_dashboard" },
       ],
     },
     {

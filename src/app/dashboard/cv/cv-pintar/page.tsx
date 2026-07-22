@@ -22,10 +22,8 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
     "Tekankan keterampilan teknis: JavaScript, React, TypeScript.",
     "Ringkas pengalaman jadi 3-4 poin yang padat dan to the point.",
   ];
-  const templates = ["Classic", "Modern", "Minimal"];
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(
-    templates[0]
-  );
+  const templates = ["ATS", "Classic", "Modern"];
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("ATS");
   const [prompt, setPrompt] = useState("");
   const [tone, setTone] = useState("Professional");
   const [loading, setLoading] = useState(false);
@@ -54,67 +52,57 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
     setResult(null);
 
     try {
+      let profileUserPayload: any = {
+        personal_details: {
+          full_name: "Siswa Prakerin",
+          email: "",
+          phone_number: "",
+          address: "",
+          linkedin_url: "",
+        },
+        work_experience: [],
+        education: [],
+        skills: { technical: [], languages: [] },
+      };
+
+      try {
+        const profileRes = await API.get(`${ENDPOINTS.USERS}/profile`, {
+          headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
+        });
+        if (profileRes.status === 200 && profileRes.data?.data) {
+          const uData = profileRes.data.data;
+          const sData = uData.student || {};
+          profileUserPayload = {
+            personal_details: {
+              full_name: sData.name || uData.username || "Siswa Prakerin",
+              email: uData.email || "",
+              phone_number: sData.phone_number || "",
+              address: sData.address || "",
+              linkedin_url: sData.portofolio_link || sData.social_media_link || "",
+            },
+            work_experience: [],
+            education: sData.school_name ? [
+              {
+                institution: sData.school_name,
+                degree: sData.class ? `Kelas ${sData.class}` : "Peserta Magang",
+                field_of_study: sData.major?.name || "Umum",
+                graduation_year: "Aktif",
+              },
+            ] : [],
+            skills: {
+              technical: sData.skill ? sData.skill.split(",").map((s: string) => s.trim()) : ["Komunikasi", "Kerja Tim"],
+              languages: ["Bahasa Indonesia"],
+            },
+          };
+        }
+      } catch (e) {
+        console.error("Could not fetch user profile for CV generator:", e);
+      }
+
       const response = await API.post(
         `${ENDPOINTS.CURRICULUM_VITAE}/generate-cv`,
         {
-          profile_user: {
-            personal_details: {
-              full_name: "Budi Santoso",
-              email: "budi.santoso.dev@email.com",
-              phone_number: "+62 812 3456 7890",
-              address: "Jakarta, Indonesia",
-              linkedin_url: "https://linkedin.com/in/budisantoso-dev",
-            },
-            work_experience: [
-              {
-                job_title: "Senior Frontend Developer",
-                company: "PT Teknologi Maju Bersama",
-                start_date: "Januari 2022",
-                end_date: "Sekarang",
-                responsibilities: [
-                  "Mengembangkan dan memelihara user interface untuk aplikasi web utama menggunakan React dan Next.js.",
-                  "Berkolaborasi dengan desainer UI/UX dan tim backend untuk integrasi API.",
-                  "Melakukan code review dan mentoring untuk developer junior.",
-                  "Meningkatkan performa website hingga 20%.",
-                ],
-              },
-              {
-                job_title: "Frontend Developer",
-                company: "Startup Cepat Koding",
-                start_date: "Juni 2019",
-                end_date: "Desember 2021",
-                responsibilities: [
-                  "Membangun komponen UI yang reusable.",
-                  "Mengubah desain dari Figma menjadi kode HTML, CSS, dan JavaScript.",
-                  "Mengintegrasikan layanan REST API ke aplikasi frontend.",
-                ],
-              },
-            ],
-            education: [
-              {
-                institution: "Universitas Gadjah Mada",
-                degree: "Sarjana Komputer",
-                field_of_study: "Ilmu Komputer",
-                graduation_year: "2019",
-              },
-            ],
-            skills: {
-              technical: [
-                "JavaScript",
-                "TypeScript",
-                "React.js",
-                "Next.js",
-                "Node.js",
-                "Tailwind CSS",
-                "Git",
-                "REST API",
-              ],
-              languages: [
-                "Bahasa Indonesia (Native)",
-                "English (Professional)",
-              ],
-            },
-          },
+          profile_user: profileUserPayload,
           prompt_user: prompt,
         },
         {
@@ -133,7 +121,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
         }
       }
     } catch (err: any) {
-      console.log("Fetch Failed: " + err);
+      console.error("Error generating CV:", err);
       setError(err.response?.data?.message || "Terjadi kesalahan saat menghubungi layanan AI.");
     } finally {
       setLoading(false);
@@ -213,14 +201,14 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
     }
 
     switch (selectedTemplate) {
-      case "Classic": // Anda bisa ganti ini menjadi "Professional"
+      case "ATS":
+        return <CVAts data={cv} />;
+      case "Classic":
         return <CVProfessional data={cv} />;
       case "Modern":
         return <CVModern data={cv} />;
-      case "Minimal": // Anda bisa ganti ini menjadi "ATS"
-        return <CVAts data={cv} />;
       default:
-        return <CVProfessional data={cv} />;
+        return <CVAts data={cv} />;
     }
   };
 

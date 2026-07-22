@@ -67,7 +67,7 @@ const CvPage: React.FC = () => {
         window.URL.revokeObjectURL(url);
       }
     } catch (error: any) {
-      console.error("Error downloading CV:", error.response.data.errors);
+      console.error("Error downloading CV:", error.response?.data?.errors || error.message);
     }
   };
 
@@ -117,7 +117,7 @@ const CvPage: React.FC = () => {
         });
       }
     } catch (error: any) {
-      console.error("Error fetching CVs:", error.response.data.errors);
+      console.error("Error fetching CVs:", error.response?.data?.errors || error.message);
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ const CvPage: React.FC = () => {
         await alertSuccess("Berhasil menghapus CV");
       }
     } catch (error: any) {
-      console.error("Error deleting CV:", error.response.data.errors);
+      console.error("Error deleting CV:", error.response?.data?.errors || error.message);
     }
   };
 

@@ -49,9 +49,11 @@ const accessMap: Record<string, string[]> = {
   ],
   school: [
     "/dashboard",
+    "/dashboard/school/*",
     "/dashboard/school/siswa*",
     "/dashboard/school/mahasiswa*",
     "/dashboard/school/penempatan*",
+    "/dashboard/school/template-laporan*",
     "/dashboard/perusahaan*",
     "/dashboard/mou*",
     "/dashboard/awards*",

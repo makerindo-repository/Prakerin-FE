@@ -74,6 +74,14 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
     alertSuccess("Laporan berhasil disalin ke clipboard!");
   };
 
+  const formatSummaryHtml = (text: string) => {
+    if (!text) return "";
+    return text
+      .split(/\n\s*\n/)
+      .map((p) => `<p style="margin-bottom: 16px; line-height: 1.6;">${p.trim().replace(/\n/g, "<br/>")}</p>`)
+      .join("");
+  };
+
   const exportToWord = () => {
     if (!report) return;
     
@@ -103,8 +111,8 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
         <h1>LAPORAN ANALISIS SISTEM (AI GENERATED)</h1>
         <p style="font-style: italic; color: #666;">Dibuat otomatis oleh AI Core pada: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         
-        <h2>1. Ringkasan Eksekutif</h2>
-        <p>${report.summary.replace(/\n/g, '<br/>')}</p>
+        <h2>1. Ringkasan Eksekutif & Format Laporan</h2>
+        ${formatSummaryHtml(report.summary)}
         
         <h2>2. Wawasan Utama (Insights)</h2>
         <ul>
@@ -172,8 +180,8 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
           </div>
         </div>
         
-        <h2>Ringkasan Eksekutif</h2>
-        <p>${report.summary}</p>
+        <h2>Ringkasan Eksekutif & Format Laporan</h2>
+        <div>${formatSummaryHtml(report.summary)}</div>
         
         <h2>Wawasan Utama (Insights)</h2>
         <ul>
@@ -269,9 +277,9 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
           <div className="bg-white border border-gray-150 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4">
             <h3 className="text-lg font-black text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#035a70]" />
-              Ringkasan Analisis Eksekutif
+              Ringkasan Analisis Eksekutif & Format Laporan
             </h3>
-            <div className="text-gray-600 text-sm sm:text-base leading-relaxed whitespace-pre-line">
+            <div className="text-gray-700 text-sm sm:text-base leading-relaxed whitespace-pre-wrap space-y-4">
               {report.summary}
             </div>
           </div>

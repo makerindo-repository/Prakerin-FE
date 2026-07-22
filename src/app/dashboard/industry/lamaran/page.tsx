@@ -182,7 +182,7 @@ const lamaranPage: React.FC = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
-      console.error("Error downloading CV:", error.response.data.errors);
+      console.error("Error downloading CV:", error.response?.data?.errors || error.message);
     }
   };
 
