@@ -17,7 +17,7 @@ import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
 import Loader from "@/components/loader";
 import { AxiosError } from "axios";
-import { alertSuccess } from "@/libs/alert";
+import { alertError, alertSuccess } from "@/libs/alert";
 
 interface Application {
   user: {
@@ -180,6 +180,19 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
       console.log(response);
     } catch (error: AxiosError | unknown) {
       console.error(error);
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data?.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else if (responseError && typeof responseError === "object") {
+          setErrors(responseError);
+          await alertError("Periksa kembali data yang dimasukkan.");
+        } else {
+          await alertError("Gagal memperbarui status lamaran.");
+        }
+      } else {
+        await alertError("Gagal memperbarui status lamaran.");
+      }
     } finally {
       setIsSubmitting(false);
     }
