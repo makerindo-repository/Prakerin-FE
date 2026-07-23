@@ -52,7 +52,7 @@ const DaftarSiswaPage: React.FC = () => {
   });
   const [isReload, setIsReload] = useState<boolean>(false);
 
-  const getStatusColor = (status: string): string => {
+  const getStatusColor = (status?: string): string => {
     switch (status) {
       case "ongoing":
         return "bg-green-100 text-green-800";
@@ -65,7 +65,7 @@ const DaftarSiswaPage: React.FC = () => {
     }
   };
 
-  const getStatusName = (status: string): string => {
+  const getStatusName = (status?: string): string => {
     switch (status) {
       case "ongoing":
         return "Sedang Magang";

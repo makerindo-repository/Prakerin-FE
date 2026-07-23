@@ -84,7 +84,7 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-export const createApiCall = async (arg1: any, arg2: any = {}) => {
+export const createApiCall = async <T = any>(arg1: any, arg2: any = {}): Promise<T> => {
   try {
     let config: any = {};
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { API, createApiCall } from "@/utils/config";
+import { API, createApiCall, ENDPOINTS } from "@/utils/config";
 import { isFreeFeature } from "@/config/features";
 
 export interface SubscriptionData {
@@ -34,13 +34,13 @@ export function useSubscription(studentId?: string | null) {
     try {
       setLoading(true);
       setError(null);
-      const res = await createApiCall<SubscriptionData>(
+      const res = await createApiCall<{ data?: SubscriptionData } & SubscriptionData>(
         `${ENDPOINTS.SUBSCRIPTIONS}/user/${studentId}`,
         { method: "GET" }
       );
 
-      if (res && res.data) {
-        setData(res.data);
+      if (res) {
+        setData(res.data || res);
       }
     } catch (err: any) {
       setError(err?.message || "Gagal memuat status langganan");
