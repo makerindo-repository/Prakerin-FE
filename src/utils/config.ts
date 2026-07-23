@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.prakerin.id';
 const TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 60000;
@@ -51,6 +52,11 @@ export const ENDPOINTS = {
   STUDENTS: '/api/v1/students',
   COMPANIES: '/api/v1/companies',
   SETTINGS: '/api/v1/settings',
+
+  // Subscription & Revenue
+  SUBSCRIPTIONS: '/api/v1/subscriptions',
+  ADMIN_SUBSCRIPTIONS: '/api/v1/admin/subscriptions',
+  ADMIN_REVENUE: '/api/v1/admin/revenue',
 };
 
 export const API = axios.create({
@@ -66,7 +72,11 @@ export const API = axios.create({
 // Interceptor Token bearer otomatis
 API.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
+    const token =
+      Cookies.get('userToken') ||
+      Cookies.get('token') ||
+      localStorage.getItem('userToken') ||
+      localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -1,13 +1,14 @@
 import { useAuthStore } from '@/stores/authStore';
+import { isFreeFeature } from '@/config/features';
 
 /**
- * Hook for checking user permissions.
+ * Hook for checking user permissions and subscription tier access.
  * Reads from Zustand auth store which is populated after login.
  *
  * Usage:
- *   const { can, canAny, role, permissions } = usePermission();
+ *   const { can, canAny, role, permissions, canAccessFeature } = usePermission();
  *   if (can('view_kelas')) { ... }
- *   if (canAny(['create_kelas', 'edit_kelas'])) { ... }
+ *   if (canAccessFeature('view_ai_analytics', userSubscriptionTier)) { ... }
  */
 export function usePermission() {
   const { role, permissions } = useAuthStore();
@@ -38,12 +39,19 @@ export function usePermission() {
 
   /**
    * Returns true if the user has the specified Spatie role.
-   * Use the legacy role string (e.g. 'super_admin', 'school', 'student', 'company').
    */
   const hasRole = (roleName: string): boolean => {
     return role === roleName;
   };
 
-  return { can, canAny, canAll, hasRole, role, permissions };
+  /**
+   * Checks if user can access a feature based on subscription tier ('free' | 'premium').
+   */
+  const canAccessFeature = (featureName: string, subscriptionTier: 'free' | 'premium' = 'free'): boolean => {
+    if (role === 'super_admin' || subscriptionTier === 'premium') return true;
+    return isFreeFeature(featureName);
+  };
+
+  return { can, canAny, canAll, hasRole, canAccessFeature, role, permissions };
 }
 

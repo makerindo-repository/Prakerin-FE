@@ -23,11 +23,15 @@ import Loader from "@/components/loader";
 
 interface Student {
   id: string;
-  status: "ongoing" | "not_started" | "completed";
+  status?: "ongoing" | "not_started" | "completed";
+  status_magang?: "ongoing" | "not_started" | "completed";
+  status_subscription?: "free" | "premium";
   student: {
     id: string;
     name: string;
     class: string | null;
+    status_subscription?: "free" | "premium";
+    status_magang?: "ongoing" | "not_started" | "completed";
   } | null;
   major: {
     name: string;
@@ -344,7 +348,10 @@ const DaftarMahasiswaPage: React.FC = () => {
                   Jurusan
                 </th>
                 <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
-                  Status
+                  Status Magang
+                </th>
+                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
+                  Status Langganan
                 </th>
                 <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                   Aksi
@@ -353,7 +360,11 @@ const DaftarMahasiswaPage: React.FC = () => {
             </thead>
             <tbody>
               {students && !isLoading ? (
-                students.map((task, index) => (
+                students.map((task, index) => {
+                  const magangStatus = task.status_magang || task.status || "not_started";
+                  const subStatus = task.status_subscription || task.student?.status_subscription || "free";
+
+                  return (
                   <tr key={index} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-gray-800 text-sm">
                       {index + 1 + (pages.activePages - 1) * 10}
@@ -368,10 +379,21 @@ const DaftarMahasiswaPage: React.FC = () => {
                     <td className="p-4">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          task.status
+                          magangStatus
                         )}`}
                       >
-                        {getStatusName(task.status)}
+                        {getStatusName(magangStatus)}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                          subStatus === "premium"
+                            ? "bg-amber-100 text-amber-800 border border-amber-300"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {subStatus}
                       </span>
                     </td>
                     <td className="p-4">
@@ -394,10 +416,11 @@ const DaftarMahasiswaPage: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+                })
               ) : (
                 <tr>
-                  <td colSpan={5} className="p-4">
+                  <td colSpan={7} className="p-4">
                     <Loader />
                   </td>
                 </tr>

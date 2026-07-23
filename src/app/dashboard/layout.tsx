@@ -49,6 +49,8 @@ import {
   Landmark,
   Brain,
   Sparkles,
+  DollarSign,
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -153,13 +155,14 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "MONITORING & LAPORAN",
       items: [
         { icon: ScrollText, label: "Laporan", href: "/dashboard/laporan", permission: "view_laporan" },
+        { icon: DollarSign, label: "Revenue Dashboard", href: "/dashboard/admin/revenue", permission: "view_laporan" },
         { icon: Activity, label: "Log Aktivitas", href: "/dashboard/log-aktivitas", permission: "view_log_aktivitas" },
       ],
     },
     {
       label: "SISTEM",
       items: [
-        { icon: Shield, label: "Role & Hak Akses", href: "/dashboard/master-data/roles", permission: "manage_permissions" },
+        { icon: CreditCard, label: "Subscription Tiers", href: "/dashboard/subscription-tiers", permission: "manage_permissions" },
         { icon: Settings, label: "Pengaturan", href: "/dashboard/pengaturan", permission: "view_pengaturan" },
         { icon: Bell, label: "Notifikasi", href: "/dashboard/inbox", permission: "view_profil" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
