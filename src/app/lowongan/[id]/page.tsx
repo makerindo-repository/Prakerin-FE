@@ -295,7 +295,7 @@ const DetailLowonganPage = ({
                       </h1>
                       <div className="flex items-center gap-2 text-gray-600">
                         <span className="text-blue-600 font-medium">
-                          {data && data.company.name}
+                          {data?.company?.name ?? "-"}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-gray-500 mt-1">

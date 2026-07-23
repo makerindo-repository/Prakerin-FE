@@ -155,12 +155,12 @@ const LowonganArchivePage: React.FC = () => {
                   )}
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">
-                      {job.company.name}
+                      {job.company?.name ?? "-"}
                     </h3>
                     <div className="flex text-sm text-gray-500 space-x-2">
                       <MapPin className="w-4 h-4 my-auto" />
                       <p className="">
-                        {job.city_regency.name}, {job.province.name}
+                        {job.city_regency?.name ?? "N/A"}, {job.province?.name ?? "N/A"}
                       </p>
                     </div>
                   </div>

@@ -267,7 +267,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                 <div className="flex items-start gap-4">
                   {/* Company Logo */}
                   <div className="flex-shrink-0">
-                    {jobOpening.user.photo_profile ? (
+                    {jobOpening?.user?.photo_profile ? (
                       <div className="w-16 h-16 relative rounded-full border-white border">
                         <Image
                           src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${jobOpening.user.photo_profile}`}
@@ -285,11 +285,11 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   {/* Job Info */}
                   <div className="flex-1 min-w-0">
                     <h1 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-2">
-                      {jobOpening.title}
+                      {jobOpening?.title}
                     </h1>
                     <div className="flex items-center gap-2 text-gray-600">
                       <span className="text-blue-600 font-medium">
-                        {jobOpening.company.name}
+                        {jobOpening?.company?.name ?? "-"}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 text-gray-500 mt-1">
@@ -425,7 +425,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                     <div>
                       <p className="text-gray-500">Bidang Magang</p>
                       <p className="font-medium text-gray-900">
-                        {jobOpening.field.name}
+                        {jobOpening?.field?.name ?? "-"}
                       </p>
                     </div>
                   </div>

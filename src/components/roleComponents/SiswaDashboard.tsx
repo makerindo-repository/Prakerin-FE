@@ -431,12 +431,12 @@ export default function SiswaDashboard({
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
                     <Building className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{application.company.name}</span>
+                    <span>{application.company?.name ?? "-"}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                     <span>
-                      {application.city_regency.name}, {application.province.name}
+                      {application.city_regency?.name ?? "N/A"}, {application.province?.name ?? "N/A"}
                     </span>
                   </div>
                 </div>

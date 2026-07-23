@@ -22,19 +22,19 @@ const Editor = dynamic<EditorProps & { error?: string }>(
 );
 
 interface JobOpening {
-  title: string;
-  user: {
-    photo_profile: string | null;
-  };
-  company: {
-    name: string;
-  };
-  city_regency: {
-    name: string;
-  };
-  province: {
-    name: string;
-  };
+  title?: string;
+  user?: {
+    photo_profile?: string | null;
+  } | null;
+  company?: {
+    name?: string;
+  } | null;
+  city_regency?: {
+    name?: string;
+  } | null;
+  province?: {
+    name?: string;
+  } | null;
 }
 
 interface CV {
@@ -93,8 +93,8 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       });
 
       const responses = await Promise.all([jobOpening, cv]);
-      setJobOpening(responses[0].data.data);
-      setCvList(responses[1].data.data);
+      setJobOpening(responses[0].data?.data || {});
+      setCvList(Array.isArray(responses[1].data?.data) ? responses[1].data.data : []);
     } catch (error: AxiosError | unknown) {
       console.error(error);
     } finally {
@@ -184,12 +184,12 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             {/* Job Info */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                {jobOpening.title}
+                {jobOpening?.title ?? "-"}
               </h2>
               <div className="flex items-start space-x-4">
                 {/* Company Logo */}
                 <div className="flex-shrink-0">
-                  {jobOpening.user.photo_profile ? (
+                  {jobOpening?.user?.photo_profile ? (
                     <div className="w-16 h-16 relative rounded-full border-white border">
                       <Image
                         src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${jobOpening.user.photo_profile}`}
@@ -205,11 +205,11 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">
-                    {jobOpening.company.name}
+                    {jobOpening?.company?.name ?? "-"}
                   </h3>
                   <div className="flex items-center text-gray-600 text-sm mt-1">
                     <MapPin className="w-4 h-4 mr-1" />
-                    {jobOpening.city_regency.name}, {jobOpening.province.name}
+                    {jobOpening?.city_regency?.name ?? "N/A"}, {jobOpening?.province?.name ?? "N/A"}
                   </div>
                 </div>
               </div>
@@ -238,7 +238,7 @@ const ApplyLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                   }`}
                 >
                   <option value="">Pilih CV yang akan digunakan</option>
-                  {cvList.map((cv) => (
+                  {Array.isArray(cvList) && cvList.map((cv) => (
                     <option key={cv.id} value={cv.id}>
                       {cv.name} - {cv.file}
                     </option>

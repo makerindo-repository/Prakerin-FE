@@ -521,7 +521,7 @@ export default function SiswaLowongan() {
               </div>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-3">
-                  {job.user.photo_profile ? (
+                  {job.user?.photo_profile ? (
                     <div className="w-15 h-15 relative rounded-full border-white border">
                       <Image
                         src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
@@ -536,7 +536,7 @@ export default function SiswaLowongan() {
                   )}
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">
-                      {job.company.name}
+                      {job.company?.name ?? "-"}
                     </h3>
                     <div className="flex text-sm text-gray-500 space-x-2">
                       <MapPin className="w-4 h-4 my-auto" />

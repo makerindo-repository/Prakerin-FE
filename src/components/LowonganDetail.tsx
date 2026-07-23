@@ -157,7 +157,7 @@ export default function LowonganDetail({
 
         {/* Company */}
         <p className="text-xl text-cyan-600 font-semibold mb-3">
-            {data.company.name}
+            {data?.company?.name ?? "-"}
         </p>
 
         {/* Title */}
@@ -197,7 +197,7 @@ export default function LowonganDetail({
                 <BriefcaseBusiness className="w-8 h-8 text-cyan-500 my-auto" />
                 <div>
                     <p className="font-semibold">Bidang Magang</p>
-                    <p className="text-gray-600 text-sm">{data.field.name}</p>
+                    <p className="text-gray-600 text-sm">{data?.field?.name ?? "-"}</p>
                 </div>
             </div>
 
