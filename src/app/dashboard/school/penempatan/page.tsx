@@ -38,7 +38,7 @@ interface Student {
 
 const PerusahaanPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedQuery = useDebounce(searchTerm, 1000);
+  const debouncedQuery = useDebounce(searchTerm, 500);
   const [data, setData] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [count, setCount] = useState({ total_student_internship: "" });
@@ -57,7 +57,7 @@ const PerusahaanPage: React.FC = () => {
             limit: 10,
             role: "student",
             status: "ongoing",
-            search: searchTerm,
+            search: debouncedQuery,
           },
           headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
         }),
@@ -74,20 +74,8 @@ const PerusahaanPage: React.FC = () => {
     }
   };
 
-  // Fetch saat pertama render
   useEffect(() => {
     fetchData();
-  }, []);
-
-  // Fetch saat search berubah
-  useEffect(() => {
-    if (searchTerm.trim() === "") {
-      fetchData();
-      return;
-    }
-    if (debouncedQuery) {
-      fetchData();
-    }
   }, [debouncedQuery]);
 
   return (

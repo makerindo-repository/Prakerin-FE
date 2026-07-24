@@ -46,17 +46,15 @@ const lamaranPage: React.FC = () => {
   const router = useRouter();
   const [authorization, setAuthorization] = useState<string>("");
   const [inputSearch, setInputSearch] = useState("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
   const [data, setData] = useState<KerjaSama[]>([]);
   const tabs: ActiveTab[] = ["Semua", "Diterima", "Tertunda", "Ditolak"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [isLoading, setIsLoading] = useState(false);
   const [pages, setPages] = useState<Pages>({ activePages: 1, pages: 1 });
-  const [isReload, setIsReload] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   const fetchData = async () => {
-    if (isLoading) return;
     setIsLoading(true);
     let type: string | undefined = undefined;
     switch (activeTab) {
@@ -77,7 +75,7 @@ const lamaranPage: React.FC = () => {
     try {
       const response = await API.get(ENDPOINTS.MOUS, {
         params: {
-          search: inputSearch,
+          search: debouncedQuery,
           type: type,
           limit: 10,
           page: pages.activePages,
@@ -210,21 +208,14 @@ const lamaranPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setData([]);
-        return;
-      }
-    }
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [debouncedQuery, activeTab]);
 
   useEffect(() => {
     if (isMounted) {
       fetchData();
     }
-  }, [pages.activePages, isReload, isMounted]);
+  }, [pages.activePages, debouncedQuery, activeTab, isMounted]);
 
   if (!isMounted) {
     return (

@@ -307,7 +307,7 @@ const ClassEnrollmentsPage: React.FC = () => {
 
       {/* Mark Attendance Modal */}
       {showMarkModal && selectedEnrollment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <form
             onSubmit={handleMarkSubmit}
             className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative"
@@ -396,7 +396,7 @@ const ClassEnrollmentsPage: React.FC = () => {
 
       {/* History Modal */}
       {showHistoryModal && selectedEnrollment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl relative flex flex-col h-[75vh]">
             <button
               onClick={() => setShowHistoryModal(false)}

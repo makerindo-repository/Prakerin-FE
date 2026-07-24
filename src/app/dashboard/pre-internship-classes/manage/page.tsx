@@ -382,7 +382,7 @@ const ManageClassesPage: React.FC = () => {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <form
             onSubmit={handleCreateSubmit}
             className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative my-8"
@@ -530,7 +530,7 @@ const ManageClassesPage: React.FC = () => {
 
       {/* Edit Modal */}
       {showEditModal && selectedClass && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <form
             onSubmit={handleEditSubmit}
             className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative my-8"

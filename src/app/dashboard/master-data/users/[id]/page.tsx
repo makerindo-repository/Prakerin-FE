@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeft,
   BookOpen,
   Building,
   Eye,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { ChangeEvent, useEffect, useState, useCallback, useMemo, memo } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import Cookies from "js-cookie";
 import { EditorProps } from "@/components/Editor";
 import dynamic from "next/dynamic";
@@ -181,9 +183,9 @@ export default function UserDetailPage() {
         },
       }, signal);
 
-      if (response.status === 200) {
-        const data = response.data.data ?? {};
+      const data = response?.data ?? response;
 
+      if (data && (data.id || data.username || data.role)) {
         setUserForm({
           photo_profile: data.photo_profile ?? null,
           username: data.username ?? "",
@@ -192,11 +194,11 @@ export default function UserDetailPage() {
           password_confirmation: "",
         });
       
-      if (data.photo_profile) {
-        setProfileImage(
-          `${BASE_URL}/storage/photo-profile/${data.photo_profile}`
-        );
-      }
+        if (data.photo_profile) {
+          setProfileImage(
+            `${BASE_URL}/storage/photo-profile/${data.photo_profile}`
+          );
+        }
 
         const role = (data.role as string) ?? "";
         setAuthorization(role);
@@ -256,7 +258,7 @@ export default function UserDetailPage() {
         console.error(error);
       }
     }
-  }, [id]);
+  }, [id, BASE_URL]);
 
   const handleSubmit = async (e: React.FormEvent, form: string) => {
     e.preventDefault();
@@ -386,16 +388,24 @@ export default function UserDetailPage() {
         ...(isStudent ? [createApiCall({ url: ENDPOINTS.MAJORS }, signal)] : []),
       ];
 
+      const extractArray = (res: any): any[] => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res.data)) return res.data;
+        if (Array.isArray(res.data?.data)) return res.data.data;
+        return [];
+      };
+
       const responses = await Promise.allSettled(requests);
       
       if (responses[0].status === 'fulfilled') {
-        setCityRegencies(responses[0].value.data.data);
+        setCityRegencies(extractArray(responses[0].value));
       }
       if (responses[1].status === 'fulfilled') {
-        setSectors(responses[1].value.data.data);
+        setSectors(extractArray(responses[1].value));
       }
       if (isStudent && responses[2]?.status === 'fulfilled') {
-        setMajors(responses[2].value.data.data);
+        setMajors(extractArray(responses[2].value));
       }
     } catch (error: any) {
       if (error.name !== "AbortError") {
@@ -423,7 +433,14 @@ export default function UserDetailPage() {
       const response = await createApiCall({
         url: `${ENDPOINTS.CITY_REGENCIES}?province_id=${provinceId}`,
       }, signal);
-      setCityRegencies(response.data.data);
+      const extractArray = (res: any): any[] => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res.data)) return res.data;
+        if (Array.isArray(res.data?.data)) return res.data.data;
+        return [];
+      };
+      setCityRegencies(extractArray(response));
     } catch (error: any) {
       if (error.name !== "AbortError") {
         console.error(error);
@@ -443,7 +460,16 @@ export default function UserDetailPage() {
         },
       }, signal);
       
-      const mapped = response.data.data.map((item: Province) => ({
+      const extractArray = (res: any): any[] => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res.data)) return res.data;
+        if (Array.isArray(res.data?.data)) return res.data.data;
+        return [];
+      };
+
+      const rawItems = extractArray(response);
+      const mapped = rawItems.map((item: Province) => ({
         value: item.id,
         label: item.name,
       }));
@@ -490,12 +516,26 @@ export default function UserDetailPage() {
   return (
     // Konten utama dimulai di sini
     <main className="space-y-8 p-6">
-      <h1 className="text-accent-dark text-sm mb-5">{userForm.username}</h1>
-      <div className="mb-8">
-        <div className="flex items-center space-x-2 font-extrabold text-accent">
-          <UsersRound className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Daftar User -&gt; {userForm.username}</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-accent-dark text-sm mb-1">
+            <Link href="/dashboard/master-data/users" className="hover:underline hover:text-accent">
+              Daftar User
+            </Link>{" "}
+            -&gt; {userForm.username}
+          </h1>
+          <div className="flex items-center space-x-2 font-extrabold text-accent">
+            <UsersRound className="w-5 h-5" />
+            <h2 className="text-2xl mt-1">Edit User: {userForm.username}</h2>
+          </div>
         </div>
+        <Link
+          href="/dashboard/master-data/users"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-accent text-sm font-medium shadow-sm transition-colors w-fit"
+        >
+          <ArrowLeft size={16} />
+          <span>Kembali</span>
+        </Link>
       </div>
       {/* Judul Halaman untuk Tampilan Mobile */}
       <h1 className="text-2xl font-semibold text-gray-900 md:hidden">

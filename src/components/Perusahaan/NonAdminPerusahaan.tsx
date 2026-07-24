@@ -40,11 +40,10 @@ type ActiveTab = "Semua" | "Sudah Kerja Sama" | "Belum Kerja Sama";
 const NonadminPerusahaan: React.FC = () => {
   const router = useRouter();
   const [inputSearch, setInputSearch] = useState<string>("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
   const tabs: ActiveTab[] = ["Semua", "Sudah Kerja Sama", "Belum Kerja Sama"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
-  const [isReload, setIsReload] = useState<boolean>(false);
   const [companyCount, setCompanyCount] = useState<CompanyCount>({
     company_count: 0,
     mou_count: 0,
@@ -56,13 +55,12 @@ const NonadminPerusahaan: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const fetchCompany = async (selectedPages = pages.activePages) => {
-    if (loading) return;
     setLoading(true);
 
     try {
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
-          search: inputSearch,
+          search: debouncedQuery,
           role: "company",
           page: selectedPages,
           limit: 8,
@@ -121,20 +119,12 @@ const NonadminPerusahaan: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setPerushaan([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchCompany();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchCompanyCount();

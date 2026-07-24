@@ -38,7 +38,7 @@ const DaftarSiswaPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("Semua");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const debouncedQuery = useDebounce(searchTerm, 1000);
+  const debouncedQuery = useDebounce(searchTerm, 500);
   const [students, setStudents] = useState<Student[]>([]);
   const tabs = ["Semua", "Belum Magang", "Sedang Magang", "Selesai Magang"];
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -46,7 +46,6 @@ const DaftarSiswaPage: React.FC = () => {
     activePages: 1,
     pages: 1,
   });
-  const [isReload, setIsReload] = useState<boolean>(false);
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -75,7 +74,6 @@ const DaftarSiswaPage: React.FC = () => {
   };
 
   const fetchStudents = async () => {
-    if (isLoading) return;
     setIsLoading(true);
 
     try {
@@ -101,7 +99,7 @@ const DaftarSiswaPage: React.FC = () => {
           limit: 10,
           role: "student",
           status: status,
-          search: searchTerm,
+          search: debouncedQuery,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -223,20 +221,12 @@ const DaftarSiswaPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (searchTerm.trim() !== "") {
-      if (!debouncedQuery) {
-        setStudents([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchStudents();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
 
   return (
     <main className="p-4 sm:p-6">

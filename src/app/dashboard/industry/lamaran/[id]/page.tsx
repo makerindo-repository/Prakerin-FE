@@ -18,6 +18,7 @@ import Image from "next/image";
 import Loader from "@/components/loader";
 import { AxiosError } from "axios";
 import { alertError, alertSuccess } from "@/libs/alert";
+import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 
 interface Application {
   user: {
@@ -156,21 +157,35 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!formData.file) {
+      await alertError(`Silakan pilih file surat ${formData.status === "accepted" ? "penerimaan" : "penolakan"} (format PDF).`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const response = await API.post(
-        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}`,
-        formData,
-        {
-          params: {
-            _method: "PATCH",
-          },
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-        }
+      const dataToSend = new FormData();
+      dataToSend.append("status", formData.status);
+      dataToSend.append("file", formData.file);
+
+      const response = await suppressErrorForSuperAdmin(
+        () =>
+          API.post(
+            `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}`,
+            dataToSend,
+            {
+              params: {
+                _method: "PATCH",
+              },
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${Cookies.get("userToken")}`,
+              },
+            }
+          ),
+        { showSuccessMessage: false }
       );
+
       await fetchData();
       await alertSuccess("Berhasil memperbarui status lamaran");
       setIsShowModal(false);

@@ -20,6 +20,7 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
 import Loader from "@/components/loader";
+import HighlightText from "@/components/HighlightText";
 
 interface Student {
   id: string;
@@ -42,7 +43,7 @@ const DaftarSiswaPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("Semua");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const debouncedQuery = useDebounce(searchTerm, 1000);
+  const debouncedQuery = useDebounce(searchTerm, 500);
   const [students, setStudents] = useState<Student[]>([]);
   const tabs = ["Semua", "Belum Magang", "Sedang Magang", "Selesai Magang"];
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -50,7 +51,6 @@ const DaftarSiswaPage: React.FC = () => {
     activePages: 1,
     pages: 1,
   });
-  const [isReload, setIsReload] = useState<boolean>(false);
 
   const getStatusColor = (status?: string): string => {
     switch (status) {
@@ -79,7 +79,6 @@ const DaftarSiswaPage: React.FC = () => {
   };
 
   const fetchStudents = async () => {
-    if (isLoading) return;
     setIsLoading(true);
 
     try {
@@ -106,7 +105,7 @@ const DaftarSiswaPage: React.FC = () => {
           role: "student",
           school_type: "school", // hanya siswa (institusi type=school)
           status: status,
-          search: searchTerm,
+          search: debouncedQuery,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -149,6 +148,7 @@ const DaftarSiswaPage: React.FC = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error(error);
+      await alertError("Gagal mengunduh template");
     }
   };
 
@@ -228,20 +228,12 @@ const DaftarSiswaPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (searchTerm.trim() !== "") {
-      if (!debouncedQuery) {
-        setStudents([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchStudents();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
 
   return (
     <main className="p-4 sm:p-6">
@@ -369,7 +361,9 @@ const DaftarSiswaPage: React.FC = () => {
                     <td className="p-4 text-gray-800 text-sm">
                       {index + 1 + (pages.activePages - 1) * 10}
                     </td>
-                    <td className="p-4 text-gray-800 text-sm">{task.student?.name ?? "-"}</td>
+                    <td className="p-4 text-gray-800 text-sm">
+                      <HighlightText text={task.student?.name} highlight={searchTerm} />
+                    </td>
                     <td className="p-4 text-gray-800 text-sm">
                       {task.student?.class ?? "-"}
                     </td>
@@ -445,7 +439,7 @@ const DaftarSiswaPage: React.FC = () => {
                       </span>
                     </div>
                     <h3 className="font-semibold text-gray-900 text-sm break-words">
-                      {task.student?.name ?? "-"}
+                      <HighlightText text={task.student?.name} highlight={searchTerm} />
                     </h3>
                   </div>
                   <span

@@ -38,7 +38,7 @@ interface Pages {
 const JurusanPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
 
   const tabs = ["Semua", "Diterima", "Belum Diterima"];
 
@@ -59,8 +59,6 @@ const JurusanPage: React.FC = () => {
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [isReload, setIsReload] = useState<boolean>(false);
-
   const handleChangePage = (selectedPage: number) => {
     setPages((prev) => ({
       ...prev,
@@ -69,7 +67,6 @@ const JurusanPage: React.FC = () => {
   };
 
   const fetchData = async () => {
-    if (loading) return;
     setLoading(true);
 
     try {
@@ -86,7 +83,7 @@ const JurusanPage: React.FC = () => {
       const response = await API.get(ENDPOINTS.FIELDS, {
         params: {
           is_accepted: isAccepted,
-          search: inputSearch,
+          search: debouncedQuery,
           limit: 10,
           page: pages.activePages,
         },
@@ -211,20 +208,12 @@ const JurusanPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setFields([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [isReload, pages.activePages]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
 
   return (
     <main className="p-6 ">

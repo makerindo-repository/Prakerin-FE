@@ -39,7 +39,7 @@ interface Pages {
 const SektorPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
 
   const tabs = ["Semua", "Diterima", "Belum Diterima"];
 
@@ -60,8 +60,6 @@ const SektorPage: React.FC = () => {
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [isReload, setIsReload] = useState(false);
-
   const handleChangePage = (selectedPage: number) => {
     setPages((prev) => ({
       ...prev,
@@ -70,7 +68,6 @@ const SektorPage: React.FC = () => {
   };
 
   const fetchData = async () => {
-    if (loading) return;
     setLoading(true);
 
     try {
@@ -87,7 +84,7 @@ const SektorPage: React.FC = () => {
       const response = await API.get(ENDPOINTS.SECTORS, {
         params: {
           is_accepted: isAccepted,
-          search: inputSearch,
+          search: debouncedQuery,
           limit: 10,
           page: pages.activePages,
         },
@@ -213,20 +210,12 @@ const SektorPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setRoles([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
 
   return (
     <main className="p-6 ">
