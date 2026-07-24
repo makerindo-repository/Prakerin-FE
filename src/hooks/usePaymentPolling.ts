@@ -28,6 +28,22 @@ export function usePaymentPolling({
   const startTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Simpan callback TERBARU di ref, bukan langsung dipakai di dependency array
+  // useCallback/useEffect di bawah. Kalau pemanggil hook ini kirim inline arrow
+  // function (mis. `onSuccess={() => ...}`), fungsi itu punya identitas BARU
+  // setiap render induknya. Tanpa pola ref ini, checkStatus & useEffect ikut
+  // dapat identitas baru tiap render -> effect cleanup+rerun terus-menerus ->
+  // toggle isPolling false/true tanpa henti -> infinite render loop (freeze).
+  const onSuccessRef = useRef(onSuccess);
+  const onFailureRef = useRef(onFailure);
+  const onTimeoutRef = useRef(onTimeout);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onFailureRef.current = onFailure;
+    onTimeoutRef.current = onTimeout;
+  });
+
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -42,7 +58,7 @@ export function usePaymentPolling({
     // Check timeout
     if (startTimeRef.current && Date.now() - startTimeRef.current >= timeoutMs) {
       stopPolling();
-      if (onTimeout) onTimeout();
+      onTimeoutRef.current?.();
       return;
     }
 
@@ -61,16 +77,16 @@ export function usePaymentPolling({
 
         if (res.paid) {
           stopPolling();
-          if (onSuccess) onSuccess();
+          onSuccessRef.current?.();
         } else if (res.status === "EXPIRED" || res.status === "FAILED") {
           stopPolling();
-          if (onFailure) onFailure(res.message || "Pembayaran gagal atau kedaluwarsa.");
+          onFailureRef.current?.(res.message || "Pembayaran gagal atau kedaluwarsa.");
         }
       }
     } catch (err: any) {
       setError(err?.message || "Gagal mengecek status pembayaran");
     }
-  }, [invoiceId, timeoutMs, stopPolling, onSuccess, onFailure, onTimeout]);
+  }, [invoiceId, timeoutMs, stopPolling]);
 
   useEffect(() => {
     if (invoiceId && !paid) {

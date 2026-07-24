@@ -1,4 +1,5 @@
 import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 export const alertSuccess = async (message: string, timer?: number) => {
   const calculatedTimer = timer !== undefined ? timer : Math.min(10000, Math.max(3000, message.length * 50));

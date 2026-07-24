@@ -20,6 +20,7 @@ import {
   Database,
   ArrowRight,
   MessageSquare,
+  CreditCard,
 } from "lucide-react";
 
 export default function PengaturanPage() {
@@ -36,6 +37,7 @@ function PengaturanContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [isTestingSmtp, setIsTestingSmtp] = useState(false);
   const [isTestingAi, setIsTestingAi] = useState(false);
+  const [isTestingXendit, setIsTestingXendit] = useState(false);
   const [isTestingWa, setIsTestingWa] = useState(false);
 
   // Form states mapping directly to backend setting keys
@@ -55,6 +57,8 @@ function PengaturanContent() {
     pre_internship_class_url: "https://makerindo.myr.id/",
     ai_provider: "gemini",
     ai_api_key: "",
+    xendit_secret_key: "",
+    xendit_webhook_token: "",
     recaptcha_enabled: false,
     recaptcha_site_key: "",
     recaptcha_secret_key: "",
@@ -73,6 +77,7 @@ function PengaturanContent() {
 
   // Password visibility toggles
   const [showAiKey, setShowAiKey] = useState(false);
+  const [showXenditKey, setShowXenditKey] = useState(false);
   const [showRecaptchaSecret, setShowRecaptchaSecret] = useState(false);
   const [showSmtpPassword, setShowSmtpPassword] = useState(false);
   const [showWaKey, setShowWaKey] = useState(false);
@@ -234,6 +239,44 @@ function PengaturanContent() {
       alertError(msg);
     } finally {
       setIsTestingAi(false);
+    }
+  };
+
+  const testXenditConnection = async () => {
+    setIsTestingXendit(true);
+    try {
+      // First save settings so backend has latest config
+      await API.post(
+        ENDPOINTS.SETTINGS,
+        { settings: form },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      const response = await API.post(
+        `${ENDPOINTS.SETTINGS}/test-xendit`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      if (response.data?.status === "success") {
+        alertSuccess(response.data.message || "Koneksi Xendit Berhasil!");
+      } else {
+        alertError("Koneksi Xendit Gagal.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Gagal menghubungi API Xendit.";
+      alertError(msg);
+    } finally {
+      setIsTestingXendit(false);
     }
   };
 
@@ -637,6 +680,80 @@ function PengaturanContent() {
                             </>
                           ) : (
                             "Uji Koneksi Gemini"
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* XENDIT PAYMENT GATEWAY SECTION */}
+                  <div className="bg-amber-50/50 p-5 rounded-2xl border border-amber-100 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
+                        <CreditCard className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-gray-800">Payment Gateway (Langganan Premium)</h4>
+                        <p className="text-gray-400 text-xs">Dipakai untuk membuat invoice QRIS & memproses webhook pembayaran langganan siswa/mahasiswa.</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Xendit Secret Key</label>
+                        <div className="relative">
+                          <input
+                            type={showXenditKey ? "text" : "password"}
+                            name="xendit_secret_key"
+                            value={form.xendit_secret_key}
+                            onChange={handleInputChange}
+                            placeholder="xnd_development_..."
+                            className="w-full pl-3 pr-10 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-white focus:ring-1 focus:ring-amber-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowXenditKey(!showXenditKey)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                          >
+                            {showXenditKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <p className="text-gray-400 text-[11px] mt-1">
+                          Pakai key yang diawali <code>xnd_development_</code> untuk testing (tidak charge uang asli), atau <code>xnd_production_</code> kalau sudah live. Ambil dari Xendit Dashboard &gt; Settings &gt; API Keys.
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Webhook Verification Token</label>
+                        <input
+                          type="text"
+                          name="xendit_webhook_token"
+                          value={form.xendit_webhook_token}
+                          onChange={handleInputChange}
+                          placeholder="Token dari Xendit Dashboard > Webhooks"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-white focus:ring-1 focus:ring-amber-500"
+                        />
+                        <p className="text-gray-400 text-[11px] mt-1">
+                          Dipakai untuk verifikasi keaslian callback/webhook yang masuk, supaya tidak sembarang request bisa mengaktifkan status Premium.
+                        </p>
+                      </div>
+                    </div>
+
+                    {form.xendit_secret_key && (
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="button"
+                          onClick={testXenditConnection}
+                          disabled={isTestingXendit}
+                          className="px-4 py-2 border border-amber-200 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          {isTestingXendit ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              Menguji...
+                            </>
+                          ) : (
+                            "Uji Koneksi Xendit"
                           )}
                         </button>
                       </div>
