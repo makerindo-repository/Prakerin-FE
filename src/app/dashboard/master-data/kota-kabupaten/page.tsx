@@ -1,40 +1,15 @@
 "use client";
-import {
-  BriefcaseBusiness,
-  Building2,
-  Check,
-  CirclePlus,
-  Map,
-  Pencil,
-  Search,
-  Trash,
-  X,
-} from "lucide-react";
+import { ArrowUpDown, Building2, RefreshCw, Search, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
-import { Province } from "@/models/province";
-import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
-import { AxiosError } from "axios";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import PaginationComponent from "@/components/PaginationComponent";
 import LoaderData from "@/components/loader";
 import dynamic from "next/dynamic";
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
-
-type ActiveTab = "Semua" | "Diterima" | "Belum Diterima";
-
-interface FormData {
-  province_id: string;
-  name: string;
-}
-
-interface FormError {
-  province_id?: string;
-  name?: string;
-}
 
 interface Pages {
   activePages: number;
@@ -43,6 +18,7 @@ interface Pages {
 
 interface Field {
   id: string;
+  external_id?: string;
   province_id: string;
   name: string;
   is_accepted: boolean;
@@ -57,12 +33,24 @@ interface ProvinceOption {
   label: string;
 }
 
-const JurusanPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
-  const [inputSearch, setInputSearch] = useState("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+interface SyncStatus {
+  total_provinces: number;
+  last_sync: {
+    source: string;
+    status: string;
+    completed_at: string | null;
+    cities_created: number;
+    cities_updated: number;
+  } | null;
+}
 
-  const tabs = ["Semua", "Diterima", "Belum Diterima"];
+type SortOption = "code_asc" | "code_desc" | "name_asc" | "name_desc";
+
+const KotaKabupatenPage: React.FC = () => {
+  const [inputSearch, setInputSearch] = useState("");
+  const debouncedQuery = useDebounce(inputSearch, 500);
+
+  const [sortOption, setSortOption] = useState<SortOption>("code_asc");
 
   const [pages, setPages] = useState<Pages>({
     activePages: 1,
@@ -70,28 +58,10 @@ const JurusanPage: React.FC = () => {
   });
 
   const [loading, setLoading] = useState<boolean>(false);
-
   const [cityRegencies, setCityRegencies] = useState<Field[]>([]);
-  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [formData, setFormData] = useState<FormData>({
-    province_id: "",
-    name: "",
-  });
-  const [formError, setFormError] = useState<FormError>({});
-
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isReload, setIsReload] = useState(false);
-
-  // State untuk react-select di modal (single select)
-  const [provinceSearch, setProvinceSearch] = useState("");
-  const [provinceOptions, setProvinceOptions] = useState<ProvinceOption[]>([]);
-  const debouncedProvinceSearch = useDebounce(provinceSearch, 500);
-
-  // State untuk react-select filter (multi select)
+  // React-select filter (multi select)
   const [filterProvinceSearch, setFilterProvinceSearch] = useState("");
   const [filterProvinceOptions, setFilterProvinceOptions] = useState<ProvinceOption[]>([]);
   const [selectedProvinces, setSelectedProvinces] = useState<ProvinceOption[]>([]);
@@ -104,49 +74,79 @@ const JurusanPage: React.FC = () => {
     }));
   };
 
+  const getSortParams = (option: SortOption) => {
+    switch (option) {
+      case "code_asc":
+        return { sort_by: "code", sort_direction: "asc" };
+      case "code_desc":
+        return { sort_by: "code", sort_direction: "desc" };
+      case "name_asc":
+        return { sort_by: "name", sort_direction: "asc" };
+      case "name_desc":
+        return { sort_by: "name", sort_direction: "desc" };
+    }
+  };
+
+  const fetchSyncStatus = async () => {
+    try {
+      const response = await API.get("/api/v1/regional-sync/status");
+      if (response.data?.data) {
+        setSyncStatus(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch sync status:", error);
+    }
+  };
+
+  const fetchFilterProvinces = async () => {
+    try {
+      const response = await API.get(ENDPOINTS.PROVINCES, {
+        params: {
+          search: debouncedFilterProvinceSearch,
+          limit: 20,
+        },
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+
+      const data = response.data.data || response.data || [];
+      const options = data.map((prov: any) => ({
+        value: prov.id,
+        label: prov.name,
+      }));
+      setFilterProvinceOptions(options);
+    } catch (error) {
+      console.error("Fetch filter provinces error:", error);
+    }
+  };
+
   const fetchData = async () => {
     if (loading) return;
     setLoading(true);
 
     try {
-      let isAccepted: boolean | undefined = undefined;
-      switch (activeTab) {
-        case "Diterima":
-          isAccepted = true;
-          break;
-        case "Belum Diterima":
-          isAccepted = false;
-          break;
-      }
-
-      // Ambil province_id dari selectedProvinces (multi select)
-      const provinceIds = selectedProvinces.map(p => p.value);
-
-      const params: any = {
-        is_accepted: isAccepted,
-        search: inputSearch,
-        limit: 10,
-        page: pages.activePages,
-      };
-
-      // Hanya tambahkan province_id jika ada yang dipilih
-      if (provinceIds.length > 0) {
-        params.province_id = provinceIds;
-      }
+      const provinceIds = selectedProvinces.map((p) => p.value);
+      const sortParams = getSortParams(sortOption);
 
       const response = await API.get(ENDPOINTS.CITY_REGENCIES, {
-        params,
+        params: {
+          search: inputSearch,
+          province_id: provinceIds,
+          limit: 10,
+          page: pages.activePages,
+          is_limit: true,
+          ...sortParams,
+        },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      
-      console.log("Params sent:", params);
-      console.log(response.data.data);
-      setCityRegencies(response.data.data);
+
+      setCityRegencies(response.data.data || []);
       setPages({
-        activePages: response.data.current_page,
-        pages: response.data.last_page,
+        activePages: response.data.current_page || 1,
+        pages: response.data.last_page || 1,
       });
     } catch (error) {
       console.error(error);
@@ -155,391 +155,160 @@ const JurusanPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setFormError({});
-
-    try {
-      if (editingId) {
-        await API.patch(`${ENDPOINTS.CITY_REGENCIES}/${editingId}`, formData, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-        });
-      } else {
-        await API.post(
-          ENDPOINTS.CITY_REGENCIES,
-          {
-            ...formData,
-            is_accepted: true,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${Cookies.get("userToken")}`,
-            },
-          }
-        );
-      }
-
-      await fetchData();
-      setFormData({ province_id: "", name: "" });
-
-      if (editingId) {
-        setIsModalOpen(false);
-        setEditingId(null);
-        await alertSuccess("Kota/Kabupaten berhasil diubah!");
-      } else {
-        await alertSuccess("Kota/Kabupaten berhasil ditambahkan!", 1500);
-      }
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        if (typeof responseError === "string") {
-          await alertError(responseError);
-        } else {
-          setFormError(responseError);
-        }
-      }
-      console.error(error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (id: string, name: string) => {
-    const confirm = await alertConfirm(
-      `Apakah anda yakin ingin menghapus kota/kabupaten "${name}"?`
-    );
-    if (!confirm) return;
-
-    try {
-      await API.delete(`${ENDPOINTS.CITY_REGENCIES}/${id}`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-
-      await fetchData();
-      await alertSuccess(`Kota/Kabupaten ${name} berhasil dihapus!`);
-    } catch (error: AxiosError | unknown) {
-      if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        await alertError(responseError);
-      }
-      console.error(error);
-    }
-  };
-
-  const handleAccept = async (id: string, name: string) => {
-    const confirm = await alertConfirm(
-      `Apakah anda yakin ingin menerima kota/kabupaten "${name}"?`
-    );
-    if (!confirm) return;
-    try {
-      await API.patch(
-        `${ENDPOINTS.CITY_REGENCIES}/${id}`,
-        {
-          is_accepted: true,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-        }
-      );
-      await fetchData();
-      await alertSuccess(`Kota/Kabupaten ${name} berhasil diterima!`);
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        await alertError(responseError);
-      }
-      console.error(error);
-    }
-  };
-
-  // Fetch provinces untuk react-select di modal (single select)
-  const fetchProvinceOptions = async () => {
-    try {
-      const response = await API.get(ENDPOINTS.PROVINCES, {
-        params: {
-          is_accepted: true,
-          search: debouncedProvinceSearch,
-          limit: 5,
-        },
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-      const mapped = response.data.data.map((item: Province) => ({
-        value: item.id,
-        label: item.name,
-      }));
-      setProvinceOptions(mapped);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // Fetch provinces untuk react-select filter (multi select)
-  const fetchFilterProvinceOptions = async () => {
-    try {
-      const response = await API.get(ENDPOINTS.PROVINCES, {
-        params: {
-          is_accepted: true,
-          search: debouncedFilterProvinceSearch,
-          limit: 5,
-        },
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      });
-      const mapped = response.data.data.map((item: Province) => ({
-        value: item.id,
-        label: item.name,
-      }));
-      setFilterProvinceOptions(mapped);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
+  useEffect(() => {
+    fetchSyncStatus();
+  }, []);
 
   useEffect(() => {
-    if (isModalOpen) {
-      fetchProvinceOptions();
-    }
-  }, [debouncedProvinceSearch, isModalOpen]);
-
-  useEffect(() => {
-    fetchFilterProvinceOptions();
+    fetchFilterProvinces();
   }, [debouncedFilterProvinceSearch]);
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setCityRegencies([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
-  }, [activeTab, debouncedQuery, selectedProvinces]);
+  }, [debouncedQuery, selectedProvinces, sortOption]);
 
   useEffect(() => {
     fetchData();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, debouncedQuery, selectedProvinces, sortOption]);
 
   return (
-    <main className="p-4 sm:p-6">
+    <main className="p-6">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-accent-dark text-sm mb-5">Kota/Kabupaten</h1>
-        <div className="mb-8">
+        <h1 className="text-accent-dark text-sm mb-5">Master Data / Kota & Kabupaten</h1>
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center space-x-2 font-extrabold text-accent">
-            <Building2 className="w-5 h-5" />
-            <h2 className="text-2xl mt-2">Kota/Kabupaten</h2>
+            <Building2 className="w-6 h-6" />
+            <h2 className="text-2xl mt-1">Kota & Kabupaten (Standar Kemendagri)</h2>
+          </div>
+          <div className="flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm border border-blue-200">
+            <ShieldCheck className="w-4 h-4 text-blue-600" />
+            <span className="font-medium">Data Otomatis Terintegrasi (Read-Only)</span>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as ActiveTab)}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer ${
-                activeTab === tab
-                  ? "bg-accent text-white shadow-sm hover:bg-accent-hover"
-                  : "bg-gray-100 text-gray-600 hover:text-gray-800 hover:bg-gray-200"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* Sync Status Banner */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-500 text-white rounded-lg">
+              <RefreshCw className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">
+                Data Kota & Kabupaten Resmi Indonesia (Kemendagri)
+              </p>
+              <p className="text-xs text-gray-600">
+                Diperbarui secara otomatis via Artisan Command (`php artisan sync:regional-data`).
+              </p>
+            </div>
+          </div>
+          {syncStatus?.last_sync && (
+            <div className="text-right text-xs text-gray-600">
+              <p>
+                Status: <span className="font-semibold text-green-600 capitalize">{syncStatus.last_sync.status}</span>
+              </p>
+              <p>
+                Terakhir disinkronisasi:{" "}
+                <span className="font-medium text-gray-800">
+                  {syncStatus.last_sync.completed_at
+                    ? new Date(syncStatus.last_sync.completed_at).toLocaleString("id-ID")
+                    : "-"}
+                </span>
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Filter and Add Button - Responsive Layout */}
-        <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mb-6 items-stretch sm:items-center">
-          <div className="flex flex-col gap-2 bg-white w-full sm:w-auto sm:min-w-[250px] p-4 rounded-xl shadow-sm">
-            <label htmlFor="select-province" className="font-medium text-sm">
-              Pilih Provinsi
-            </label>
-            <Select
-              isMulti
-              isClearable
-              isSearchable
-              options={filterProvinceOptions}
-              value={selectedProvinces}
-              onChange={(selected: any) => setSelectedProvinces(selected || [])}
-              onInputChange={(input: any) => setFilterProvinceSearch(input)}
-              placeholder="Pilih provinsi (bisa lebih dari 1)"
-              noOptionsMessage={() => "Tidak ada provinsi ditemukan"}
-              styles={{
-                control: (base, state) => ({
-                  ...base,
-                  backgroundColor: "#ffffff",
-                  borderColor: "#d1d5db",
-                  borderRadius: "0.375rem",
-                  padding: "0.125rem",
-                  minHeight: "42px",
-                  boxShadow: state.isFocused
-                    ? "0 0 0 2px rgba(var(--accent-rgb, 59, 130, 246), 0.5)"
-                    : "none",
-                  borderWidth: "1px",
-                  "&:hover": {
-                    borderColor: "#d1d5db",
-                  },
-                }),
-                valueContainer: (base) => ({
-                  ...base,
-                  padding: "2px 8px",
-                }),
-                input: (base) => ({
-                  ...base,
-                  margin: 0,
-                  padding: 0,
-                }),
-                placeholder: (base) => ({
-                  ...base,
-                  color: "#9ca3af",
-                }),
-                multiValue: (base) => ({
-                  ...base,
-                  backgroundColor: "#e0f2fe",
-                }),
-                multiValueLabel: (base) => ({
-                  ...base,
-                  color: "#0c4a6e",
-                }),
-                multiValueRemove: (base) => ({
-                  ...base,
-                  color: "#0c4a6e",
-                  ":hover": {
-                    backgroundColor: "#0ea5e9",
-                    color: "#ffffff",
-                  },
-                }),
-                menu: (base) => ({
-                  ...base,
-                  zIndex: 50,
-                }),
-              }}
-            />
-          </div>
-
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="text-white bg-accent hover:bg-accent-hover rounded-xl p-3 px-5 flex items-center justify-center space-x-2 cursor-pointer w-full sm:w-auto text-sm sm:text-base whitespace-nowrap"
-          >
-            <CirclePlus className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>Tambah Kota/Kabupaten</span>
-          </button>
+        {/* Multi-select Province Filter */}
+        <div className="mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+            Filter Berdasarkan Provinsi:
+          </label>
+          <Select
+            isMulti
+            options={filterProvinceOptions}
+            value={selectedProvinces}
+            onChange={(selected: any) => {
+              setSelectedProvinces(selected || []);
+              setPages((prev) => ({ ...prev, activePages: 1 }));
+            }}
+            onInputChange={(input: any) => setFilterProvinceSearch(input)}
+            placeholder="Pilih atau cari provinsi..."
+            className="react-select-container text-sm"
+            classNamePrefix="react-select"
+          />
         </div>
       </div>
 
-      {/* Task Table */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
-          <input
-            type="text"
-            placeholder="Cari Kota/Kabupaten..."
-            value={inputSearch}
-            onChange={(e) => setInputSearch(e.target.value)}
-            className="w-full bg-accent text-white pl-9 sm:pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-transparent transition-colors text-sm sm:text-base placeholder:text-gray-200"
-          />
+      {/* Table Section */}
+      <div className="bg-white rounded-2xl shadow-sm">
+        {/* Search & Sort Controls */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-accent rounded-t-2xl p-2 gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Cari Kota/Kabupaten..."
+              value={inputSearch}
+              onChange={(e) => setInputSearch(e.target.value)}
+              className="w-full text-white pl-10 pr-4 py-2 bg-transparent focus:outline-none placeholder:text-blue-200"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2 px-2 pb-2 md:pb-0">
+            <ArrowUpDown className="w-4 h-4 text-blue-200" />
+            <span className="text-xs text-blue-100 font-medium whitespace-nowrap">Urutkan:</span>
+            <select
+              value={sortOption}
+              onChange={(e) => {
+                setSortOption(e.target.value as SortOption);
+                setPages((prev) => ({ ...prev, activePages: 1 }));
+              }}
+              className="bg-white text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-accent-light cursor-pointer"
+            >
+              <option value="code_asc">Kode Kemendagri (Urut Terkecil)</option>
+              <option value="code_desc">Kode Kemendagri (Urut Terbesar)</option>
+              <option value="name_asc">Abjad A - Z</option>
+              <option value="name_desc">Abjad Z - A</option>
+            </select>
+          </div>
         </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
+          <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">No</th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">
-                  Nama Kota/Kabupaten
-                </th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">
-                  Provinsi
-                </th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">
-                  Status
-                </th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">
-                  Aksi
-                </th>
+                <th className="text-left p-3 font-medium text-gray-600 w-16">No</th>
+                <th className="text-left p-3 font-medium text-gray-600">Kode Kemendagri</th>
+                <th className="text-left p-3 font-medium text-gray-600">Kota / Kabupaten</th>
+                <th className="text-left p-3 font-medium text-gray-600">Provinsi</th>
+                <th className="text-left p-3 font-medium text-gray-600">Status Sync</th>
               </tr>
             </thead>
             <tbody>
               {cityRegencies && loading !== true ? (
-                cityRegencies.map((cityRegency, index) => (
-                  <tr
-                    key={cityRegency.id}
-                    className="border-b hover:bg-gray-50"
-                  >
-                    <td className="p-4 text-gray-800 text-sm">
+                cityRegencies.map((city, index) => (
+                  <tr key={city.id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 text-gray-800">
                       {index + 1 + (pages.activePages - 1) * 10}
                     </td>
-                    <td className="p-4 text-gray-800 text-sm">{cityRegency.name}</td>
-                    <td className="p-4 text-gray-800 text-sm">
-                      {cityRegency.province?.name || "-"}
+                    <td className="p-4 text-gray-600 font-mono text-sm">
+                      {city.external_id || "-"}
+                    </td>
+                    <td className="p-4 text-gray-800 font-medium">{city.name}</td>
+                    <td className="p-4 text-gray-700">
+                      {city.province?.name || "-"}
                     </td>
                     <td className="p-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                          cityRegency.is_accepted
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {cityRegency.is_accepted
-                          ? "Diterima"
-                          : "Belum Diterima"}
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 inline-flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5" /> Terverifikasi Kemendagri
                       </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1">
-                        {!cityRegency.is_accepted && (
-                          <button
-                            onClick={() =>
-                              handleAccept(cityRegency.id, cityRegency.name)
-                            }
-                            className="p-2 text-green-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                        )}
-
-                        <button
-                          onClick={() => {
-                            setEditingId(cityRegency.id);
-                            setFormData({
-                              name: cityRegency.name,
-                              province_id: cityRegency.province_id,
-                            });
-                            setIsModalOpen(true);
-                          }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDelete(cityRegency.id, cityRegency.name)
-                          }
-                          className="p-2 text-red-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                  <td colSpan={5} className="p-6 text-center text-gray-500">
                     <LoaderData />
                   </td>
                 </tr>
@@ -550,7 +319,7 @@ const JurusanPage: React.FC = () => {
 
         {/* Empty State */}
         {cityRegencies.length === 0 && loading === false && (
-          <div className="text-center py-12 col-span-2">
+          <div className="text-center py-12">
             <NotFoundComponent text="Tidak ada kota/kabupaten yang ditemukan." />
           </div>
         )}
@@ -562,152 +331,8 @@ const JurusanPage: React.FC = () => {
         onPageChange={handleChangePage}
         loading={loading}
       />
-
-      {/* Modal - Responsive */}
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center h-screen bg-black/25 z-50 p-4">
-          <div className="bg-white text-black p-4 sm:p-6 rounded-lg flex flex-col gap-2 w-full max-w-md sm:max-w-lg">
-            <div className="rounded-lg justify-between flex">
-              <h3 className="text-base sm:text-lg font-semibold">
-                {editingId ? "Ubah" : "Tambah"} Kota/Kabupaten
-              </h3>
-              <X
-                onClick={() => {
-                  if (isSubmitting) return;
-                  if (editingId) {
-                    setEditingId(null);
-                    setFormData({ province_id: "", name: "" });
-                  }
-                  setProvinceSearch("");
-                  setIsModalOpen(false);
-                }}
-                className={`w-6 h-6 sm:w-8 sm:h-8 text-red-500 hover:text-red-600 flex-shrink-0 ${
-                  isSubmitting ? "pointer-events-none opacity-50" : "cursor-pointer"
-                }`}
-              />
-            </div>
-            <form className="flex flex-col gap-4 sm:gap-6" onSubmit={handleSubmit}>
-              {/* Field Provinsi dengan React Select */}
-              <div className="flex flex-col gap-2">
-                <label htmlFor="province" className="text-sm sm:text-base">
-                  Pilih Provinsi
-                </label>
-                <Select
-                  isClearable
-                  isSearchable
-                  isDisabled={isSubmitting}
-                  options={provinceOptions}
-                  value={
-                    provinceOptions.find(
-                      (opt) => opt.value === formData.province_id
-                    ) || null
-                  }
-                  onChange={(selected: any) =>
-                    setFormData({
-                      ...formData,
-                      province_id: selected?.value || "",
-                    })
-                  }
-                  onInputChange={(input: any) => setProvinceSearch(input)}
-                  placeholder="Pilih provinsi"
-                  noOptionsMessage={() => "Tidak ada provinsi ditemukan"}
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isDisabled ? "#e5e7eb" : "#ffffff",
-                      borderColor: formError.province_id
-                        ? "#ef4444"
-                        : "#d1d5db",
-                      borderRadius: "0.375rem",
-                      padding: "0.125rem",
-                      minHeight: "42px",
-                      boxShadow: state.isFocused
-                        ? "0 0 0 2px rgba(var(--accent-rgb, 59, 130, 246), 0.5)"
-                        : "none",
-                      borderWidth: "1px",
-                      cursor: state.isDisabled ? "not-allowed" : "default",
-                      opacity: state.isDisabled ? 0.5 : 1,
-                      "&:hover": {
-                        borderColor: formError.province_id
-                          ? "#ef4444"
-                          : "#d1d5db",
-                      },
-                    }),
-                    valueContainer: (base) => ({
-                      ...base,
-                      padding: "2px 8px",
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      margin: 0,
-                      padding: 0,
-                    }),
-                    placeholder: (base) => ({
-                      ...base,
-                      color: "#9ca3af",
-                    }),
-                    singleValue: (base, state) => ({
-                      ...base,
-                      color: state.isDisabled ? "#6b7280" : "#000000",
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                    menuPortal: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                  menuPortalTarget={document.body}
-                  menuPosition="fixed"
-                />
-                {formError.province_id && (
-                  <p className="mt-1 text-xs sm:text-sm text-red-500">
-                    {formError.province_id}
-                  </p>
-                )}
-              </div>
-
-              {/* Field Nama Kota/Kabupaten */}
-              <div className="flex flex-col gap-2">
-                <label htmlFor="cityName" className="text-sm sm:text-base">
-                  Nama Kota/Kabupaten
-                </label>
-                <input
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  disabled={isSubmitting}
-                  id="cityName"
-                  type="text"
-                  placeholder="Masukkan nama kota/kabupaten"
-                  className={`border p-2 rounded-md w-full focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-accent focus:border-transparent text-sm ${
-                    formError.name ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {formError.name && (
-                  <p className="mt-1 text-xs sm:text-sm text-red-500">
-                    {formError.name}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-accent text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-accent-hover text-sm sm:text-base w-full sm:w-auto"
-                >
-                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </main>
   );
 };
-export default JurusanPage;
+
+export default KotaKabupatenPage;

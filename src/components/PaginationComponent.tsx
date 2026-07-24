@@ -13,51 +13,85 @@ const PaginationComponent: React.FC<PaginationProps> = ({
   onPageChange,
   loading,
 }) => {
-  const getVisiblePages = () => {
-    if (totalPages <= 3) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
+  if (totalPages <= 1) return null;
+
+  const getPageItems = (current: number, total: number): (number | string)[] => {
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
     }
-    if (activePage === 1) {
-      return [1, 2, 3];
+
+    if (current <= 4) {
+      return [1, 2, 3, 4, 5, "...", total];
     }
-    if (activePage === totalPages) {
-      return [totalPages - 2, totalPages - 1, totalPages];
+
+    if (current >= total - 3) {
+      return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
     }
-    return [activePage - 1, activePage, activePage + 1];
+
+    return [1, "...", current - 1, current, current + 1, "...", total];
   };
-  const pages = getVisiblePages();
-  // for (let i = 1; i <= totalPages; i++) {
-  //   pages.push(i);
-  // }
+
+  const pageItems = getPageItems(activePage, totalPages);
 
   return (
-    <div className={`${totalPages === 1 ? 'hidden':null} grid grid-cols-5 bg-white border-1 border-gray-200 h-10 w-[200px] m-auto me-0 mt-5 rounded-xl overflow-hidden justify-items-stretch`}>
+    <div className="flex items-center justify-center sm:justify-end gap-1 mt-6 flex-wrap">
+      {/* Previous Button */}
       <button
-        className="bg-accent hover:bg-accent-hover cursor-pointer text-white px-3 disabled:cursor-not-allowed disabled:bg-gray-300"
-        disabled={loading || activePage === 1 ? true : false}
+        className="h-9 px-3 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+        disabled={loading || activePage <= 1}
         onClick={() => onPageChange(activePage - 1)}
+        title="Halaman Sebelumnya"
       >
-        {"<"}
+        &lt;
       </button>
-      <div className="grid grid-cols-3 col-span-3">
-        {pages.map((pageNum, index) => (
+
+      {/* Page Numbers */}
+      {pageItems.map((item, index) => {
+        if (typeof item === "string") {
+          const isLeftEllipsis = index === 1;
+          const targetPage = isLeftEllipsis
+            ? Math.max(1, activePage - 4)
+            : Math.min(totalPages, activePage + 4);
+
+          return (
+            <button
+              key={`ellipsis-${index}`}
+              onClick={() => !loading && onPageChange(targetPage)}
+              disabled={loading}
+              className="h-9 px-2 text-xs font-semibold text-gray-500 hover:text-accent hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              title={isLeftEllipsis ? "Lompat mundur" : "Lompat maju"}
+            >
+              ...
+            </button>
+          );
+        }
+
+        const isCurrent = item === activePage;
+
+        return (
           <button
-            key={index}
-            className={`text-black px-3 border border-gray-300 cursor-pointer hover:bg-gray-400 ${
-              pageNum === activePage ? "bg-gray-400" : "bg-gray-200"
+            key={`page-${item}`}
+            disabled={loading}
+            onClick={() => onPageChange(item)}
+            className={`h-9 min-w-[36px] px-2 text-sm font-semibold rounded-lg border transition-colors cursor-pointer ${
+              isCurrent
+                ? "bg-accent text-white border-accent shadow-sm"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
             }`}
-            onClick={() => onPageChange(pageNum)}
           >
-            {pageNum}
+            {item}
           </button>
-        ))}
-      </div>
+        );
+      })}
+
+      {/* Next Button */}
       <button
-        className="bg-accent hover:bg-accent-hover cursor-pointer  text-white px-3 disabled:cursor-not-allowed disabled:bg-gray-300"
-        disabled={loading || activePage === totalPages ? true : false}
+        className="h-9 px-3 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+        disabled={loading || activePage >= totalPages}
         onClick={() => onPageChange(activePage + 1)}
+        title="Halaman Selanjutnya"
       >
-        {">"}
+        &gt;
       </button>
     </div>
   );
