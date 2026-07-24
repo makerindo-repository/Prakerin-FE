@@ -59,6 +59,7 @@ function PengaturanContent() {
     ai_api_key: "",
     xendit_secret_key: "",
     xendit_webhook_token: "",
+    xendit_payment_methods: "",
     recaptcha_enabled: false,
     recaptcha_site_key: "",
     recaptcha_secret_key: "",
@@ -735,6 +736,21 @@ function PengaturanContent() {
                         />
                         <p className="text-gray-400 text-[11px] mt-1">
                           Dipakai untuk verifikasi keaslian callback/webhook yang masuk, supaya tidak sembarang request bisa mengaktifkan status Premium.
+                        </p>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Batasi Metode Pembayaran (opsional)</label>
+                        <input
+                          type="text"
+                          name="xendit_payment_methods"
+                          value={form.xendit_payment_methods}
+                          onChange={handleInputChange}
+                          placeholder="Kosongkan dulu — isi QRCODE setelah QRIS di-approve Xendit"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-white focus:ring-1 focus:ring-amber-500"
+                        />
+                        <p className="text-gray-400 text-[11px] mt-1">
+                          Kosongkan supaya Xendit menampilkan metode pembayaran apapun yang sudah aktif di akunmu (Virtual Account, e-wallet, dll — bisa langsung dipakai tanpa approval). Isi <code>QRCODE</code> HANYA setelah QRIS berhasil diaktifkan Xendit di akunmu (Settings &gt; Payment Channels, butuh ~5 hari kerja / hubungi Account Manager Xendit).
                         </p>
                       </div>
                     </div>
