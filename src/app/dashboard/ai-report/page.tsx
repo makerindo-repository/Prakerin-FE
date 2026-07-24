@@ -14,6 +14,8 @@ import {
 import Cookies from "js-cookie";
 import { createApiCall } from "@/utils/config";
 import { alertError, alertSuccess } from "@/libs/alert";
+import { useAuthStore } from "@/stores/authStore";
+import { LockedFeature } from "@/components/LockedFeature";
 
 interface AiReportData {
   summary: string;
@@ -21,7 +23,7 @@ interface AiReportData {
   recommendations: string[];
 }
 
-export default function AiReportPage() {
+function AiReportPageInner() {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<AiReportData | null>(null);
 
@@ -283,5 +285,14 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
         </div>
       )}
     </main>
+  );
+}
+
+export default function AiReportPage() {
+  const studentId = useAuthStore((s) => s.studentId);
+  return (
+    <LockedFeature featureName="AI Report" studentId={studentId}>
+      <AiReportPageInner />
+    </LockedFeature>
   );
 }

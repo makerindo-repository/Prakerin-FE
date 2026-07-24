@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { LockedFeature } from "@/components/LockedFeature";
 import {
   Brain,
   Sparkles,
@@ -107,7 +109,7 @@ interface AiAnalyticRecord {
   };
 }
 
-export default function AiAnalyticsPage() {
+function AiAnalyticsPageInner() {
   const [latestAnalysis, setLatestAnalysis] = useState<AiAnalyticRecord | null>(null);
   const [history, setHistory] = useState<AiAnalyticRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1356,5 +1358,14 @@ export default function AiAnalyticsPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function AiAnalyticsPage() {
+  const studentId = useAuthStore((s) => s.studentId);
+  return (
+    <LockedFeature featureName="AI CV Analyzer" studentId={studentId}>
+      <AiAnalyticsPageInner />
+    </LockedFeature>
   );
 }

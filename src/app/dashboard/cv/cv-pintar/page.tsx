@@ -3,6 +3,8 @@ import UnderConstruction from "@/components/UnderConstruction";
 import { FileText, Sparkles } from "lucide-react";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { LockedFeature } from "@/components/LockedFeature";
 import CVAts from "@/components/cv-templates/CVAts";
 import CVProfessional from "@/components/cv-templates/CVProfessional";
 import CVModern from "@/components/cv-templates/CVModern";
@@ -338,7 +340,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
   );
 };
 
-const BuatPintarPage = () => {
+const BuatPintarPageInner = () => {
   // return <UnderConstruction />;
   return (
     <main className="p-6 max-w-5xl mx-auto">
@@ -374,4 +376,11 @@ const BuatPintarPage = () => {
   );
 };
 
-export default BuatPintarPage;
+export default function BuatPintarPage() {
+  const studentId = useAuthStore((s) => s.studentId);
+  return (
+    <LockedFeature featureName="AI Smart CV Generator" studentId={studentId}>
+      <BuatPintarPageInner />
+    </LockedFeature>
+  );
+}

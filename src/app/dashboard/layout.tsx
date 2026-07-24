@@ -392,6 +392,10 @@ export default function DashboardLayout({
       });
       setNavGroups(NAV_GROUPS[data.role] ?? []);
 
+      // Simpan ID row `students` di Zustand (dipakai komponen langganan:
+      // SubscriptionStatus, LockedFeature, dst — semuanya butuh studentId).
+      useAuthStore.getState().setStudentId(data.role === "student" ? data.student?.id ?? null : null);
+
       // Fetch and restore permissions in Zustand on reload
       const token = Cookies.get("userToken");
       if (token) {

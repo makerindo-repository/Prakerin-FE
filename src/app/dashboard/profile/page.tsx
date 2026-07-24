@@ -19,6 +19,8 @@ import {
 import { ChangeEvent, use, useEffect, useState } from "react";
 import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import Cookies from "js-cookie";
+import { useAuthStore } from "@/stores/authStore";
+import UpgradePremiumSection from "@/components/UpgradePremiumSection";
 import { EditorProps } from "@/components/Editor";
 import dynamic from "next/dynamic";
 import { alertError, alertSuccess } from "@/libs/alert";
@@ -94,6 +96,7 @@ interface FormErrors {
 }
 
 export default function ProfilePage() {
+  const studentId = useAuthStore((s) => s.studentId);
   const [authorization, setAuthorization] = useState("");
   const [userForm, setUserForm] = useState<UserForm>({
     photo_profile: null,
@@ -465,6 +468,9 @@ export default function ProfilePage() {
       <h1 className="text-2xl font-semibold text-gray-900 md:hidden">
         Profile
       </h1>
+
+      {/* Status & Upgrade Langganan Premium — hanya untuk siswa/mahasiswa */}
+      {studentId && <UpgradePremiumSection studentId={studentId} />}
 
       {/* Grid Utama Halaman */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
