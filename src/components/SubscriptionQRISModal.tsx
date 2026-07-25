@@ -41,7 +41,7 @@ export function SubscriptionQRISModal({
   }).format(amount);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-800 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50">
@@ -69,7 +69,7 @@ export function SubscriptionQRISModal({
         {/* Content */}
         <div className="p-6 flex flex-col items-center text-center">
           {paid ? (
-            <div className="py-8 flex flex-col items-center animate-in zoom-in-95 duration-300">
+            <div className="py-8 flex flex-col items-center animate-fade-in">
               <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 ring-8 ring-emerald-500/10">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
