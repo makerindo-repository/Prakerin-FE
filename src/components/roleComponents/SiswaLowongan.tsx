@@ -105,7 +105,7 @@ export default function SiswaLowongan() {
   const [fields, setFields] = useState<Field[]>([]);
   const [durations, setDurations] = useState<Duration[]>([]);
   const [inputSearch, setInputSearch] = useState<string>("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
   const [page, setPage] = useState<Pages>({
     activePages: 1,
     pages: 1,
@@ -131,11 +131,10 @@ export default function SiswaLowongan() {
   };
 
   const fetchJobOpenings = async (selectedPage = page.activePages) => {
-    if (loading) return;
     setLoading(true);
     try {
       let params = {
-        search: inputSearch,
+        search: debouncedQuery,
         page: selectedPage,
         limit: 6,
       };
@@ -262,13 +261,6 @@ export default function SiswaLowongan() {
   }, []);
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setJobOpenings([]);
-        return;
-      }
-    }
-
     fetchJobOpenings();
   }, [debouncedQuery, filterData, showFilter, page.activePages]);
 
@@ -587,6 +579,7 @@ export default function SiswaLowongan() {
           totalPages={page.pages}
           onPageChange={handlePageChange}
           loading={loading}
+          disabled={jobOpenings.length === 0}
         />
       </div>
     </>

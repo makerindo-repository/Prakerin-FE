@@ -387,7 +387,7 @@ const GuidesAdminPage: React.FC = () => {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <form
             onSubmit={handleUploadSubmit}
             className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative my-8"
@@ -501,7 +501,7 @@ const GuidesAdminPage: React.FC = () => {
 
       {/* Edit Modal */}
       {showEditModal && selectedGuide && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <form
             onSubmit={handleEditSubmit}
             className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative my-8"
@@ -633,7 +633,7 @@ const GuidesAdminPage: React.FC = () => {
 
       {/* PDF Preview Modal */}
       {showPreviewModal && selectedGuide && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl w-full max-w-4xl p-6 shadow-2xl relative flex flex-col h-[85vh]">
             <button
               onClick={() => setShowPreviewModal(false)}

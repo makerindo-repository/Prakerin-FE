@@ -30,7 +30,7 @@ interface Student {
 
 const PermohonanSiswaPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedQuery = useDebounce(searchQuery, 1000);
+  const debouncedQuery = useDebounce(searchQuery, 500);
 
   const router = useRouter();
   const [pages, setPages] = useState<Pages>({
@@ -38,12 +38,10 @@ const PermohonanSiswaPage: React.FC = () => {
     pages: 1,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isReload, setIsReload] = useState<boolean>(false);
 
   const [data, setData] = useState<Student[]>([]);
 
   const fetchData = async () => {
-    if (isLoading) return;
     setIsLoading(true);
 
     try {
@@ -53,7 +51,7 @@ const PermohonanSiswaPage: React.FC = () => {
           page: pages.activePages,
           limit: 10,
           role: "student",
-          search: searchQuery,
+          search: debouncedQuery,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -78,10 +76,9 @@ const PermohonanSiswaPage: React.FC = () => {
     if (!confirm) return;
 
     try {
-      await API.post(
+      await API.patch(
         `${ENDPOINTS.USERS}/${userId}`,
         {
-          _method: "PATCH",
           is_verified: true,
         },
         {
@@ -92,12 +89,8 @@ const PermohonanSiswaPage: React.FC = () => {
       );
       fetchData();
       await alertSuccess("Siswa berhasil didaftarkan!");
-    } catch (error: AxiosError | unknown) {
-      if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        await alertError(responseError);
-      }
-      console.error(error);
+    } catch (error) {
+      console.error("Error accepting student:", error);
     }
   };
 
@@ -108,26 +101,16 @@ const PermohonanSiswaPage: React.FC = () => {
     if (!confirm) return;
 
     try {
-      await API.post(
-        `${ENDPOINTS.USERS}/${userId}`,
-        {
-          _method: "PATCH",
-          is_verified: false,
+      await API.delete(`${ENDPOINTS.USERS}/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-        }
-      );
+      });
+
       fetchData();
       await alertSuccess("Siswa berhasil ditolak!");
-    } catch (error: AxiosError | unknown) {
-      if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        await alertError(responseError);
-      }
-      console.error(error);
+    } catch (error) {
+      console.error("Error rejecting student:", error);
     }
   };
 
@@ -139,20 +122,12 @@ const PermohonanSiswaPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (searchQuery.trim() !== "") {
-      if (!debouncedQuery) {
-        setData([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [debouncedQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, debouncedQuery]);
 
   return (
     <main className="p-6">

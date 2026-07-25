@@ -17,6 +17,8 @@ import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
 import NotFoundComponent from "../NotFoundComponent";
 import Loader from "../loader";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Pages } from "@/models/pagination";
 
 interface JobOpening {
   id: string;
@@ -36,18 +38,29 @@ export function IndustryLowongan() {
   const route = useRouter();
   const [jobOpenings, setJobOpenings] = useState<JobOpening[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<Pages>({
+    activePages: 1,
+    pages: 1,
+  });
 
-  const fetchJobOpenings = async () => {
-    if (isLoading) return;
+  const fetchJobOpenings = async (selectedPage = page.activePages) => {
     setIsLoading(true);
     try {
       const response = await API.get(ENDPOINTS.JOB_OPENINGS, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
+        params: {
+          page: selectedPage,
+          limit: 6,
+        },
       });
       if (response.status === 200) {
         setJobOpenings(response.data.data || []);
+        setPage({
+          activePages: selectedPage,
+          pages: response.data.last_page || 1,
+        });
       }
     } catch (error: any) {
       console.log(error);
@@ -159,6 +172,16 @@ export function IndustryLowongan() {
             <NotFoundComponent text="Tidak ada lowongan magang yang ditemukan." />
           </div>
         )}
+      </div>
+
+      <div className="px-6">
+        <PaginationComponent
+          activePage={page.activePages}
+          totalPages={page.pages}
+          onPageChange={(p) => fetchJobOpenings(p)}
+          loading={isLoading}
+          disabled={jobOpenings.length === 0}
+        />
       </div>
     </>
   );

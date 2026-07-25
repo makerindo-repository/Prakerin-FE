@@ -37,7 +37,7 @@ interface FormErrors {
 const Users: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
 
   const tabs = ["Semua" , "Sekolah" , "Perusahaan" , "Siswa" , "Mahasiswa"];
 
@@ -49,8 +49,6 @@ const Users: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [data, setData] = useState<Data[]>([]);
-
-  const [isReload, setIsReload] = useState(0); // BUG-09 fix: counter instead of boolean toggle
 
   const router = useRouter();
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -87,7 +85,6 @@ const Users: React.FC = () => {
   }, [showAddModal]);
 
   const fetchData = async () => {
-    if (loading) return;
     setLoading(true);
 
     try {
@@ -116,7 +113,7 @@ const Users: React.FC = () => {
         params: {
           role: roles,
           school_type: schoolType,
-          search: debouncedQuery, // BUG-04 fix: send debounced value, not raw input
+          search: debouncedQuery,
           limit: 10,
           page: pages.activePages,
         },
@@ -253,20 +250,12 @@ const Users: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setData([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload((k) => k + 1); // BUG-09 fix: always increment, never cancel-out
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">Daftar User</h1>
@@ -387,7 +376,7 @@ const Users: React.FC = () => {
 
       {/* Add User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative my-8">
             <button
               onClick={() => setShowAddModal(false)}

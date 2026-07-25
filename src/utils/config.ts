@@ -69,8 +69,11 @@ export const API = axios.create({
   },
 });
 
-// Interceptor Token bearer otomatis
+// Interceptor Token bearer otomatis & Handling FormData
 API.interceptors.request.use((config) => {
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   if (typeof window !== 'undefined') {
     const token =
       Cookies.get('userToken') ||

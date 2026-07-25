@@ -35,7 +35,7 @@ type ActiveTab = "Semua" | "Sudah Kerja Sama" | "Belum Kerja Sama";
 
 const NonAdminSekolah: React.FC = () => {
   const [inputSearch, setInputSearch] = useState<string>("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
   const [perusahaan, setPerushaan] = useState<Perusahaan[]>([]);
 
   const tabs: ActiveTab[] = ["Semua", "Sudah Kerja Sama", "Belum Kerja Sama"];
@@ -52,15 +52,12 @@ const NonAdminSekolah: React.FC = () => {
     pages: 1,
   });
 
-  const [isReload, setIsReload] = useState<boolean>(false);
-
   const fetchCompany = async () => {
-    if (isLoading) return;
     setIsLoading(true);
     try {
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
-          search: inputSearch,
+          search: debouncedQuery,
           role: "school",
           is_mou:
             activeTab === "Semua"
@@ -110,7 +107,7 @@ const NonAdminSekolah: React.FC = () => {
         setCompanyCount(response.data.data);
       }
     } catch (error) {
-      console.error("Error fetching company count:", error);
+      console.error("Error fetching Company Count:", error);
     }
   };
 
@@ -122,20 +119,12 @@ const NonAdminSekolah: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setPerushaan([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchCompany();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchCompanyCount();

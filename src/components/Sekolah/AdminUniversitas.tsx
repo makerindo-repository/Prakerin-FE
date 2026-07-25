@@ -41,7 +41,7 @@ interface Data {
 const AdminUniversitas: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
 
   const tabs = ["Semua", "Diterima", "Belum Diterima"];
 
@@ -54,8 +54,6 @@ const AdminUniversitas: React.FC = () => {
 
   const [data, setData] = useState<Data[]>([]);
 
-  const [isReload, setIsReload] = useState(false);
-
   const handleChangePage = (selectedPage: number) => {
     setPages((prev) => ({
       ...prev,
@@ -64,7 +62,6 @@ const AdminUniversitas: React.FC = () => {
   };
 
   const fetchData = async () => {
-    if (loading) return;
     setLoading(true);
 
     try {
@@ -82,7 +79,7 @@ const AdminUniversitas: React.FC = () => {
         params: {
           role: "school",
           is_verified: isAccepted,
-          search: inputSearch,
+          search: debouncedQuery,
           limit: 10,
           page: pages.activePages,
           is_school: false, // Data Universitas = khusus institusi type "university"
@@ -157,20 +154,12 @@ const AdminUniversitas: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setData([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
   return (
     <>
 

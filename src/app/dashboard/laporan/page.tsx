@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { createApiCall } from "@/utils/config";
+import { alertError, alertSuccess } from "@/libs/alert";
 import {
   BarChart3,
   Calendar,
@@ -17,6 +18,7 @@ import {
   FileDown,
   ChevronRight,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -43,6 +45,7 @@ interface StatsData {
 export default function LaporanPage() {
   const [activeTab, setActiveTab] = useState<"internship_stats" | "student_progress" | "company_performance">("internship_stats");
   const [loading, setLoading] = useState(true);
+  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
   const [data, setData] = useState<StatsData | null>(null);
   
   // Filters
@@ -60,10 +63,9 @@ export default function LaporanPage() {
 
   const fetchFiltersData = async () => {
     try {
-      const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
-      const compRes = await createApiCall({ url: "/companies", headers });
-      const schoolRes = await createApiCall({ url: "/users?role=school", headers });
-      const fieldRes = await createApiCall({ url: "/fields", headers });
+      const compRes = await createApiCall({ url: "/companies" });
+      const schoolRes = await createApiCall({ url: "/users?role=school" });
+      const fieldRes = await createApiCall({ url: "/fields" });
       
       setCompanies(compRes?.data || []);
       setSchools(schoolRes?.data || []);
@@ -76,7 +78,6 @@ export default function LaporanPage() {
   const fetchReportData = async () => {
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
       let url = "";
       const params: any = {};
 
@@ -93,14 +94,12 @@ export default function LaporanPage() {
         if (statusFilter) params.status = statusFilter;
       } else {
         url = "/reports/company-performance";
-        if (companyFilter) params.location = companyFilter; // or location city filter if used
+        if (companyFilter) params.location = companyFilter;
       }
 
-      // Convert params to query string
       const queryString = new URLSearchParams(params).toString();
       const res = await createApiCall({
         url: url + (queryString ? `?${queryString}` : ""),
-        headers
       });
 
       setData(res);
@@ -120,8 +119,8 @@ export default function LaporanPage() {
   }, [activeTab, startDate, endDate, companyFilter, schoolFilter, fieldFilter, statusFilter]);
 
   const handleExport = async (format: "csv" | "pdf") => {
+    setExportingFormat(format);
     try {
-      const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
       const filters: any = {};
       if (startDate) filters.start_date = startDate;
       if (endDate) filters.end_date = endDate;
@@ -130,32 +129,62 @@ export default function LaporanPage() {
       if (fieldFilter) filters.field_id = fieldFilter;
       if (statusFilter) filters.status = statusFilter;
 
-      // In Laravel export endpoint
       const response = await createApiCall({
         url: "/reports/export",
         method: "POST",
-        headers,
         data: {
           type: activeTab,
           format,
           filters
         },
-        responseType: "blob" // Handle file download
+        responseType: "blob"
       });
 
-      // Simple file stream handling
-      const blob = new Blob([response], { type: format === "pdf" ? "application/pdf" : "text/csv" });
+      // Handle backend JSON errors formatted inside a blob
+      if (response instanceof Blob && response.type && response.type.includes("application/json")) {
+        const errorText = await response.text();
+        try {
+          const errObj = JSON.parse(errorText);
+          alertError(errObj.message || errObj.errors || "Gagal mengunduh laporan.");
+        } catch {
+          alertError("Gagal mengunduh laporan.");
+        }
+        return;
+      }
+
+      const mimeType = format === "pdf" ? "application/pdf" : "text/csv;charset=utf-8;";
+      const blob = response instanceof Blob ? response : new Blob([response], { type: mimeType });
+      const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `report_${activeTab}_${Date.now()}.${format}`;
+      link.href = downloadUrl;
+      link.setAttribute("download", `laporan_${activeTab}_${Date.now()}.${format}`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err) {
-      // Fallback: trigger download link direct
-      const token = Cookies.get("userToken");
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/reports/export?token=${token}&type=${activeTab}&format=${format}`;
-      window.open(url, "_blank");
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(downloadUrl);
+      }, 1000);
+
+      alertSuccess(`Laporan ${format.toUpperCase()} berhasil diunduh.`);
+    } catch (err: any) {
+      console.error("Export error, attempting fallback", err);
+      try {
+        const token =
+          Cookies.get("userToken") ||
+          Cookies.get("token") ||
+          (typeof window !== "undefined"
+            ? localStorage.getItem("userToken") || localStorage.getItem("token")
+            : "");
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        const cleanBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+        const url = `${cleanBase}/api/v1/reports/export?token=${token}&type=${activeTab}&format=${format}`;
+        window.open(url, "_blank");
+      } catch (fallbackErr) {
+        alertError("Gagal mengekspor laporan. Silakan coba lagi.");
+      }
+    } finally {
+      setExportingFormat(null);
     }
   };
 
@@ -355,17 +384,27 @@ export default function LaporanPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => handleExport("csv")}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-semibold transition-colors"
+              disabled={exportingFormat !== null}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 rounded-lg text-sm font-semibold transition-colors"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              Ekspor CSV
+              {exportingFormat === "csv" ? (
+                <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              )}
+              {exportingFormat === "csv" ? "Mengekspor..." : "Ekspor CSV"}
             </button>
             <button
               onClick={() => handleExport("pdf")}
-              className="flex items-center gap-2 px-4 py-2 bg-[#035a70] text-white hover:bg-[#035a70]/90 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+              disabled={exportingFormat !== null}
+              className="flex items-center gap-2 px-4 py-2 bg-[#035a70] text-white hover:bg-[#035a70]/90 disabled:opacity-50 rounded-lg text-sm font-semibold transition-colors shadow-sm"
             >
-              <FileDown className="w-4 h-4" />
-              Unduh PDF
+              {exportingFormat === "pdf" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4" />
+              )}
+              {exportingFormat === "pdf" ? "Mengunduh..." : "Unduh PDF"}
             </button>
           </div>
         </div>

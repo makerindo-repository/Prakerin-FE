@@ -31,6 +31,9 @@ const accessMap: Record<string, string[]> = {
     "/dashboard/penghargaan*",
     "/dashboard/profile*",
     "/dashboard/master-data/*",
+    "/dashboard/guides*",
+    "/dashboard/panduan*",
+    "/dashboard/inbox*",
   ],
   company: [
     "/dashboard",
@@ -46,6 +49,8 @@ const accessMap: Record<string, string[]> = {
     "/dashboard/sertifikat*",
     "/dashboard/pembimbing-perusahaan*",
     "/dashboard/profile*",
+    "/dashboard/panduan*",
+    "/dashboard/inbox*",
   ],
   school: [
     "/dashboard",
@@ -61,6 +66,8 @@ const accessMap: Record<string, string[]> = {
     "/dashboard/guru-pembimbing*",
     "/dashboard/profile*",
     "/dashboard/ai-report*",
+    "/dashboard/panduan*",
+    "/dashboard/inbox*",
   ],
   student: [
     "/dashboard",
@@ -74,7 +81,10 @@ const accessMap: Record<string, string[]> = {
     "/dashboard/sertifikat*",
     "/dashboard/my-awards*",
     "/dashboard/pembimbing*",
+    "/dashboard/mentor*",
     "/dashboard/profile*",
+    "/dashboard/panduan*",
+    "/dashboard/inbox*",
   ],
 };
 

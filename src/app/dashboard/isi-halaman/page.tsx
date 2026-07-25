@@ -9,6 +9,10 @@ import {
   UploadCloud,
   FileText,
   X,
+  Building2,
+  GraduationCap,
+  User,
+  ImageOff,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,10 +20,10 @@ import Cookies from "js-cookie";
 import useDebounce from "@/hooks/useDebounce";
 import { API, ENDPOINTS, getPhotoProfileUrl, getCommentPhotoUrl } from "@/utils/config";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
-import { profile } from "console";
 import Image from "next/image";
 import { AxiosError } from "axios";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import ImageWithFallback from "@/components/ImageWithFallback";
 
 interface Data {
   id: string;
@@ -79,6 +83,18 @@ const PerusahaanPage: React.FC = () => {
   const [data, setData] = useState<Data[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [commentPrakerin, setCommentPrakerin] = useState<CommentPrakerin[]>([]);
+
+  const filteredPartners = partners.filter(
+    (p) =>
+      p.name.toLowerCase().includes(inputSearch.toLowerCase()) ||
+      (p.address && p.address.toLowerCase().includes(inputSearch.toLowerCase()))
+  );
+  const filteredComments = commentPrakerin.filter(
+    (c) =>
+      c.name.toLowerCase().includes(inputSearch.toLowerCase()) ||
+      (c.position && c.position.toLowerCase().includes(inputSearch.toLowerCase())) ||
+      (c.comment && c.comment.toLowerCase().includes(inputSearch.toLowerCase()))
+  );
 
   const [formData, setFormData] = useState<Data[]>([]);
 
@@ -407,40 +423,50 @@ const PerusahaanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative min-h-[200px]">
-          {partners.filter((p) => p.type !== "company").length > 0 ? (
-            partners
+          {filteredPartners.filter((p) => p.type !== "company").length > 0 ? (
+            filteredPartners
               .filter((p) => p.type !== "company")
               .map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col gap-3 group relative"
+                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col gap-3 group relative overflow-hidden"
                 >
                   {/* Tombol Aksi (Edit + Hapus) */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="absolute top-2 right-2 flex gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                     <button
                       onClick={() => handleUpdatePartner(item)}
-                      className="p-2 rounded-full hover:bg-blue-50 text-blue-500 cursor-pointer"
+                      className="p-1.5 rounded-md hover:bg-blue-50 text-blue-500 cursor-pointer transition-colors"
                       title="Edit Mitra"
                     >
-                      <Edit size={18} />
+                      <Edit size={16} />
                     </button>
                     <button
                       onClick={() => handleDeletePartner(item)}
-                      className="p-2 rounded-full hover:bg-red-50 text-red-500 cursor-pointer"
+                      className="p-1.5 rounded-md hover:bg-red-50 text-red-500 cursor-pointer transition-colors"
                       title="Hapus Mitra"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
 
                   {/* Logo Mitra */}
-                  <div className="w-32 h-32 mx-auto relative">
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                  <div className="w-28 h-28 mx-auto mt-4 relative flex items-center justify-center">
+                    <ImageWithFallback
+                      src={
+                        item.logo
+                          ? `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`
+                          : null
+                      }
                       alt={item.name}
                       fill
                       sizes="100%"
-                      className="object-cover rounded-md border border-gray-100 shadow-sm"
+                      className="object-contain rounded-md border border-gray-100 shadow-sm p-1"
+                      fallback={
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 rounded-md border border-gray-100 p-2 text-gray-400">
+                          <GraduationCap className="w-10 h-10 text-accent/60" />
+                          <span className="text-[10px] text-gray-400 text-center font-medium mt-1">Logo Sekolah</span>
+                        </div>
+                      }
                     />
                   </div>
 
@@ -468,40 +494,50 @@ const PerusahaanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative min-h-[200px]">
-          {partners.filter((p) => p.type === "company").length > 0 ? (
-            partners
+          {filteredPartners.filter((p) => p.type === "company").length > 0 ? (
+            filteredPartners
               .filter((p) => p.type === "company")
               .map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col gap-3 group relative"
+                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col gap-3 group relative overflow-hidden"
                 >
                   {/* Tombol Aksi (Edit + Hapus) */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="absolute top-2 right-2 flex gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                     <button
                       onClick={() => handleUpdatePartner(item)}
-                      className="p-2 rounded-full hover:bg-blue-50 text-blue-500 cursor-pointer"
+                      className="p-1.5 rounded-md hover:bg-blue-50 text-blue-500 cursor-pointer transition-colors"
                       title="Edit Mitra"
                     >
-                      <Edit size={18} />
+                      <Edit size={16} />
                     </button>
                     <button
                       onClick={() => handleDeletePartner(item)}
-                      className="p-2 rounded-full hover:bg-red-50 text-red-500 cursor-pointer"
+                      className="p-1.5 rounded-md hover:bg-red-50 text-red-500 cursor-pointer transition-colors"
                       title="Hapus Mitra"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
 
                   {/* Logo Mitra */}
-                  <div className="w-32 h-32 mx-auto relative">
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`}
+                  <div className="w-28 h-28 mx-auto mt-4 relative flex items-center justify-center">
+                    <ImageWithFallback
+                      src={
+                        item.logo
+                          ? `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`
+                          : null
+                      }
                       alt={item.name}
                       fill
                       sizes="100%"
-                      className="object-cover rounded-md border border-gray-100 shadow-sm"
+                      className="object-contain rounded-md border border-gray-100 shadow-sm p-1"
+                      fallback={
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 rounded-md border border-gray-100 p-2 text-gray-400">
+                          <Building2 className="w-10 h-10 text-accent/60" />
+                          <span className="text-[10px] text-gray-400 text-center font-medium mt-1">Logo Perusahaan</span>
+                        </div>
+                      }
                     />
                   </div>
 
@@ -529,45 +565,50 @@ const PerusahaanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative min-h-[260px]">
-          {commentPrakerin.length > 0 ? (
-            commentPrakerin.map((item) => (
+          {filteredComments.length > 0 ? (
+            filteredComments.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col items-center text-center group relative border border-gray-100"
+                className="bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col items-center text-center group relative border border-gray-100 overflow-hidden"
               >
                 {/* Tombol Aksi (Edit + Hapus) */}
-                <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="absolute top-2 right-2 flex gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                   <button
                     onClick={() => handleUpdateComment(item)}
-                    className="p-2 rounded-full hover:bg-blue-50 text-blue-500 cursor-pointer"
+                    className="p-1.5 rounded-md hover:bg-blue-50 text-blue-500 cursor-pointer transition-colors"
                     title="Edit Ulasan"
                   >
-                    <Edit size={18} />
+                    <Edit size={16} />
                   </button>
                   <button
                     onClick={() => handleDeleteComment(item)}
-                    className="p-2 rounded-full hover:bg-red-50 text-red-500 cursor-pointer"
+                    className="p-1.5 rounded-md hover:bg-red-50 text-red-500 cursor-pointer transition-colors"
                     title="Hapus Ulasan"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
 
                 {/* Foto Profil */}
-                <div className="w-24 h-24 rounded-full overflow-hidden shadow-md border border-gray-100 mb-4 relative">
-                  {(item.user?.photo_profile || item.photo_profile) && (
-                    <Image
-                      src={
-                        item.user?.photo_profile
-                          ? getPhotoProfileUrl(item.user.photo_profile) || ''
-                          : getCommentPhotoUrl(item.photo_profile) || ''
-                      }
-                      alt={item.name}
-                      fill
-                      sizes="100%"
-                      className="object-cover"
-                    />
-                  )}
+                <div className="w-24 h-24 rounded-full overflow-hidden shadow-md border border-gray-100 mt-2 mb-4 relative bg-gray-50 flex items-center justify-center">
+                  <ImageWithFallback
+                    src={
+                      item.user?.photo_profile
+                        ? getPhotoProfileUrl(item.user.photo_profile)
+                        : item.photo_profile
+                        ? getCommentPhotoUrl(item.photo_profile)
+                        : null
+                    }
+                    alt={item.name}
+                    fill
+                    sizes="100%"
+                    className="object-cover"
+                    fallback={
+                      <div className="w-full h-full flex items-center justify-center bg-accent/10 text-accent">
+                        <User className="w-12 h-12 text-accent" />
+                      </div>
+                    }
+                  />
                 </div>
 
                 {/* Detail Ulasan */}
@@ -712,12 +753,18 @@ const PerusahaanPage: React.FC = () => {
                         }`}
                       >
                         {profileImage ? (
-                          <Image
+                          <ImageWithFallback
                             src={profileImage}
                             alt="Profile"
                             className="w-full h-full object-cover rounded-lg"
                             width={300}
                             height={300}
+                            fallback={
+                              <div className="flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+                                <ImageOff size={40} className="text-gray-400 mb-2" />
+                                <span className="text-sm text-gray-500">Gambar tidak dapat dimuat</span>
+                              </div>
+                            }
                           />
                         ) : (
                           <>
@@ -834,12 +881,18 @@ const PerusahaanPage: React.FC = () => {
                         }`}
                       >
                         {profileImage ? (
-                          <Image
+                          <ImageWithFallback
                             src={profileImage}
                             alt="Profile"
                             className="w-full h-full object-cover rounded-lg"
                             width={300}
                             height={300}
+                            fallback={
+                              <div className="flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+                                <ImageOff size={40} className="text-gray-400 mb-2" />
+                                <span className="text-sm text-gray-500">Gambar tidak dapat dimuat</span>
+                              </div>
+                            }
                           />
                         ) : (
                           <>

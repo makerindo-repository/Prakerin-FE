@@ -42,10 +42,9 @@ const SiswMagangPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
 
   const [inputSearch, setInputSearch] = useState<string>("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
 
   const fetchData = async () => {
-    if (isLoading) return;
     try {
       setIsLoading(true);
       const response = await API.get(ENDPOINTS.USERS, {
@@ -53,7 +52,7 @@ const SiswMagangPage: React.FC = () => {
           page: page.activePages,
           limit: 10,
           role: "student",
-          search: inputSearch,
+          search: debouncedQuery,
           is_completed:
             activeTab === "Semua"
               ? undefined
@@ -78,8 +77,6 @@ const SiswMagangPage: React.FC = () => {
     }
   };
 
-  const [isReload, setIsReload] = useState<boolean>(false);
-
   const handlePageChange = (selectedPage: number) => {
     setPage((prev) => ({
       ...prev,
@@ -88,20 +85,12 @@ const SiswMagangPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setData([]);
-        return;
-      }
-    }
-
     setPage((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [page.activePages, isReload]);
+  }, [page.activePages, activeTab, debouncedQuery]);
 
   return (
     <main className="p-4 sm:p-6">

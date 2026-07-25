@@ -30,7 +30,7 @@ interface Data {
 const AdminPerusahaan: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
 
   const tabs = ["Semua", "Diterima", "Belum Diterima"];
 
@@ -43,8 +43,6 @@ const AdminPerusahaan: React.FC = () => {
 
   const [data, setData] = useState<Data[]>([]);
 
-  const [isReload, setIsReload] = useState(false);
-
   const handleChangePage = (selectedPage: number) => {
     setPages((prev) => ({
       ...prev,
@@ -53,7 +51,6 @@ const AdminPerusahaan: React.FC = () => {
   };
 
   const fetchData = async () => {
-    if (loading) return;
     setLoading(true);
 
     try {
@@ -71,7 +68,7 @@ const AdminPerusahaan: React.FC = () => {
         params: {
           role: "company",
           is_verified: isAccepted,
-          search: inputSearch,
+          search: debouncedQuery,
           limit: 10,
           page: pages.activePages,
         },
@@ -146,20 +143,12 @@ const AdminPerusahaan: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setData([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
   return (
     <>
       {/* Tabs */}

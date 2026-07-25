@@ -1,6 +1,7 @@
 "use client";
-import { AlertCircle, BookOpen, Clock, Download, Eye, FileText } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+
+import { AlertCircle, BookOpen, Clock, Download, FileText } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { API } from "@/utils/config";
 import Cookies from "js-cookie";
@@ -15,9 +16,9 @@ interface Guide {
   created_at: string;
 }
 
-const PublicGuidesPage: React.FC = () => {
+const DashboardGuidesPage: React.FC = () => {
   const params = useParams();
-  const roleParam = params.role as string; // student, school, company
+  const roleParam = (params.role as string) || "company";
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [guides, setGuides] = useState<Guide[]>([]);
@@ -36,21 +37,15 @@ const PublicGuidesPage: React.FC = () => {
     }
   };
 
-  const router = useRouter();
-
   useEffect(() => {
-    const token = Cookies.get("userToken");
-    if (token && roleParam) {
-      router.replace(`/dashboard/panduan/${roleParam}`);
-      return;
-    }
-
     const fetchGuides = async () => {
       try {
         setIsLoading(true);
-        // GET /api/v1/guides?type=roleParam
         const response = await API.get(`/api/v1/guides`, {
           params: { type: roleParam },
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
         });
         const fetchedGuides = response.data.data || [];
         setGuides(fetchedGuides);
@@ -67,11 +62,11 @@ const PublicGuidesPage: React.FC = () => {
     if (roleParam) {
       fetchGuides();
     }
-  }, [roleParam, router]);
+  }, [roleParam]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-[400px]">
         <Loader />
       </div>
     );
@@ -82,27 +77,30 @@ const PublicGuidesPage: React.FC = () => {
     : "";
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Header bar */}
-      <header className="bg-white border-b border-gray-200 py-4 px-6 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2 text-accent font-bold text-xl">
+    <div className="p-6 space-y-6">
+      {/* Title & Header Section */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-[#035a70] font-bold text-xl mb-1">
             <BookOpen className="w-6 h-6" />
-            <span>Panduan Penggunaan</span>
+            <h1>Panduan Penggunaan</h1>
           </div>
-          <span className="bg-accent/15 text-accent px-3 py-1 rounded-full text-xs font-bold">
-            Role: {getRoleLabel(roleParam)}
-          </span>
+          <p className="text-sm text-gray-500">
+            Dokumen dan petunjuk penggunaan sistem Prakerin.id untuk {getRoleLabel(roleParam)}.
+          </p>
         </div>
-      </header>
+        <span className="bg-[#035a70]/10 text-[#035a70] px-4 py-1.5 rounded-full text-xs font-bold">
+          Role: {getRoleLabel(roleParam)}
+        </span>
+      </div>
 
       {/* Main Grid */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Side: Guides List */}
         <section className="lg:col-span-4 flex flex-col gap-4">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <h2 className="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">
-              <FileText className="text-accent w-5 h-5" />
+            <h2 className="font-bold text-gray-800 text-base mb-4 flex items-center gap-2">
+              <FileText className="text-[#035a70] w-5 h-5" />
               <span>Daftar Dokumen ({guides.length})</span>
             </h2>
 
@@ -112,23 +110,33 @@ const PublicGuidesPage: React.FC = () => {
                 <p className="text-sm">Belum ada panduan tersedia untuk role ini.</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-[65vh] overflow-y-auto pr-1">
                 {guides.map((guide) => (
                   <button
                     key={guide.id}
                     onClick={() => setSelectedGuide(guide)}
                     className={`w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 cursor-pointer ${
                       selectedGuide?.id === guide.id
-                        ? "bg-accent/5 border-accent shadow-sm"
+                        ? "bg-[#035a70]/5 border-[#035a70] shadow-sm"
                         : "bg-white border-gray-100 hover:bg-slate-50"
                     }`}
                   >
-                    <div className={`p-2 rounded-lg ${selectedGuide?.id === guide.id ? "bg-accent text-white" : "bg-slate-100 text-gray-400"}`}>
+                    <div
+                      className={`p-2 rounded-lg ${
+                        selectedGuide?.id === guide.id
+                          ? "bg-[#035a70] text-white"
+                          : "bg-slate-100 text-gray-400"
+                      }`}
+                    >
                       <FileText size={18} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-900 text-sm truncate">{guide.title}</h4>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">{guide.description || "Tidak ada deskripsi."}</p>
+                      <h4 className="font-bold text-gray-900 text-sm truncate">
+                        {guide.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {guide.description || "Tidak ada deskripsi."}
+                      </p>
                       <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-2">
                         <Clock size={10} />
                         <span>
@@ -154,15 +162,19 @@ const PublicGuidesPage: React.FC = () => {
               {/* Document Info Header */}
               <div className="flex justify-between items-start gap-4 border-b border-gray-100 pb-4 mb-4 flex-wrap">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-gray-900">{selectedGuide.title}</h3>
-                  <p className="text-sm text-gray-500">{selectedGuide.description || "Tidak ada deskripsi tambahan."}</p>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {selectedGuide.title}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {selectedGuide.description || "Tidak ada deskripsi tambahan."}
+                  </p>
                 </div>
                 <a
                   href={pdfUrl}
                   download
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-accent text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-accent-hover transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  className="bg-[#035a70] text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#024556] transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
                 >
                   <Download size={14} />
                   <span>Download PDF</span>
@@ -181,16 +193,18 @@ const PublicGuidesPage: React.FC = () => {
           ) : (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-gray-400 flex flex-col items-center justify-center min-h-[500px] h-full">
               <BookOpen className="w-16 h-16 text-gray-200 mb-3" />
-              <h3 className="text-lg font-bold text-gray-700 mb-1">Pilih Dokumen Panduan</h3>
+              <h3 className="text-lg font-bold text-gray-700 mb-1">
+                Pilih Dokumen Panduan
+              </h3>
               <p className="text-sm max-w-sm">
                 Silahkan pilih salah satu dokumen panduan di sebelah kiri untuk membacanya secara langsung.
               </p>
             </div>
           )}
         </section>
-      </main>
+      </div>
     </div>
   );
 };
 
-export default PublicGuidesPage;
+export default DashboardGuidesPage;

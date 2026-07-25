@@ -141,6 +141,18 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         const data = response.data.data;
         setJobOpening(data);
         // Set form data dari job opening
+        const formatDateToInput = (dateStr: any) => {
+          if (!dateStr) return "";
+          if (typeof dateStr === "string") {
+            const match = dateStr.match(/^\d{4}-\d{2}-\d{2}/);
+            if (match) return match[0];
+          }
+          const d = new Date(dateStr);
+          if (isNaN(d.getTime())) return "";
+          const pad = (n: number) => n.toString().padStart(2, "0");
+          return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        };
+
         setFormData({
           title: data.title,
           type: data.type,
@@ -153,10 +165,8 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
           duration_id: data.duration_id,
           description: data.description,
           tests: data.tests?.map((t: any) => t.id) || [],
-          start_date: data.start_date ? new Date(data.start_date) : new Date(),
-          closing_date: data.closing_date
-            ? new Date(data.closing_date)
-            : new Date(),
+          start_date: formatDateToInput(data.start_date),
+          closing_date: formatDateToInput(data.closing_date),
         });
       }
     } catch (error: any) {
@@ -237,8 +247,8 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
         ...formData,
         is_available: formData.is_available === "true" ? true : false,
         is_paid: formData.is_paid === "true" ? true : false,
-        start_date: formatDateTime(new Date(formData.start_date)),
-        closing_date: formatDateTime(new Date(formData.closing_date)),
+        start_date: formData.start_date ? `${formData.start_date} 00:00:00` : "",
+        closing_date: formData.closing_date ? `${formData.closing_date} 00:00:00` : "",
       };
 
       await suppressErrorForSuperAdmin(() => API.patch(`${ENDPOINTS.JOB_OPENINGS}/${id}`, payload, {
@@ -281,27 +291,35 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   };
 
   const handleChangeStartDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = new Date(e.target.value);
+    const val = e.target.value;
+    if (!val) {
+      setFormData((prev: any) => ({ ...prev, start_date: "" }));
+      return;
+    }
+    const selectedDate = new Date(val + "T00:00:00");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
 
     if (selectedDate < today) {
       return;
     }
-    setFormData({ ...formData, start_date: selectedDate });
+    setFormData((prev: any) => ({ ...prev, start_date: val }));
   };
 
   const handleChangeCloseDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = new Date(e.target.value);
+    const val = e.target.value;
+    if (!val) {
+      setFormData((prev: any) => ({ ...prev, closing_date: "" }));
+      return;
+    }
+    const selectedDate = new Date(val + "T00:00:00");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
 
     if (selectedDate < today) {
       return;
     }
-    setFormData({ ...formData, closing_date: selectedDate });
+    setFormData((prev: any) => ({ ...prev, closing_date: val }));
   };
 
   const handleAddTest = () => {
@@ -847,11 +865,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             </label>
             <input
               type="date"
-              value={
-                formData.start_date
-                  ? new Date(formData.start_date).toISOString().split("T")[0]
-                  : ""
-              }
+              value={formData.start_date || ""}
               disabled={isSubmitting}
               onChange={handleChangeStartDate}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
@@ -868,11 +882,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
             </label>
             <input
               type="date"
-              value={
-                formData.closing_date
-                  ? new Date(formData.closing_date).toISOString().split("T")[0]
-                  : ""
-              }
+              value={formData.closing_date || ""}
               disabled={isSubmitting}
               onChange={handleChangeCloseDate}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"

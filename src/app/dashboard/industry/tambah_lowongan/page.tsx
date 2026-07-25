@@ -39,8 +39,8 @@ interface CreateJobOpening {
   duration_id: string;
   description: any;
   tests: string[];
-  start_date: Date;
-  closing_date: Date;
+  start_date: string;
+  closing_date: string;
 }
 
 type type = "part_time" | "full_time" | "";
@@ -66,6 +66,12 @@ const tambahLowonganPage: React.FC = () => {
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
   const posterInputRef = useRef<HTMLInputElement>(null);
 
+  const getTodayString = () => {
+    const today = new Date();
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  };
+
   const [formData, setFormData] = useState<CreateJobOpening>({
     title: "",
     type: "",
@@ -78,8 +84,8 @@ const tambahLowonganPage: React.FC = () => {
     duration_id: "",
     description: "",
     tests: [],
-    start_date: new Date(),
-    closing_date: new Date(),
+    start_date: getTodayString(),
+    closing_date: getTodayString(),
   });
 
   
@@ -131,8 +137,8 @@ const tambahLowonganPage: React.FC = () => {
       fd.append("is_available", isAvailable ? "1" : "0");
       fd.append("field_id", formData.field_id);
       fd.append("duration_id", formData.duration_id);
-      fd.append("start_date", formatDateTime(new Date(formData.start_date)));
-      fd.append("closing_date", formatDateTime(new Date(formData.closing_date)));
+      fd.append("start_date", formData.start_date ? `${formData.start_date} 00:00:00` : "");
+      fd.append("closing_date", formData.closing_date ? `${formData.closing_date} 00:00:00` : "");
 
       // Description: plain string or rich JSON
       const descValue =
@@ -194,21 +200,29 @@ const tambahLowonganPage: React.FC = () => {
   };
 
   const handleChangeStartDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = new Date(e.target.value);
+    const val = e.target.value;
+    if (!val) {
+      setFormData((prev) => ({ ...prev, start_date: "" }));
+      return;
+    }
+    const selectedDate = new Date(val + "T00:00:00");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
     if (selectedDate < today) return;
-    setFormData({ ...formData, start_date: selectedDate });
+    setFormData((prev) => ({ ...prev, start_date: val }));
   };
 
   const handleChangeCloseDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = new Date(e.target.value);
+    const val = e.target.value;
+    if (!val) {
+      setFormData((prev) => ({ ...prev, closing_date: "" }));
+      return;
+    }
+    const selectedDate = new Date(val + "T00:00:00");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
     if (selectedDate < today) return;
-    setFormData({ ...formData, closing_date: selectedDate });
+    setFormData((prev) => ({ ...prev, closing_date: val }));
   };
 
   const handleAddTest = () => {
@@ -640,11 +654,7 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="date"
-              value={
-                formData.start_date
-                  ? new Date(formData.start_date).toISOString().split("T")[0]
-                  : ""
-              }
+              value={formData.start_date}
               disabled={isSubmitting}
               onChange={handleChangeStartDate}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
@@ -659,11 +669,7 @@ const tambahLowonganPage: React.FC = () => {
             </label>
             <input
               type="date"
-              value={
-                formData.closing_date
-                  ? new Date(formData.closing_date).toISOString().split("T")[0]
-                  : ""
-              }
+              value={formData.closing_date}
               disabled={isSubmitting}
               onChange={handleChangeCloseDate}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"

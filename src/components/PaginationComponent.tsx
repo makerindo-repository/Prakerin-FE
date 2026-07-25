@@ -5,6 +5,7 @@ interface PaginationProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   loading: boolean;
+  disabled?: boolean;
 }
 
 const PaginationComponent: React.FC<PaginationProps> = ({
@@ -12,8 +13,9 @@ const PaginationComponent: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
   loading,
+  disabled = false,
 }) => {
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1 || disabled) return null;
 
   const getPageItems = (current: number, total: number): (number | string)[] => {
     if (total <= 7) {

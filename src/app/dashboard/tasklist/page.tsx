@@ -35,7 +35,7 @@ type ActiveTab = "Semua" | "Belum" | "Sedang" | "Selesai" | "Dibatalkan";
 const TasklistPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [inputSearch, setInputSearch] = useState("");
-  const debouncedQuery = useDebounce(inputSearch, 1000);
+  const debouncedQuery = useDebounce(inputSearch, 500);
   const [tasks, setTasks] = useState<Task[]>([]);
   const tabs: ActiveTab[] = [
     "Semua",
@@ -45,7 +45,6 @@ const TasklistPage: React.FC = () => {
     "Dibatalkan",
   ];
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isReload, setIsReload] = useState<boolean>(false);
   const [authorization, setAuthorization] = useState<string>();
 
   const [pages, setPages] = useState<Pages>({
@@ -88,7 +87,6 @@ const TasklistPage: React.FC = () => {
   };
 
   const fetchTasks = async () => {
-    if (isLoading) return;
     setIsLoading(true);
     try {
       let filteredStatus = "all";
@@ -113,7 +111,7 @@ const TasklistPage: React.FC = () => {
       const response = await API.get(ENDPOINTS.TASKS, {
         params: {
           status: filteredStatus,
-          search: inputSearch,
+          search: debouncedQuery,
           page: pages.activePages,
           limit: 10,
         },
@@ -143,20 +141,12 @@ const TasklistPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setTasks([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
   }, [activeTab, debouncedQuery]);
 
   useEffect(() => {
     fetchTasks();
-  }, [pages.activePages, isReload]);
+  }, [pages.activePages, activeTab, debouncedQuery]);
 
   useEffect(() => {
     setAuthorization(Cookies.get("authorization") || "");
