@@ -579,6 +579,7 @@ export default function SiswaLowongan() {
           totalPages={page.pages}
           onPageChange={handlePageChange}
           loading={loading}
+          disabled={jobOpenings.length === 0}
         />
       </div>
     </>

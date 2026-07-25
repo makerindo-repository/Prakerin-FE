@@ -85,7 +85,13 @@ const CreatePage: React.FC = () => {
 
 
     try {
-      await API.post(ENDPOINTS.CURRICULUM_VITAE, formData, {
+      const data = new FormData();
+      data.append("name", formData.name);
+      if (formData.file) {
+        data.append("file", formData.file);
+      }
+
+      await API.post(ENDPOINTS.CURRICULUM_VITAE, data, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${Cookies.get("userToken")}`,

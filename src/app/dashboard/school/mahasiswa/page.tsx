@@ -2,6 +2,10 @@
 import {
   CheckSquare,
   ClipboardCopy,
+  Download,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText,
   Edit,
   Plus,
   Search,
@@ -21,6 +25,8 @@ import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
 import Loader from "@/components/loader";
 import HighlightText from "@/components/HighlightText";
+import { exportStudentData } from "@/utils/exportStudentData";
+import Swal from "sweetalert2";
 
 interface Student {
   id: string;
@@ -124,31 +130,48 @@ const DaftarMahasiswaPage: React.FC = () => {
     }
   };
 
-  const handleDownload = async () => {
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+
+  const handleExport = async (format: "csv" | "excel") => {
+    setIsExporting(true);
+
     try {
-      const response = await API.get(
-        `${ENDPOINTS.USERS}/student/import/template`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("userToken")}`,
-          },
-          responseType: "blob",
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-
-      link.setAttribute("download", `prakerin-siswa-template.csv`);
-
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
+      await exportStudentData({
+        format,
+        schoolType: "university",
+        activeTab,
+        debouncedQuery,
+        currentStudents: students,
+        title: "Daftar Mahasiswa",
+      });
+      await alertSuccess(`Berhasil mengunduh data (${format.toUpperCase()})`);
+    } catch (error: any) {
       console.error(error);
-      await alertError("Gagal mengunduh template");
+      await alertError(error?.message || "Gagal mengunduh data");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDownloadModal = async () => {
+    const result = await Swal.fire({
+      title: "Unduh Data Mahasiswa",
+      text: "Pilih format file data yang ingin Anda unduh:",
+      icon: "question",
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: "📊 Unduh Excel (.xls)",
+      denyButtonText: "📄 Unduh CSV (.csv)",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#0D9488",
+      denyButtonColor: "#3B82F6",
+      cancelButtonColor: "#9CA3AF",
+    });
+
+    if (result.isConfirmed) {
+      await handleExport("excel");
+    } else if (result.isDenied) {
+      await handleExport("csv");
     }
   };
 
@@ -267,11 +290,15 @@ const DaftarMahasiswaPage: React.FC = () => {
       <div className="mb-4 sm:mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:justify-end gap-2 sm:gap-2">
           <button
-            onClick={handleDownload}
-            className="bg-slate-400 hover:bg-slate-500 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center cursor-pointer order-3 lg:order-none"
+            type="button"
+            onClick={handleDownloadModal}
+            disabled={isExporting}
+            className="bg-slate-500 hover:bg-slate-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center cursor-pointer disabled:opacity-50 transition-colors order-3 lg:order-none"
           >
-            <ClipboardCopy size={14} className="mr-1 sm:mr-2 flex-shrink-0" />
-            <span className="truncate">Unduh Template</span>
+            <Download size={14} className="mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="truncate">
+              {isExporting ? "Mengunduh..." : "Unduh Data"}
+            </span>
           </button>
           
           <button

@@ -54,7 +54,8 @@ export function useSubscription(studentId?: string | null) {
   }, [fetchSubscription]);
 
   const tier = data?.status_subscription || "free";
-  const isPremium = tier === "premium" && data?.subscription?.status === "active";
+  const isPremium =
+    tier === "premium" && (!data?.subscription || data.subscription.status === "active");
   const isExpired = data?.subscription?.is_expired || false;
   const renewalDate = data?.subscription?.renewal_date || null;
 

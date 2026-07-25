@@ -80,15 +80,18 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
     setIsSubmitting(true);
 
     try {
+      const data = new FormData();
+      data.append("name", formData.name);
+      if (formData.file && typeof formData.file !== "string") {
+        data.append("file", formData.file);
+      }
+      data.append("_method", "PATCH");
+
       await API.post(
         `${ENDPOINTS.CURRICULUM_VITAE}/${id}?_method=PATCH`,
-        {
-          name: formData.name,
-          file: typeof formData.file === "string" ? undefined : formData.file,
-        },
+        data,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
@@ -100,10 +103,10 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
         URL.revokeObjectURL(currentPreviewRef.current);
         currentPreviewRef.current = null;
       }
-      setFormData({ name: "", file: null });
       setPreviewUrl(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      route.push("/dashboard/cv");
+      setIsLoading(true);
+      await fetchData();
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
         const responseError = error.response?.data.errors;
@@ -140,7 +143,7 @@ const UbahCvPage = ({ params }: { params: Promise<{ id: string }> }) => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      const preview = API.get(`${ENDPOINTS.CURRICULUM_VITAE}/${id}/preview`, {
+      const preview = API.get(`${ENDPOINTS.CURRICULUM_VITAE}/${id}/preview?t=${Date.now()}`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
