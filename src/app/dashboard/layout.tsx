@@ -677,7 +677,7 @@ export default function DashboardLayout({
         {/* Header — gaya referensi (white, search, notif, profile) */}
         <header className="bg-white border-b border-gray-200 shadow-sm">
           <div className="flex items-center justify-between px-6 py-3">
-            {/* Left: hamburger + search */}
+            {/* Left: hamburger */}
             <div className="flex items-center gap-4 flex-1">
               <button
                 onClick={() => {
@@ -690,15 +690,6 @@ export default function DashboardLayout({
               >
                 <Menu className="w-6 h-6" />
               </button>
-
-              <div className="relative hidden sm:block max-w-sm w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 focus:border-[#035a70]"
-                  placeholder="Cari menu, data, atau informasi..."
-                  type="text"
-                />
-              </div>
             </div>
 
             {/* Right: notification + profile */}

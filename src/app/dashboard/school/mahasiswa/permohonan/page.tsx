@@ -71,7 +71,7 @@ const PermohonanSiswaPage: React.FC = () => {
 
   const handleAccept = async (userId: string) => {
     const confirm = await alertConfirm(
-      "Apakah anda yakin ingin menerima siswa ini?"
+      "Apakah anda yakin ingin menerima mahasiswa ini?"
     );
     if (!confirm) return;
 
@@ -88,15 +88,17 @@ const PermohonanSiswaPage: React.FC = () => {
         }
       );
       fetchData();
-      await alertSuccess("Siswa berhasil didaftarkan!");
-    } catch (error) {
+      await alertSuccess("Mahasiswa berhasil didaftarkan!");
+    } catch (error: any) {
       console.error("Error accepting student:", error);
+      const msg = error.response?.data?.message || error.response?.data?.errors;
+      await alertError(typeof msg === "string" ? msg : "Gagal menerima permohonan mahasiswa.");
     }
   };
 
   const handleReject = async (userId: string) => {
     const confirm = await alertConfirm(
-      "Apakah anda yakin ingin menolak siswa ini?"
+      "Apakah anda yakin ingin menolak mahasiswa ini?"
     );
     if (!confirm) return;
 
@@ -108,9 +110,11 @@ const PermohonanSiswaPage: React.FC = () => {
       });
 
       fetchData();
-      await alertSuccess("Siswa berhasil ditolak!");
-    } catch (error) {
+      await alertSuccess("Mahasiswa berhasil ditolak!");
+    } catch (error: any) {
       console.error("Error rejecting student:", error);
+      const msg = error.response?.data?.message || error.response?.data?.errors;
+      await alertError(typeof msg === "string" ? msg : "Gagal menolak permohonan mahasiswa.");
     }
   };
 

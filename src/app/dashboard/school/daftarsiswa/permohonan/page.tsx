@@ -89,8 +89,10 @@ const PermohonanSiswaPage: React.FC = () => {
       );
       fetchData();
       await alertSuccess("Siswa berhasil didaftarkan!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error accepting student:", error);
+      const msg = error.response?.data?.message || error.response?.data?.errors;
+      await alertError(typeof msg === "string" ? msg : "Gagal menerima permohonan siswa.");
     }
   };
 
@@ -109,8 +111,10 @@ const PermohonanSiswaPage: React.FC = () => {
 
       fetchData();
       await alertSuccess("Siswa berhasil ditolak!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error rejecting student:", error);
+      const msg = error.response?.data?.message || error.response?.data?.errors;
+      await alertError(typeof msg === "string" ? msg : "Gagal menolak permohonan siswa.");
     }
   };
 
