@@ -120,13 +120,18 @@ const tambahSiswaPage: React.FC = () => {
 
   const handleSubmit = async (): Promise<void> => {
     setIsSubmitting(true);
+    setErrors({});
     try {
       console.log(formData);
 
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          data.append(key, value instanceof File ? value : String(value));
+          if (value instanceof File) {
+            data.append(key, value);
+          } else if (String(value).trim() !== "") {
+            data.append(key, String(value));
+          }
         }
       });
 
@@ -157,12 +162,26 @@ const tambahSiswaPage: React.FC = () => {
       });
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
+        const responseData = error.response?.data;
+        const responseError = responseData?.errors || responseData?.message;
         if (typeof responseError === "string") {
           await alertError(responseError);
+        } else if (typeof responseError === "object" && responseError !== null) {
+          const firstKey = Object.keys(responseError)[0];
+          const firstError = Array.isArray(responseError[firstKey])
+            ? responseError[firstKey][0]
+            : responseError[firstKey];
+          await alertError(firstError || "Gagal mendaftarkan siswa.");
+          const formattedErrors: FormErrors = {};
+          Object.entries(responseError).forEach(([k, v]) => {
+            formattedErrors[k] = Array.isArray(v) ? (v as string[])[0] : String(v);
+          });
+          setErrors(formattedErrors);
         } else {
-          setErrors(responseError);
+          await alertError("Gagal mendaftarkan siswa.");
         }
+      } else {
+        await alertError("Terjadi kesalahan.");
       }
       console.error(error);
     } finally {
