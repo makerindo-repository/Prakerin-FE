@@ -197,16 +197,20 @@ export default function ProfilePage() {
 
         switch (response.data.data.role) {
           case "company":
-            setCompanyForm(response.data.data.company);
-            setDescriptionForm({
-              description: response.data.data.company.description,
-            });
+            if (response.data.data.company) {
+              setCompanyForm(response.data.data.company);
+              setDescriptionForm({
+                description: response.data.data.company.description || "",
+              });
+            }
             break;
           case "school":
-            setSchoolForm(response.data.data.school);
-            setDescriptionForm({
-              description: response.data.data.school.description,
-            });
+            if (response.data.data.school) {
+              setSchoolForm(response.data.data.school);
+              setDescriptionForm({
+                description: response.data.data.school.description || "",
+              });
+            }
             break;
           case "student":
             setStudentForm({
@@ -237,7 +241,7 @@ export default function ProfilePage() {
         });
       }
     } catch (error) {
-      throw error;
+      console.error("Failed to fetch profile:", error);
     }
   };
 

@@ -104,28 +104,31 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
       );
 
       console.log(response);
-      setApplication(response.data.data);
+      const appData = response.data?.data || {};
+      setApplication(appData);
 
-      try {
-        const preview = await API.get(
-          `${ENDPOINTS.CURRICULUM_VITAE}/${response.data.data.curriculum_vitae_id}/preview`,
-          {
-            headers: {
-              Authorization: `Bearer ${Cookies.get("userToken")}`,
-            },
-            responseType: "blob",
-          }
-        );
+      if (appData.curriculum_vitae_id) {
+        try {
+          const preview = await API.get(
+            `${ENDPOINTS.CURRICULUM_VITAE}/${appData.curriculum_vitae_id}/preview`,
+            {
+              headers: {
+                Authorization: `Bearer ${Cookies.get("userToken")}`,
+              },
+              responseType: "blob",
+            }
+          );
 
-        const fileBlob = new Blob([preview.data], {
-          type: "application/pdf",
-        });
-        const fileUrl = URL.createObjectURL(fileBlob);
+          const fileBlob = new Blob([preview.data], {
+            type: "application/pdf",
+          });
+          const fileUrl = URL.createObjectURL(fileBlob);
 
-        setPreviewUrl(fileUrl);
-      } catch (previewError) {
-        console.error("Failed to load CV preview:", previewError);
-        setPreviewUrl(null);
+          setPreviewUrl(fileUrl);
+        } catch (previewError) {
+          console.error("Failed to load CV preview:", previewError);
+          setPreviewUrl(null);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -199,14 +202,9 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
         const responseError = error.response?.data?.errors;
         if (typeof responseError === "string") {
           await alertError(responseError);
-        } else if (responseError && typeof responseError === "object") {
-          setErrors(responseError);
-          await alertError("Periksa kembali data yang dimasukkan.");
         } else {
-          await alertError("Gagal memperbarui status lamaran.");
+          setErrors(responseError || {});
         }
-      } else {
-        await alertError("Gagal memperbarui status lamaran.");
       }
     } finally {
       setIsSubmitting(false);
@@ -219,34 +217,20 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [errors, setErrors] = useState<any>({});
 
-  const handleTestChange = async (idTest: string) => {
+  const handleTestChange = async (testId: string) => {
     try {
-      setApplication((prev) => ({
-        ...prev,
-        test: prev.test.map((t) =>
-          t.pivot.test_id === idTest
-            ? {
-                ...t,
-                pivot: {
-                  ...t.pivot,
-                  is_passed: !t.pivot.is_passed,
-                },
-              }
-            : t
-        ),
-      }));
-      
-      const response = await API.patch(
-        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}/${idTest}`,
+      await suppressErrorForSuperAdmin(() => API.patch(
+        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}/test/${testId}`,
         {},
         {
           headers: {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
         }
-      );
+      ), { showSuccessMessage: false });
 
-      console.log(response);
+      await fetchData();
+      await alertSuccess("Berhasil memperbarui status tes kandidat!");
     } catch (error) {
       console.error(error);
     }
@@ -285,7 +269,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
           <>
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-gray-200">
               <div className="flex items-start gap-4">
-                {application.user.photo_profile ? (
+                {application?.user?.photo_profile ? (
                   <div className="w-16 h-16 relative rounded-full overflow-hidden ring-2 ring-accent/30">
                     <Image
                       src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${application.user.photo_profile}`}
@@ -300,38 +284,38 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                 )}
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">
-                    {application.student.name}
+                    {application?.student?.name ?? "Nama Tidak Tersedia"}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Email : {application.user.email}
+                    Email : {application?.user?.email ?? "-"}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Kelas {application.student.class ?? "-"} | Jurusan{" "}
-                    {application.major?.name ?? "-"}
+                    Kelas {application?.student?.class ?? "-"} | Jurusan{" "}
+                    {application?.major?.name ?? "-"}
                   </p>
                   <p className="text-sm text-blue-600 font-medium mt-1">
-                    Keahlian: {application.student.skill ?? "-"}
+                    Keahlian: {application?.student?.skill ?? "-"}
                   </p>
                 </div>
               </div>
 
               <div
                 className={`bg-accent/10  font-semibold px-4 py-2 rounded-xl text-sm ${
-                  application.status === "in_progress"
+                  application?.status === "in_progress"
                     ? "text-accent"
-                    : application.status === "accepted"
+                    : application?.status === "accepted"
                     ? "text-green-600"
-                    : application.status === "rejected"
+                    : application?.status === "rejected"
                     ? "text-red-600"
                     : "text-gray-600"
                 }`}
               >
                 Status:{" "}
-                {application.status === "in_progress"
+                {application?.status === "in_progress"
                   ? "Sedang Diproses"
-                  : application.status === "accepted"
+                  : application?.status === "accepted"
                   ? "Diterima"
-                  : application.status === "rejected"
+                  : application?.status === "rejected"
                   ? "Ditolak"
                   : "-"}
               </div>
@@ -339,13 +323,10 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
 
             <div className="mt-6 mb-8 bg-gray-50 border border-gray-200 p-5 rounded-xl">
               <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                {application.job_opening.title}
+                {application?.job_opening?.title ?? "Lowongan Magang"}
               </h3>
               <p className="text-accent font-medium text-base">
-                Frontend Developer - Divisi IT
-              </p>
-              <p className="text-gray-600 text-sm">
-                Lokasi: Jakarta | Tipe: Magang | Durasi: 3 Bulan
+                Posisi Magang
               </p>
             </div>
 
@@ -363,7 +344,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {application.test.map((test, idx) => (
+                    {(application?.test || []).map((test, idx) => (
                       <tr
                         key={test.pivot.test_id}
                         className={`${

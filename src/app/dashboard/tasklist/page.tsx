@@ -17,6 +17,8 @@ import TabsComponent from "@/components/TabsCompenent";
 import Loader from "@/components/loader";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
+import { AxiosError } from "axios";
+import { alertError } from "@/libs/alert";
 
 interface Task {
   id: number;
@@ -80,10 +82,12 @@ const TasklistPage: React.FC = () => {
     }
   };
 
-  const getDeadline = (deadline: string) => {
+  const getDeadline = (deadline?: string) => {
+    if (!deadline) return "-";
     const deadlineArray = deadline.split("-");
-
-    return `${deadlineArray[2]}-${deadlineArray[1]}-${deadlineArray[0]}`;
+    return deadlineArray.length === 3
+      ? `${deadlineArray[2]}-${deadlineArray[1]}-${deadlineArray[0]}`
+      : deadline;
   };
 
   const fetchTasks = async () => {
@@ -110,24 +114,28 @@ const TasklistPage: React.FC = () => {
 
       const response = await API.get(ENDPOINTS.TASKS, {
         params: {
+          search: inputSearch,
           status: filteredStatus,
-          search: debouncedQuery,
-          page: pages.activePages,
           limit: 10,
+          page: pages.activePages,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
 
-      console.log("Tasks fetched successfully:", response.data.data);
-      setTasks(response.data.data);
+      setTasks(Array.isArray(response.data?.data) ? response.data.data : []);
       setPages({
-        activePages: response.data.current_page,
-        pages: response.data.last_page,
+        activePages: response.data?.current_page || 1,
+        pages: response.data?.last_page || 1,
       });
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        await alertError(responseError);
+      }
+      console.error(error);
+      setTasks([]);
     } finally {
       setIsLoading(false);
     }
@@ -141,92 +149,66 @@ const TasklistPage: React.FC = () => {
   };
 
   useEffect(() => {
-    setPages((prev) => ({ ...prev, activePages: 1 }));
-  }, [activeTab, debouncedQuery]);
-
-  useEffect(() => {
     fetchTasks();
-  }, [pages.activePages, activeTab, debouncedQuery]);
+  }, [debouncedQuery, pages.activePages, activeTab]);
 
   useEffect(() => {
     setAuthorization(Cookies.get("authorization") || "");
   }, []);
 
   return (
-    <main className="p-4 sm:p-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-accent-dark text-sm mb-5">Daftar Tugas</h1>
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center space-x-2 font-extrabold text-accent">
-            <ClipboardCheck className="w-5 h-5" />
-            <h2 className="text-xl sm:text-2xl mt-2">Daftar Tugas</h2>
-          </div>
+    <main className="p-6">
+      <h1 className="text-accent-dark text-sm mb-5">Dashboard -&gt; Tasklist</h1>
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex items-center space-x-2 font-extrabold text-accent">
+          <ClipboardCheck className="w-5 h-5" />
+          <h2 className="text-2xl">Daftar Tugas</h2>
         </div>
 
-        {/* Tabs - dengan scroll horizontal di mobile */}
-        <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="flex gap-2 min-w-max sm:min-w-0">
-            <TabsComponent
-              data={tabs}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
+        {authorization === "company" && (
+          <Link
+            href="/dashboard/tasklist/tambah"
+            className="flex items-center justify-center space-x-2 p-3 bg-accent text-white rounded-xl hover:bg-accent-hover transition-all duration-200 cursor-pointer shadow-sm hover:shadow text-sm font-semibold w-full sm:w-auto"
+          >
+            <CirclePlus className="w-4 h-4" />
+            <span>Tambah Tugas</span>
+          </Link>
+        )}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+        <div className="p-4 border-b border-gray-150 space-y-4">
+          <TabsComponent
+            data={tabs}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Cari nama tugas..."
+              value={inputSearch}
+              onChange={(e) => setInputSearch(e.target.value)}
+              className="w-full bg-slate-50 border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-accent focus:bg-white transition-all text-gray-700"
             />
           </div>
         </div>
 
-        {Cookies.get("authorization") === "company" && (
-          <div className="flex justify-end mb-6">
-            <Link
-              href="/dashboard/tasklist/tambah"
-              className="text-white bg-accent rounded-xl p-2.5 px-4 sm:p-3 sm:px-5 flex items-center space-x-2 text-sm sm:text-base"
-            >
-              <CirclePlus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="whitespace-nowrap">Tambah Tugas</span>
-            </Link>
-          </div>
-        )}
-      </div>
-
-      {/* Task Table */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
-          <input
-            type="text"
-            placeholder="Cari tugas..."
-            value={inputSearch}
-            onChange={(e) => setInputSearch(e.target.value)}
-            className="w-full bg-accent text-white placeholder-teal-200 pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-teal-300 text-sm sm:text-base"
-          />
-        </div>
-
         {/* Desktop Table View */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
-                  No
-                </th>
-                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
-                  Nama Tugas
-                </th>
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b bg-gray-50 text-gray-700 text-sm">
+                <th className="p-4 font-semibold">No</th>
+                <th className="p-4 font-semibold">Nama Tugas</th>
                 {authorization === "company" && (
-                  <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
-                    Nama Pemagang
-                  </th>
+                  <th className="p-4 font-semibold">Pemagang</th>
                 )}
-                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
-                  Tenggat Waktu
-                </th>
-                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
-                  Status
-                </th>
-                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
-                  Aksi
-                </th>
+                <th className="p-4 font-semibold">Tenggat Waktu</th>
+                <th className="p-4 font-semibold">Status</th>
+                <th className="p-4 font-semibold">Detail</th>
               </tr>
             </thead>
             <tbody>
@@ -239,7 +221,7 @@ const TasklistPage: React.FC = () => {
                     <td className="p-4 text-gray-800 text-sm">{task.title}</td>
                     {authorization === "company" && (
                       <td className="p-4 text-gray-800 text-sm">
-                        {task.internship.student.name}
+                        {task.internship?.student?.name ?? "-"}
                       </td>
                     )}
                     <td className="p-4 text-gray-600 text-sm">
@@ -305,7 +287,7 @@ const TasklistPage: React.FC = () => {
                     <div className="mb-2">
                       <span className="text-xs text-gray-500">Pemagang: </span>
                       <span className="text-sm text-gray-800">
-                        {task.internship.student.name}
+                        {task.internship?.student?.name ?? "-"}
                       </span>
                     </div>
                   )}

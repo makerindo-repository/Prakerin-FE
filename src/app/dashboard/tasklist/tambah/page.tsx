@@ -60,13 +60,18 @@ const TambahTugas: React.FC = () => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      const mapped = response.data.data.map((item: any) => ({
-        value: item.internship.id,
-        label: item.student.name,
-      }));
+      const mapped = Array.isArray(response.data?.data)
+        ? response.data.data
+            .filter((item: any) => item?.internship?.id)
+            .map((item: any) => ({
+              value: item.internship.id,
+              label: item.student?.name || item.name || `Siswa #${item.id}`,
+            }))
+        : [];
       setOptions(mapped);
     } catch (err) {
       console.error(err);
+      setOptions([]);
     }
   };
 

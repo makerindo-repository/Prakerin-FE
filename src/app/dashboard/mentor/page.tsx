@@ -93,35 +93,35 @@ const StudentMentorPage: React.FC = () => {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-accent/10 text-accent flex items-center justify-center font-extrabold text-2xl">
-                  {assignment.mentor.user.username.charAt(0).toUpperCase()}
+                  {assignment.mentor?.user?.username?.charAt(0).toUpperCase() || "M"}
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{assignment.mentor.user.username}</h3>
-                  <p className="text-sm font-semibold text-accent">{assignment.mentor.expertise}</p>
+                  <h3 className="text-2xl font-bold text-gray-900">{assignment.mentor?.user?.username || "Pembimbing"}</h3>
+                  <p className="text-sm font-semibold text-accent">{assignment.mentor?.expertise || "-"}</p>
                 </div>
               </div>
-              <div>{getAvailabilityBadge(assignment.mentor.availability)}</div>
+              <div>{getAvailabilityBadge(assignment.mentor?.availability || "")}</div>
             </div>
 
             {/* Bio info section */}
             <div className="space-y-2 border-t border-gray-50 pt-6">
               <h4 className="text-sm font-bold text-gray-800">Tentang Pembimbing</h4>
               <p className="text-sm text-gray-650 leading-relaxed">
-                {assignment.mentor.bio || "Pembimbing belum menambahkan informasi biografi."}
+                {assignment.mentor?.bio || "Pembimbing belum menambahkan informasi biografi."}
               </p>
             </div>
 
             {/* Direct contact actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-50">
               <a
-                href={`mailto:${assignment.mentor.user.email}`}
+                href={`mailto:${assignment.mentor?.user?.email || ""}`}
                 className="flex items-center justify-center gap-2 p-4 rounded-xl border border-gray-150 hover:bg-slate-50 transition-colors text-gray-700 text-sm font-bold cursor-pointer"
               >
                 <Mail size={18} className="text-gray-400" />
                 <span>Kirim Email</span>
               </a>
 
-              {assignment.mentor.phone && (
+              {assignment.mentor?.phone && (
                 <a
                   href={`tel:${assignment.mentor.phone}`}
                   className="flex items-center justify-center gap-2 p-4 rounded-xl border border-gray-150 hover:bg-slate-50 transition-colors text-gray-700 text-sm font-bold cursor-pointer"

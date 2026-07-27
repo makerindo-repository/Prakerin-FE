@@ -280,8 +280,8 @@ export default function SiswaDashboard({
   }, []);
 
   const statusBadge = useMemo(
-    () => <StatusBadge status={profile.student.status} />,
-    [profile.student.status]
+    () => <StatusBadge status={profile?.student?.status || ""} />,
+    [profile?.student?.status]
   );
 
   if (isLoading) {
@@ -322,30 +322,30 @@ export default function SiswaDashboard({
             icon={<CheckCircle2 className="w-5 h-5" />}
             iconBg="bg-green-100"
             iconColor="text-green-600"
-            description="Diterima di tahap seleksi"
+            description="Lolos tahap akhir seleksi"
+          />
+          <KPICard
+            title="Tidak Lolos"
+            value={count.rejected}
+            icon={<XCircle className="w-5 h-5" />}
+            iconBg="bg-red-100"
+            iconColor="text-red-600"
+            description="Belum berhasil pada seleksi"
           />
           <KPICard
             title="Total Lamaran"
             value={count.total}
             icon={<FileText className="w-5 h-5" />}
-            iconBg="bg-teal-100"
-            iconColor="text-teal-600"
-            description="Seluruh lamaran yang dikirim"
-          />
-          <KPICard
-            title="Ditolak"
-            value={count.rejected}
-            icon={<XCircle className="w-5 h-5" />}
-            iconBg="bg-red-100"
-            iconColor="text-red-500"
-            description="Tidak lolos seleksi"
+            iconBg="bg-amber-100"
+            iconColor="text-amber-600"
+            description="Jumlah semua berkas dikirim"
           />
         </div>
       </section>
 
-      {/* === Insight + Chart === */}
+      {/* === Insights Section === */}
       {count.total > 0 && (
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           {/* Insights */}
           <div className="flex flex-col gap-4">
             <InsightCard
@@ -425,7 +425,7 @@ export default function SiswaDashboard({
                 <div className="mb-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-semibold text-gray-800 text-sm leading-snug">
-                      {application.job_opening.title}
+                      {application?.job_opening?.title ?? "Lowongan Magang"}
                     </h3>
                     <ApplicationStatusBadge status={application.status} />
                   </div>
@@ -447,7 +447,7 @@ export default function SiswaDashboard({
                     Progress Seleksi
                   </p>
                   <StepTimeline
-                    steps={application.test}
+                    steps={application?.test || []}
                     status={application.status}
                   />
                 </div>

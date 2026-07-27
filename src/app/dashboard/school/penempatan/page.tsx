@@ -148,7 +148,7 @@ const PerusahaanPage: React.FC = () => {
 
                   <div className="ms-3">
                     <h5 className="text-gray-800 text-2xl font-bold">
-                      {item.student.name}
+                      {item.student?.name ?? "Nama Tidak Tersedia"}
                     </h5>
                     {item.job && (
                       <span className="flex text-accent">{item.job} Role</span>
@@ -168,7 +168,7 @@ const PerusahaanPage: React.FC = () => {
               <div className="flex w-full md:w-auto items-center bg-accent-light/15 p-3 rounded-2xl border border-accent-light">
                 {/* Foto profil perusahaan — dengan fallback */}
                 <div className="w-10 h-10 relative rounded-full border-white border flex items-center justify-center bg-gray-100 flex-shrink-0">
-                  {item.student.company?.[0]?.user?.photo_profile &&
+                  {item.student?.company?.[0]?.user?.photo_profile &&
                   !imageErrors[`company-${item.id}`] ? (
                     <Image
                       src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.student.company[0].user.photo_profile}`}
@@ -190,12 +190,12 @@ const PerusahaanPage: React.FC = () => {
 
                 <div className="ms-3 flex gap-2 flex-col text-md">
                   <h5 className="text-accent font-bold">
-                    {item.student.company?.[0]?.name ?? "Belum ada perusahaan"}
+                    {item.student?.company?.[0]?.name ?? "Belum ada perusahaan"}
                   </h5>
                   <span className="flex items-center gap-1">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
-                    {item.student.company?.[0]?.city_regency?.name ?? "-"},{" "}
-                    {item.student.company?.[0]?.province?.name ?? "-"}
+                    {item.student?.company?.[0]?.city_regency?.name ?? "-"},{" "}
+                    {item.student?.company?.[0]?.province?.name ?? "-"}
                   </span>
                 </div>
               </div>

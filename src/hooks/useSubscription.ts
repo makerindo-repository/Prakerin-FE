@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { API, createApiCall, ENDPOINTS } from "@/utils/config";
 import { isFreeFeature } from "@/config/features";
 
+import { useAuthStore } from "@/stores/authStore";
+
 export interface SubscriptionData {
   student_id: string;
   status_subscription: "free" | "premium";
@@ -53,9 +55,11 @@ export function useSubscription(studentId?: string | null) {
     fetchSubscription();
   }, [fetchSubscription]);
 
+  const role = useAuthStore((s) => s.role);
   const tier = data?.status_subscription || "free";
   const isPremium =
-    tier === "premium" && (!data?.subscription || data.subscription.status === "active");
+    role === "super_admin" ||
+    (tier === "premium" && (!data?.subscription || data.subscription.status === "active"));
   const isExpired = data?.subscription?.is_expired || false;
   const renewalDate = data?.subscription?.renewal_date || null;
 

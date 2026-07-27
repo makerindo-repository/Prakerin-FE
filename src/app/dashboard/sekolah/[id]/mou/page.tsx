@@ -114,6 +114,11 @@
           },
         });
 
+        if (!response.data?.data?.school?.id) {
+          await alertError("Data sekolah tidak ditemukan untuk akun ini.");
+          return;
+        }
+
         formData.school_id = response.data.data.school.id;
 
         await API.post(ENDPOINTS.MOUS, formData, {

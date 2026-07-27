@@ -116,6 +116,11 @@ const BuatKerjaSamaPage = ({ params }: { params: Promise<{ id: string }> }) => {
         },
       });
 
+      if (!response.data?.data?.company?.id) {
+        await alertError("Data perusahaan tidak ditemukan untuk akun ini.");
+        return;
+      }
+
       formData.company_id = response.data.data.company.id;
 
       await API.post(ENDPOINTS.MOUS, formData, {

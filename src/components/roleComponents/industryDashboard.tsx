@@ -349,7 +349,7 @@ export default function IndustryDashboard({
                     <tr key={task.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                       <td className="p-4 text-sm text-gray-500">{index + 1}</td>
                       <td className="p-4 text-sm font-medium text-gray-800">{task.title}</td>
-                      <td className="p-4 text-sm text-gray-700">{task.internship.student.name}</td>
+                      <td className="p-4 text-sm text-gray-700">{task.internship?.student?.name ?? "-"}</td>
                       <td className="p-4 text-sm text-gray-500">{getDeadline(task.due_date)}</td>
                       <td className="p-4">
                         <Link

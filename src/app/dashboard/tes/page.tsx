@@ -103,17 +103,21 @@ const TestListPage: React.FC = () => {
         },
       });
 
-      setTests(response.data.data);
+      const rawData = response.data?.data;
+      setTests(Array.isArray(rawData) ? rawData : Array.isArray(response.data) ? response.data : []);
       setPages({
-        activePages: response.data.current_page,
-        pages: response.data.last_page,
+        activePages: response.data?.current_page || 1,
+        pages: response.data?.last_page || 1,
       });
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        await alertError(responseError);
+        const responseError = error.response?.data?.errors || error.response?.data?.message;
+        if (responseError && typeof responseError === "string") {
+          await alertError(responseError);
+        }
       }
       console.error(error);
+      setTests([]);
     } finally {
       setIsLoading(false);
     }
