@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { createApiCall, ENDPOINTS } from "@/utils/config";
+import { alertError, alertSuccess } from "@/libs/alert";
 
 interface RevenueMetrics {
   total_revenue: number;
@@ -54,6 +55,7 @@ export default function RevenueDashboardPage() {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [syncingId, setSyncingId] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -98,6 +100,23 @@ export default function RevenueDashboardPage() {
       setLoading(false);
     }
   }, [page, statusFilter, userTypeFilter, startDate, endDate]);
+
+  const handleSync = async (id: number) => {
+    try {
+      setSyncingId(id);
+      const res = await createApiCall<{ message: string }>(
+        `${ENDPOINTS.ADMIN_REVENUE}/${id}/sync`,
+        { method: "POST" }
+      );
+      alertSuccess(res?.message || "Status berhasil disinkronkan.");
+      fetchData();
+    } catch (error: any) {
+      const msg = error?.response?.data?.errors || "Gagal sinkronkan status ke Xendit.";
+      alertError(msg);
+    } finally {
+      setSyncingId(null);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -282,6 +301,7 @@ export default function RevenueDashboardPage() {
                 <th className="px-6 py-4">Status Pembayaran</th>
                 <th className="px-6 py-4">Tanggal Bayar</th>
                 <th className="px-6 py-4">Invoice ID</th>
+                <th className="px-6 py-4">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-800 text-gray-700 dark:text-gray-300">
@@ -309,11 +329,14 @@ export default function RevenueDashboardPage() {
                     <td className="px-6 py-4">
                       <div className="h-4 w-24 bg-gray-200 dark:bg-slate-800 rounded" />
                     </td>
+                    <td className="px-6 py-4">
+                      <div className="h-8 w-20 bg-gray-200 dark:bg-slate-800 rounded" />
+                    </td>
                   </tr>
                 ))
               ) : records.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                     <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-40" />
                     <p className="text-sm font-medium">Belum ada riwayat transaksi revenue</p>
                   </td>
@@ -371,6 +394,22 @@ export default function RevenueDashboardPage() {
                     </td>
                     <td className="px-6 py-4 text-xs font-mono text-gray-400">
                       {r.xendit_invoice_id || "—"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {r.payment_status === "pending" ? (
+                        <button
+                          onClick={() => handleSync(r.id)}
+                          disabled={syncingId === r.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900 transition-colors disabled:opacity-50"
+                        >
+                          <RefreshCw
+                            className={`w-3.5 h-3.5 ${syncingId === r.id ? "animate-spin" : ""}`}
+                          />
+                          {syncingId === r.id ? "Cek..." : "Sync dari Xendit"}
+                        </button>
+                      ) : (
+                        <span className="text-gray-300 text-xs">—</span>
+                      )}
                     </td>
                   </tr>
                 ))
