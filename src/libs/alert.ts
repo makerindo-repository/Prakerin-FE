@@ -11,12 +11,16 @@ export const alertSuccess = async (message: string, timer?: number) => {
   });
 };
 
-export const alertError = async (message: string) => {
-  const calculatedTimer = Math.min(10000, Math.max(3000, message.length * 50));
+export const alertError = async (message?: string | null) => {
+  const safeMessage =
+    typeof message === "string" && message.trim() !== ""
+      ? message
+      : "Terjadi kesalahan. Silakan coba lagi.";
+  const calculatedTimer = Math.min(10000, Math.max(3000, safeMessage.length * 50));
   return toast.fire({
     icon: "error",
     title: "Gagal",
-    text: message,
+    text: safeMessage,
     timer: calculatedTimer,
   });
 };
