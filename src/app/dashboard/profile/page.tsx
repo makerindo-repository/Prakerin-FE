@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  RotateCcw,
   StickyNote,
   Target,
   UploadCloud,
@@ -31,6 +32,7 @@ import { CityRegency } from "@/models/cityRegency";
 import { Sector } from "@/models/sector";
 import Loader from "@/components/loader";
 import useDebounce from "@/hooks/useDebounce";
+import { resizeImageToSquare } from "@/utils/cropImage";
 
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
   ssr: false,
@@ -146,6 +148,7 @@ export default function ProfilePage() {
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [isSubmittingDesc, setIsSubmittingDesc] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -336,34 +339,66 @@ export default function ProfilePage() {
     });
   };
 
-  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleImageUpload = async (
+    e: ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Check file size (2MB limit)
-      if (file.size > 2 * 1024 * 1024) {
-        alert("File size must be less than 2MB");
-        return;
-      }
+    if (!file) return;
 
-      // Check file type
-      if (!file.type.startsWith("image/")) {
-        alert("Please select a valid image file");
-        return;
-      }
+    // Check file size (2MB limit) — checked against the ORIGINAL file,
+    // before resizing, so users get a clear reason if it's rejected.
+    if (file.size > 2 * 1024 * 1024) {
+      alertError("Ukuran file maksimal 2MB");
+      e.target.value = "";
+      return;
+    }
 
-      const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        if (e.target?.result) {
-          setProfileImage(e.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+    // Check file type
+    if (!file.type.startsWith("image/")) {
+      alertError("File harus berupa gambar");
+      e.target.value = "";
+      return;
+    }
+
+    setIsProcessingPhoto(true);
+    try {
+      // Center-crop to a square, then resize to exactly 200x200 so every
+      // profile photo is stored consistently regardless of what the user
+      // originally uploaded.
+      const resized = await resizeImageToSquare(file, 200);
+
+      const previewUrl = URL.createObjectURL(resized);
+      setProfileImage(previewUrl);
 
       setUserForm((prev) => ({
         ...prev,
-        photo_profile: file,
+        photo_profile: resized,
       }));
+    } catch (error) {
+      console.error("Failed to process profile photo:", error);
+      alertError("Gagal memproses foto, coba gambar lain.");
+    } finally {
+      setIsProcessingPhoto(false);
+      // Allow re-selecting the exact same file later (input value doesn't
+      // reset itself after a selection).
+      e.target.value = "";
     }
+  };
+
+  const handleResetPhoto = (): void => {
+    if (profileImage) {
+      URL.revokeObjectURL(profileImage);
+    }
+    setProfileImage(null);
+    setUserForm((prev) => ({
+      ...prev,
+      photo_profile: null,
+    }));
+    setFormErrors((prev) => {
+      const next = { ...prev };
+      delete next.photo_profile;
+      return next;
+    });
   };
 
   const fetchData = async () => {
@@ -488,7 +523,9 @@ export default function ProfilePage() {
             </div>
             <div className="flex flex-col items-center">
               <div
-                className={`w-48 h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 mb-4 relative cursor-pointer ${
+                className={`w-48 h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 mb-4 relative ${
+                  isProcessingPhoto ? "cursor-wait" : "cursor-pointer"
+                } ${
                   formErrors.photo_profile
                     ? "border-red-500"
                     : "border-gray-500"
@@ -516,14 +553,24 @@ export default function ProfilePage() {
                   </>
                 )}
 
+                {isProcessingPhoto && (
+                  <div className="absolute inset-0 rounded-lg bg-white/70 flex flex-col items-center justify-center gap-2">
+                    <Loader2 size={28} className="animate-spin text-cyan-600" />
+                    <span className="text-xs text-gray-600">
+                      Menyesuaikan ke 200x200...
+                    </span>
+                  </div>
+                )}
+
                 {/* Input file hidden tapi full area jadi clickable */}
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
+                  disabled={isProcessingPhoto}
                   name="profile_picture"
                   id="profile_picture"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-wait"
                 />
               </div>
 
@@ -533,9 +580,21 @@ export default function ProfilePage() {
                 </p>
               )}
 
+              {(profileImage || typeof userForm.photo_profile === "string") && (
+                <button
+                  type="button"
+                  onClick={handleResetPhoto}
+                  disabled={isProcessingPhoto}
+                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-600 mb-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <RotateCcw size={14} />
+                  Reset Foto
+                </button>
+              )}
+
               <p className="text-center text-xs text-gray-500">
-                Rekomendasi: Gunakan foto dengan ukuran 200x200 pixel untuk
-                hasil terbaik.
+                Foto akan otomatis dipotong &amp; disesuaikan ke ukuran 200x200
+                pixel.
               </p>
             </div>
           </div>
