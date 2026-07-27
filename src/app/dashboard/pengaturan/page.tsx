@@ -43,6 +43,8 @@ function PengaturanContent() {
   // Form states mapping directly to backend setting keys
   const [form, setForm] = useState({
     platform_name: "Prakerin Management Portal",
+    app_name: "Prakerin Management Portal",
+    app_logo: "",
     support_email: "support@prakerin.com",
     support_phone: "+62 812-3456-7890",
     support_address: "Bandung, West Java, Indonesia",
