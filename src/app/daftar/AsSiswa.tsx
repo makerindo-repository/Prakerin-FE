@@ -171,12 +171,18 @@ const PrakerinRegistrationSiswaForm: React.FC<
       route.push("/masuk");
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
+        const responseError = error.response?.data?.errors;
         if (typeof responseError === "string") {
           await alertError(responseError);
-        } else {
+        } else if (responseError && typeof responseError === "object") {
           setErrors(responseError);
+        } else {
+          await alertError(
+            error.response?.data?.message || "Gagal mendaftar. Silakan coba lagi."
+          );
         }
+      } else {
+        await alertError("Gagal mendaftar. Silakan coba lagi.");
       }
       console.error(error);
     } finally {
