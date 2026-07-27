@@ -71,9 +71,12 @@ function PengaturanContent() {
     smtp_from_email: "noreply@prakerin.com",
     smtp_from_name: "Prakerin Support",
     whatsapp_notifications_active: false,
-    whatsapp_api_provider: "twilio",
+    whatsapp_api_provider: "meta",
     whatsapp_api_key: "",
     whatsapp_sender_number: "",
+    whatsapp_meta_phone_number_id: "",
+    whatsapp_qontak_channel_id: "",
+    whatsapp_qontak_template_id: "",
   });
 
   // Password visibility toggles
@@ -312,10 +315,206 @@ function PengaturanContent() {
       }
     } catch (error: any) {
       console.error(error);
-      const msg = error.response?.data?.message || "Gagal menguji koneksi WhatsApp.";
-      alertError(msg);
     } finally {
       setIsTestingWa(false);
+    }
+  };
+
+  // Broadcast & Message Template State
+  const [broadcastTarget, setBroadcastTarget] = useState<string>("all_wa_users");
+  const [broadcastTitle, setBroadcastTitle] = useState<string>("📢 Pengumuman Platform Prakerin");
+  const [broadcastMessage, setBroadcastMessage] = useState<string>(
+    "Halo {name},\n\nAda informasi penting dari platform Prakerin untuk kamu.\n\n🔗 Silakan cek di:\n{link}"
+  );
+  const [broadcastActionUrl, setBroadcastActionUrl] = useState<string>("http://localhost:3000/dashboard");
+  const [singleUserIdentifier, setSingleUserIdentifier] = useState<string>("");
+  const [isBroadcasting, setIsBroadcasting] = useState<boolean>(false);
+
+  const PRESET_TEMPLATES = [
+    {
+      id: "ads_pro",
+      name: "📢 Promosi / Ads (Aplikasi PRO)",
+      title: "🚀 Tingkatkan Karirmu dengan Prakerin PRO!",
+      message: "Halo {name},\n\nTingkatkan skill dan dapatkan rekomendasi tempat magang favorit lebih cepat dengan upgrade ke Prakerin PRO!\n\n🔗 Cek penawaran khusus di:\n{link}",
+      target: "unapplied_students"
+    },
+    {
+      id: "app_status",
+      name: "📋 Status Lamaran Magang",
+      title: "📋 Pembaruan Status Lamaran Magang",
+      message: "Halo {name},\n\nStatus pengajuan magang kamu telah diperbarui oleh perusahaan/mitra. Harap segera memeriksa detail lengkap di dashboard.\n\n🔗 Lihat detail:\n{link}",
+      target: "all_wa_users"
+    },
+    {
+      id: "new_task",
+      name: "📝 Penugasan Tugas Magang",
+      title: "📝 Tugas Magang Baru Diberikan",
+      message: "Halo {name},\n\nPembimbing magang kamu memberikan tugas baru di platform. Pastikan kamu membaca petunjuk dan menyelesaikan tepat waktu.\n\n🔗 Buka tugas:\n{link}",
+      target: "active_interns"
+    },
+    {
+      id: "announcement",
+      name: "📣 Pengumuman Umum Platform",
+      title: "📣 Informasi Penting Prakerin",
+      message: "Halo {name},\n\nKami menginfokan pembaruan penting mengenai layanan platform Prakerin. Jangan lupa lengkapi profil dan jurnal magang kamu.\n\n🔗 Kunjungi dashboard:\n{link}",
+      target: "all_wa_users"
+    }
+  ];
+
+  const applyPresetTemplate = (templateId: string) => {
+    const selected = PRESET_TEMPLATES.find((t) => t.id === templateId);
+    if (selected) {
+      setBroadcastTitle(selected.title);
+      setBroadcastMessage(selected.message);
+      if (selected.target) {
+        setBroadcastTarget(selected.target);
+      }
+    }
+  };
+
+  const handleSendBroadcast = async () => {
+    if (!broadcastTitle.trim() || !broadcastMessage.trim()) {
+      alertError("Judul dan isi pesan broadcast tidak boleh kosong.");
+      return;
+    }
+
+    if (broadcastTarget === "test_single_user" && !singleUserIdentifier.trim()) {
+      alertError("Harap masukkan Email, No. HP, atau User ID target uji coba.");
+      return;
+    }
+
+    if (!confirm(`Apakah Anda yakin ingin mengirim pesan WhatsApp broadcast ini ke kelompok target [${broadcastTarget}]?`)) {
+      return;
+    }
+
+    setIsBroadcasting(true);
+    try {
+      const response = await API.post(
+        `${ENDPOINTS.SETTINGS}/broadcast-whatsapp`,
+        {
+          target_group: broadcastTarget,
+          title: broadcastTitle,
+          message: broadcastMessage,
+          action_url: broadcastActionUrl,
+          single_user_identifier: singleUserIdentifier,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      if (response.data?.status === "success") {
+        alertSuccess(response.data.message || "Pesan broadcast WhatsApp berhasil menjadualkan pengiriman!");
+      } else {
+        alertError(response.data?.message || "Gagal mengirim broadcast WhatsApp.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Gagal mengirim broadcast WhatsApp.";
+      alertError(msg);
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+  // Email Broadcast State
+  const [emailBroadcastTarget, setEmailBroadcastTarget] = useState<string>("all_email_users");
+  const [emailBroadcastTitle, setEmailBroadcastTitle] = useState<string>("📢 Informasi Terbaru Platform Prakerin");
+  const [emailBroadcastMessage, setEmailBroadcastMessage] = useState<string>(
+    "Halo {name},\n\nKami menginformasikan pembaruan penting mengenai aktivitas magang kamu di platform Prakerin.\n\n🔗 Silakan buka tautan berikut untuk melihat rincian selengkapnya:\n{link}"
+  );
+  const [emailBroadcastActionUrl, setEmailBroadcastActionUrl] = useState<string>("http://localhost:3000/dashboard");
+  const [emailSingleUserIdentifier, setEmailSingleUserIdentifier] = useState<string>("");
+  const [isBroadcastingEmail, setIsBroadcastingEmail] = useState<boolean>(false);
+
+  const EMAIL_PRESET_TEMPLATES = [
+    {
+      id: "ads_pro_email",
+      name: "📢 Promosi / Ads (Aplikasi PRO)",
+      title: "🚀 Tingkatkan Karirmu dengan Prakerin PRO!",
+      message: "Halo {name},\n\nTingkatkan skill dan dapatkan rekomendasi tempat magang favorit lebih cepat dengan upgrade ke Prakerin PRO!\n\n🔗 Cek penawaran khusus di:\n{link}",
+      target: "unapplied_students"
+    },
+    {
+      id: "app_status_email",
+      name: "📋 Status Lamaran Magang",
+      title: "📋 Pembaruan Status Lamaran Magang",
+      message: "Halo {name},\n\nStatus pengajuan magang kamu telah diperbarui oleh perusahaan/mitra. Harap segera memeriksa detail lengkap di dashboard.\n\n🔗 Lihat detail:\n{link}",
+      target: "all_email_users"
+    },
+    {
+      id: "new_task_email",
+      name: "📝 Penugasan Tugas Magang",
+      title: "📝 Tugas Magang Baru Diberikan",
+      message: "Halo {name},\n\nPembimbing magang kamu memberikan tugas baru di platform. Pastikan kamu membaca petunjuk dan menyelesaikan tepat waktu.\n\n🔗 Buka tugas:\n{link}",
+      target: "active_interns"
+    },
+    {
+      id: "announcement_email",
+      name: "📣 Pengumuman Umum Platform",
+      title: "📣 Informasi Penting Prakerin",
+      message: "Halo {name},\n\nKami menginfokan pembaruan penting mengenai layanan platform Prakerin. Jangan lupa lengkapi profil dan jurnal magang kamu.\n\n🔗 Kunjungi dashboard:\n{link}",
+      target: "all_email_users"
+    }
+  ];
+
+  const applyEmailPresetTemplate = (templateId: string) => {
+    const selected = EMAIL_PRESET_TEMPLATES.find((t) => t.id === templateId);
+    if (selected) {
+      setEmailBroadcastTitle(selected.title);
+      setEmailBroadcastMessage(selected.message);
+      if (selected.target) {
+        setEmailBroadcastTarget(selected.target);
+      }
+    }
+  };
+
+  const handleSendEmailBroadcast = async () => {
+    if (!emailBroadcastTitle.trim() || !emailBroadcastMessage.trim()) {
+      alertError("Judul dan isi pesan email broadcast tidak boleh kosong.");
+      return;
+    }
+
+    if (emailBroadcastTarget === "test_single_user" && !emailSingleUserIdentifier.trim()) {
+      alertError("Harap masukkan Email, No. HP, atau User ID target uji coba.");
+      return;
+    }
+
+    if (!confirm(`Apakah Anda yakin ingin mengirim Email broadcast ini ke kelompok target [${emailBroadcastTarget}]?`)) {
+      return;
+    }
+
+    setIsBroadcastingEmail(true);
+    try {
+      const response = await API.post(
+        `${ENDPOINTS.SETTINGS}/broadcast-email`,
+        {
+          target_group: emailBroadcastTarget,
+          title: emailBroadcastTitle,
+          message: emailBroadcastMessage,
+          action_url: emailBroadcastActionUrl,
+          single_user_identifier: emailSingleUserIdentifier,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      if (response.data?.status === "success") {
+        alertSuccess(response.data.message || "Email broadcast berhasil dijadwalkan!");
+      } else {
+        alertError(response.data?.message || "Gagal mengirim Email broadcast.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Gagal mengirim Email broadcast.";
+      alertError(msg);
+    } finally {
+      setIsBroadcastingEmail(false);
     }
   };
 
@@ -963,9 +1162,178 @@ function PengaturanContent() {
                       value={form.smtp_from_name}
                       onChange={handleInputChange}
                       placeholder="Prakerin Indonesia"
-                      required
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
                     />
+                  </div>
+                </div>
+
+                {/* SECTION: EMAIL BROADCAST & TEMPLATE MANAGER */}
+                <div className="mt-8 pt-8 border-t border-gray-200/80 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-base flex items-center gap-2">
+                        <Mail className="w-5 h-5 text-indigo-600" />
+                        Kirim Broadcast & Template Pesan Email
+                      </h4>
+                      <p className="text-gray-500 text-xs mt-0.5">
+                        Pilih template preset email atau ketik pesan kustom, lalu pilih kelompok penerima target.
+                      </p>
+                    </div>
+
+                    {/* Preset Template Selector */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-gray-500 hidden sm:inline">Preset Template:</span>
+                      <select
+                        onChange={(e) => applyEmailPresetTemplate(e.target.value)}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                      >
+                        <option value="">-- Pilih Template Preset --</option>
+                        {EMAIL_PRESET_TEMPLATES.map((tpl) => (
+                          <option key={tpl.id} value={tpl.id}>
+                            {tpl.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-5">
+                    {/* Target Audience Group Selection */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        Target Kelompok Penerima Email (Audience Group)
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {[
+                          { id: "all_email_users", label: "Semua Pengguna Email Aktif", desc: "Semua akun dengan notifikasi email aktif" },
+                          { id: "unapplied_students", label: "Siswa Belum Pernah Melamar", desc: "Target promosi magang / PRO" },
+                          { id: "active_interns", label: "Siswa Sedang Magang Aktif", desc: "Pengumuman & tugas magang" },
+                          { id: "pro_users", label: "Pengguna Akun PRO / Premium", desc: "Notifikasi eksklusif pengguna PRO" },
+                          { id: "test_single_user", label: "Uji Coba Single User", desc: "Kirim tes ke 1 email spesifik" },
+                        ].map((group) => (
+                          <button
+                            key={group.id}
+                            type="button"
+                            onClick={() => setEmailBroadcastTarget(group.id)}
+                            className={`p-3 rounded-xl text-left border transition-all cursor-pointer ${
+                              emailBroadcastTarget === group.id
+                                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm font-semibold"
+                                : "bg-white text-gray-700 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30"
+                            }`}
+                          >
+                            <p className="font-bold text-xs">{group.label}</p>
+                            <p className={`text-[11px] mt-0.5 ${emailBroadcastTarget === group.id ? "text-indigo-100" : "text-gray-400"}`}>
+                              {group.desc}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Single User Identifier Input if test_single_user */}
+                    {emailBroadcastTarget === "test_single_user" && (
+                      <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200">
+                        <label className="block text-xs font-semibold text-amber-900 mb-1">
+                          Email Target Uji Coba (Single User)
+                        </label>
+                        <input
+                          type="text"
+                          value={emailSingleUserIdentifier}
+                          onChange={(e) => setEmailSingleUserIdentifier(e.target.value)}
+                          placeholder="Contoh: makerdotindo@gmail.com"
+                          className="w-full px-3.5 py-2 rounded-lg border border-amber-300 bg-white text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+                        />
+                        <p className="text-[11px] text-amber-700 mt-1">
+                          Pesan email hanya akan dikirimkan ke 1 alamat email spesifik ini untuk pengujian.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Title & Content Editor */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Judul Email (Subject & Inbox Header)</label>
+                        <input
+                          type="text"
+                          value={emailBroadcastTitle}
+                          onChange={(e) => setEmailBroadcastTitle(e.target.value)}
+                          placeholder="Judul pesan email..."
+                          className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Action Deep Link (URL)</label>
+                        <input
+                          type="text"
+                          value={emailBroadcastActionUrl}
+                          onChange={(e) => setEmailBroadcastActionUrl(e.target.value)}
+                          placeholder="http://localhost:3000/dashboard/inbox"
+                          className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold text-gray-700">Isi Pesan Email</label>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] text-gray-400">Sisipkan Variabel:</span>
+                          <button
+                            type="button"
+                            onClick={() => setEmailBroadcastMessage((prev) => prev + " {name}")}
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-100 text-indigo-800 hover:bg-indigo-200 transition-all cursor-pointer"
+                          >
+                            + {"{name}"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEmailBroadcastMessage((prev) => prev + " {role}")}
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-800 hover:bg-blue-200 transition-all cursor-pointer"
+                          >
+                            + {"{role}"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEmailBroadcastMessage((prev) => prev + " {link}")}
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 transition-all cursor-pointer"
+                          >
+                            + {"{link}"}
+                          </button>
+                        </div>
+                      </div>
+                      <textarea
+                        rows={5}
+                        value={emailBroadcastMessage}
+                        onChange={(e) => setEmailBroadcastMessage(e.target.value)}
+                        placeholder="Ketik isi pesan email di sini..."
+                        className="w-full p-3.5 rounded-xl border border-gray-200 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono leading-relaxed"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <p className="text-[11px] text-gray-400">
+                        *Variabel <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">{"{name}"}</code>, <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">{"{role}"}</code>, dan <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">{"{link}"}</code> akan diganti secara otomatis sesuai penerima.
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={handleSendEmailBroadcast}
+                        disabled={isBroadcastingEmail}
+                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-all shadow hover:shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {isBroadcastingEmail ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Menjadwalkan Broadcast...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="w-4 h-4" />
+                            Kirim Broadcast Email
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -977,7 +1345,7 @@ function PengaturanContent() {
                 <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                   <div>
                     <h3 className="font-bold text-gray-800 text-lg">Konfigurasi WhatsApp Gateway</h3>
-                    <p className="text-gray-500 text-sm">Integrasi Twilio WhatsApp untuk push notifikasi pesan langsung ke pengguna</p>
+                    <p className="text-gray-500 text-sm">Integrasi push notifikasi WhatsApp via Meta Developer Sandbox, Mekari Qontak, atau Twilio</p>
                   </div>
                   <button
                     type="button"
@@ -1011,52 +1379,332 @@ function PengaturanContent() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Penyedia API (Provider)</label>
                     <select
                       name="whatsapp_api_provider"
                       value={form.whatsapp_api_provider}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm bg-white"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm bg-white font-medium text-gray-800"
                     >
+                      <option value="mock">⚡ Local Mock Gateway (Simulasi Lokal - Tanpa API Key 3rd Party)</option>
+                      <option value="qontak">Mekari Qontak (Sandbox / Production API)</option>
+                      <option value="meta">Meta Developer Sandbox (WhatsApp Cloud API)</option>
                       <option value="twilio">Twilio (Official Support)</option>
                       <option value="disabled">Nonaktifkan Provider</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp Pengirim (Twilio Sandbox / Sender)</label>
-                    <input
-                      type="text"
-                      name="whatsapp_sender_number"
-                      value={form.whatsapp_sender_number}
-                      onChange={handleInputChange}
-                      placeholder="+14155238886"
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">Format internasional dengan tanda +, contoh: +14155238886</p>
+                  {/* Dynamic Form per Provider */}
+                  {form.whatsapp_api_provider === "mock" && (
+                    <div className="md:col-span-2 p-4 bg-blue-50/80 rounded-2xl border border-blue-200">
+                      <h5 className="font-bold text-blue-900 text-sm flex items-center gap-2">
+                        ⚡ Local Mock WhatsApp Gateway Aktif
+                      </h5>
+                      <p className="text-blue-700 text-xs mt-1 leading-relaxed">
+                        Mode ini tidak memerlukan API Key atau akun dari pihak ketiga (Qontak/Meta/Twilio). Semua pesan push notifikasi & broadcast WhatsApp akan <strong>disimulasikan secara lokal</strong>, otomatis dicatat di <code className="bg-blue-100 px-1 py-0.5 rounded text-blue-900 font-mono">storage/logs/laravel.log</code>, dan ditandai sebagai terkirim (Status: Sent) di database platform.
+                      </p>
+                    </div>
+                  )}
+                  {form.whatsapp_api_provider === "meta" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Meta Phone Number ID</label>
+                        <input
+                          type="text"
+                          name="whatsapp_meta_phone_number_id"
+                          value={form.whatsapp_meta_phone_number_id}
+                          onChange={handleInputChange}
+                          placeholder="Contoh: 104820491029482"
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-mono"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">ID Nomor Telepon pengirim dari Meta Developer Console &gt; WhatsApp &gt; API Setup</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Meta Access Token (Temporary / Permanent)</label>
+                        <div className="relative">
+                          <input
+                            type={showWaKey ? "text" : "password"}
+                            name="whatsapp_api_key"
+                            value={form.whatsapp_api_key}
+                            onChange={handleInputChange}
+                            placeholder="EAAG..."
+                            className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowWaKey(!showWaKey)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                          >
+                            {showWaKey ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Access Token dari Meta Developer App / System User Token</p>
+                      </div>
+                    </>
+                  )}
+
+                  {form.whatsapp_api_provider === "qontak" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Qontak Channel Integration ID</label>
+                        <input
+                          type="text"
+                          name="whatsapp_qontak_channel_id"
+                          value={form.whatsapp_qontak_channel_id}
+                          onChange={handleInputChange}
+                          placeholder="Contoh: 8a7c8584-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-mono"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Integration ID channel WhatsApp dari Dashboard Mekari Qontak</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Qontak Access Token (Bearer Token)</label>
+                        <div className="relative">
+                          <input
+                            type={showWaKey ? "text" : "password"}
+                            name="whatsapp_api_key"
+                            value={form.whatsapp_api_key}
+                            onChange={handleInputChange}
+                            placeholder="eyJhbGciOi..."
+                            className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowWaKey(!showWaKey)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                          >
+                            {showWaKey ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Access Token OAuth2 / Direct API dari Mekari Qontak</p>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Default Message Template ID (Opsional)</label>
+                        <input
+                          type="text"
+                          name="whatsapp_qontak_template_id"
+                          value={form.whatsapp_qontak_template_id}
+                          onChange={handleInputChange}
+                          placeholder="ID Template Broadcast Qontak (opsional)"
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-mono"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Kosongkan jika ingin menggunakan pesan direct text biasa</p>
+                      </div>
+                    </>
+                  )}
+
+                  {form.whatsapp_api_provider === "twilio" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp Pengirim (Twilio Sender)</label>
+                        <input
+                          type="text"
+                          name="whatsapp_sender_number"
+                          value={form.whatsapp_sender_number}
+                          onChange={handleInputChange}
+                          placeholder="+14155238886"
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Format internasional dengan tanda +, contoh: +14155238886</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Twilio API Key (Account SID : Auth Token)</label>
+                        <div className="relative">
+                          <input
+                            type={showWaKey ? "text" : "password"}
+                            name="whatsapp_api_key"
+                            value={form.whatsapp_api_key}
+                            onChange={handleInputChange}
+                            placeholder="ACxxxxxxxxxxxxxxxx:your_auth_token_here"
+                            className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowWaKey(!showWaKey)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                          >
+                            {showWaKey ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Gabungkan Account SID dan Auth Token dipisah dengan titik dua (:)</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* SECTION: WHATSAPP BROADCAST & TEMPLATE MANAGER */}
+                <div className="mt-8 pt-8 border-t border-gray-200/80 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-base flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5 text-green-600" />
+                        Kirim Broadcast & Template Pesan WhatsApp
+                      </h4>
+                      <p className="text-gray-500 text-xs mt-0.5">
+                        Pilih template preset atau ketik pesan kustom, lalu pilih kelompok penerima target.
+                      </p>
+                    </div>
+
+                    {/* Preset Template Selector */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-gray-500 hidden sm:inline">Preset Template:</span>
+                      <select
+                        onChange={(e) => applyPresetTemplate(e.target.value)}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
+                      >
+                        <option value="">-- Pilih Template Preset --</option>
+                        {PRESET_TEMPLATES.map((tpl) => (
+                          <option key={tpl.id} value={tpl.id}>
+                            {tpl.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Twilio API Key (Account SID : Auth Token)</label>
-                    <div className="relative">
-                      <input
-                        type={showWaKey ? "text" : "password"}
-                        name="whatsapp_api_key"
-                        value={form.whatsapp_api_key}
-                        onChange={handleInputChange}
-                        placeholder="ACxxxxxxxxxxxxxxxx:your_auth_token_here"
-                        className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-mono"
+                  <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-5">
+                    {/* Target Audience Group Selection */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        Target Kelompok Penerima (Audience Group)
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {[
+                          { id: "all_wa_users", label: "Semua Pengguna WA Aktif", desc: "Semua akun dengan notifikasi WA aktif" },
+                          { id: "unapplied_students", label: "Siswa Belum Pernah Melamar", desc: "Target promosi magang / PRO" },
+                          { id: "active_interns", label: "Siswa Sedang Magang Aktif", desc: "Pengumuman & tugas magang" },
+                          { id: "pro_users", label: "Pengguna Akun PRO / Premium", desc: "Notifikasi eksklusif pengguna PRO" },
+                          { id: "test_single_user", label: "Uji Coba Single User", desc: "Kirim tes ke 1 email / nomor HP" },
+                        ].map((group) => (
+                          <button
+                            key={group.id}
+                            type="button"
+                            onClick={() => setBroadcastTarget(group.id)}
+                            className={`p-3 rounded-xl text-left border transition-all cursor-pointer ${
+                              broadcastTarget === group.id
+                                ? "bg-green-600 text-white border-green-600 shadow-sm font-semibold"
+                                : "bg-white text-gray-700 border-gray-200 hover:border-green-300 hover:bg-green-50/30"
+                            }`}
+                          >
+                            <p className="font-bold text-xs">{group.label}</p>
+                            <p className={`text-[11px] mt-0.5 ${broadcastTarget === group.id ? "text-green-100" : "text-gray-400"}`}>
+                              {group.desc}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Single User Identifier Input if test_single_user */}
+                    {broadcastTarget === "test_single_user" && (
+                      <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200">
+                        <label className="block text-xs font-semibold text-amber-900 mb-1">
+                          Email, No. HP, atau User ID Target Uji Coba
+                        </label>
+                        <input
+                          type="text"
+                          value={singleUserIdentifier}
+                          onChange={(e) => setSingleUserIdentifier(e.target.value)}
+                          placeholder="Contoh: indah@student.com atau 085717481973"
+                          className="w-full px-3.5 py-2 rounded-lg border border-amber-300 bg-white text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+                        />
+                        <p className="text-[11px] text-amber-700 mt-1">
+                          Pesan hanya akan dikirimkan ke 1 akun spesifik ini untuk pengujian.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Title & Content Editor */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Judul Notifikasi (Inbox & Header)</label>
+                        <input
+                          type="text"
+                          value={broadcastTitle}
+                          onChange={(e) => setBroadcastTitle(e.target.value)}
+                          placeholder="Judul pesan broadcast..."
+                          className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Action Deep Link (URL)</label>
+                        <input
+                          type="text"
+                          value={broadcastActionUrl}
+                          onChange={(e) => setBroadcastActionUrl(e.target.value)}
+                          placeholder="http://localhost:3000/dashboard/inbox"
+                          className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold text-gray-700">Isi Pesan WhatsApp</label>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] text-gray-400">Sisipkan Variabel:</span>
+                          <button
+                            type="button"
+                            onClick={() => setBroadcastMessage((prev) => prev + " {name}")}
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-green-100 text-green-800 hover:bg-green-200 transition-all cursor-pointer"
+                          >
+                            + {"{name}"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBroadcastMessage((prev) => prev + " {role}")}
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-800 hover:bg-blue-200 transition-all cursor-pointer"
+                          >
+                            + {"{role}"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBroadcastMessage((prev) => prev + " {link}")}
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 transition-all cursor-pointer"
+                          >
+                            + {"{link}"}
+                          </button>
+                        </div>
+                      </div>
+                      <textarea
+                        rows={5}
+                        value={broadcastMessage}
+                        onChange={(e) => setBroadcastMessage(e.target.value)}
+                        placeholder="Ketik pesan WhatsApp di sini..."
+                        className="w-full p-3.5 rounded-xl border border-gray-200 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white font-mono leading-relaxed"
                       />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <p className="text-[11px] text-gray-400">
+                        *Variabel <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">{"{name}"}</code>, <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">{"{role}"}</code>, dan <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">{"{link}"}</code> akan diganti secara otomatis sesuai penerima.
+                      </p>
+
                       <button
                         type="button"
-                        onClick={() => setShowWaKey(!showWaKey)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        onClick={handleSendBroadcast}
+                        disabled={isBroadcasting}
+                        className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-xs transition-all shadow hover:shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
                       >
-                        {showWaKey ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                        {isBroadcasting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Menjadwalkan Broadcast...
+                          </>
+                        ) : (
+                          <>
+                            <MessageSquare className="w-4 h-4" />
+                            Kirim Broadcast WhatsApp
+                          </>
+                        )}
                       </button>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">Gabungkan Account SID dan Auth Token dipisah dengan titik dua (:)</p>
                   </div>
                 </div>
               </div>

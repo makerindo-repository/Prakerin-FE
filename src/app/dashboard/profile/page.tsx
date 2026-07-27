@@ -16,6 +16,7 @@ import {
   Loader2,
   MessageCircle,
   Mail,
+  CheckCircle,
 } from "lucide-react";
 import { ChangeEvent, use, useEffect, useState } from "react";
 import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
@@ -1926,33 +1927,18 @@ export default function ProfilePage() {
                 </button>
               </div>
 
-              {/* WhatsApp number input */}
+              {/* WhatsApp Profile Phone Info Notice */}
               {notifForm.whatsapp_notifications_enabled && (
-                <div className="px-4">
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                    Nomor WhatsApp
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-500 font-medium">
-                      🇮🇩 +62
-                    </div>
-                    <input
-                      type="tel"
-                      id="whatsapp-number"
-                      value={notifForm.whatsapp_number}
-                      onChange={(e) =>
-                        setNotifForm((prev) => ({
-                          ...prev,
-                          whatsapp_number: e.target.value,
-                        }))
-                      }
-                      placeholder="812345678"
-                      className="flex-1 px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all"
-                    />
+                <div className="mx-4 p-3 bg-green-50/80 rounded-xl border border-green-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-green-900 font-medium">
+                    <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
+                    <span>
+                      Pesan WhatsApp akan dikirim ke nomor HP di profil kamu:{" "}
+                      <strong className="font-bold underline">
+                        {studentForm.phone_number || companyForm.phone_number || schoolForm.phone_number || notifForm.whatsapp_number || "Nomor HP belum diisi"}
+                      </strong>
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1.5">
-                    Format: 628xxxxxxxx atau 08xxxxxxxx (tanpa tanda +)
-                  </p>
                 </div>
               )}
             </div>
