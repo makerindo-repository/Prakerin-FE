@@ -52,8 +52,13 @@ const tambahSiswaPage: React.FC = () => {
   });
 
   const [majors, setMajors] = useState<Array<{ id: string; name: string }>>([]);
+  const [schools, setSchools] = useState<Array<{ id: string; name: string }>>([]);
+  const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
+    const role = Cookies.get("authorization") || "";
+    setUserRole(role);
+
     const fetchMajors = async () => {
       try {
         const response = await API.get(ENDPOINTS.MAJORS, {
@@ -69,7 +74,28 @@ const tambahSiswaPage: React.FC = () => {
         console.error("Error fetching majors:", error);
       }
     };
+
+    const fetchSchools = async () => {
+      try {
+        const response = await API.get(ENDPOINTS.USERS, {
+          params: { role: "school", limit: 100 },
+          headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
+        });
+        const data = response.data?.data || [];
+        const formatted = data
+          .map((item: any) => ({
+            id: item.school?.id || item.id,
+            name: item.school?.name || item.name || item.username,
+          }))
+          .filter((item: any) => item.id && item.name);
+        setSchools(formatted);
+      } catch (error) {
+        console.error("Error fetching schools:", error);
+      }
+    };
+
     fetchMajors();
+    fetchSchools();
   }, []);
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -453,8 +479,35 @@ const tambahSiswaPage: React.FC = () => {
                 </div>
 
                 {/* School and Email */}
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {userRole !== "school" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sekolah Asal<span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="school_id"
+                        value={formData.school_id}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors ${
+                          errors.school_id ? "border-red-500" : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">Pilih Sekolah</option>
+                        {schools.map((school) => (
+                          <option key={school.id} value={school.id}>
+                            {school.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.school_id && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.school_id}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <div className={userRole === "school" ? "col-span-2" : ""}>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email<span className="text-red-500">*</span>
                     </label>
