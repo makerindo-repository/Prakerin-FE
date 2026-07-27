@@ -427,7 +427,14 @@ function PengaturanContent() {
   );
   const [emailBroadcastActionUrl, setEmailBroadcastActionUrl] = useState<string>("http://localhost:3000/dashboard");
   const [emailSingleUserIdentifier, setEmailSingleUserIdentifier] = useState<string>("");
+  const [emailHeaderLogo, setEmailHeaderLogo] = useState<string>("");
+  const [emailHeaderTitle, setEmailHeaderTitle] = useState<string>("Ada Notifikasi Baru!");
+  const [emailHeaderIcon, setEmailHeaderIcon] = useState<string>("📬");
   const [isBroadcastingEmail, setIsBroadcastingEmail] = useState<boolean>(false);
+
+  // Preview Email Card State
+  const [previewRecipientName, setPreviewRecipientName] = useState<string>("eka.wijaya");
+  const [previewRecipientRole, setPreviewRecipientRole] = useState<string>("Siswa");
 
   const EMAIL_PRESET_TEMPLATES = [
     {
@@ -435,28 +442,36 @@ function PengaturanContent() {
       name: "📢 Promosi / Ads (Aplikasi PRO)",
       title: "🚀 Tingkatkan Karirmu dengan Prakerin PRO!",
       message: "Halo {name},\n\nTingkatkan skill dan dapatkan rekomendasi tempat magang favorit lebih cepat dengan upgrade ke Prakerin PRO!\n\n🔗 Cek penawaran khusus di:\n{link}",
-      target: "unapplied_students"
+      target: "unapplied_students",
+      headerTitle: "Penawaran Khusus Prakerin PRO!",
+      headerIcon: "🚀",
     },
     {
       id: "app_status_email",
       name: "📋 Status Lamaran Magang",
       title: "📋 Pembaruan Status Lamaran Magang",
       message: "Halo {name},\n\nStatus pengajuan magang kamu telah diperbarui oleh perusahaan/mitra. Harap segera memeriksa detail lengkap di dashboard.\n\n🔗 Lihat detail:\n{link}",
-      target: "all_email_users"
+      target: "all_email_users",
+      headerTitle: "Pembaruan Status Lamaran!",
+      headerIcon: "📋",
     },
     {
       id: "new_task_email",
       name: "📝 Penugasan Tugas Magang",
       title: "📝 Tugas Magang Baru Diberikan",
       message: "Halo {name},\n\nPembimbing magang kamu memberikan tugas baru di platform. Pastikan kamu membaca petunjuk dan menyelesaikan tepat waktu.\n\n🔗 Buka tugas:\n{link}",
-      target: "active_interns"
+      target: "active_interns",
+      headerTitle: "Tugas Magang Baru Diberikan!",
+      headerIcon: "📝",
     },
     {
       id: "announcement_email",
       name: "📣 Pengumuman Umum Platform",
       title: "📣 Informasi Penting Prakerin",
       message: "Halo {name},\n\nKami menginfokan pembaruan penting mengenai layanan platform Prakerin. Jangan lupa lengkapi profil dan jurnal magang kamu.\n\n🔗 Kunjungi dashboard:\n{link}",
-      target: "all_email_users"
+      target: "all_email_users",
+      headerTitle: "Pengumuman Resmi Platform!",
+      headerIcon: "📢",
     }
   ];
 
@@ -467,6 +482,12 @@ function PengaturanContent() {
       setEmailBroadcastMessage(selected.message);
       if (selected.target) {
         setEmailBroadcastTarget(selected.target);
+      }
+      if (selected.headerTitle) {
+        setEmailHeaderTitle(selected.headerTitle);
+      }
+      if (selected.headerIcon) {
+        setEmailHeaderIcon(selected.headerIcon);
       }
     }
   };
@@ -496,6 +517,9 @@ function PengaturanContent() {
           message: emailBroadcastMessage,
           action_url: emailBroadcastActionUrl,
           single_user_identifier: emailSingleUserIdentifier,
+          header_logo_url: emailHeaderLogo,
+          header_title: emailHeaderTitle,
+          header_icon: emailHeaderIcon,
         },
         {
           headers: {
@@ -1333,6 +1357,172 @@ function PengaturanContent() {
                           </>
                         )}
                       </button>
+                    </div>
+                  </div>
+
+                  {/* LIVE EMAIL CARD PREVIEW CONTAINER */}
+                  <div className="mt-8 pt-8 border-t border-gray-200/80 space-y-5">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h5 className="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+                          Pratinjau Langsung & Kustomisasi Card Email
+                        </h5>
+                      </div>
+
+                      {/* Sample Recipient Selector */}
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-gray-500 font-medium hidden sm:inline">Contoh Penerima:</span>
+                        <select
+                          value={previewRecipientName}
+                          onChange={(e) => {
+                            setPreviewRecipientName(e.target.value);
+                            setPreviewRecipientRole(e.target.value === "eka.wijaya" ? "Siswa" : e.target.value === "budi.santoso" ? "Mitra" : "SuperAdmin");
+                          }}
+                          className="px-3 py-1 rounded-lg border border-gray-200 text-xs bg-white text-gray-700 font-semibold cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="eka.wijaya">eka.wijaya (Siswa)</option>
+                          <option value="budi.santoso">budi.santoso (Mitra)</option>
+                          <option value="sean.superadmin">sean.superadmin (Admin)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* LIVE CARD CUSTOMIZATION TOOLBAR */}
+                    <div className="p-4 bg-purple-50/60 rounded-2xl border border-purple-100/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
+                          🎨 Kustomisasi Tampilan Banner & Logo Card Preview
+                        </label>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 bg-purple-100 px-2.5 py-0.5 rounded-full">
+                          Real-time
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-700 mb-1">URL Logo Header (Image URL)</label>
+                          <input
+                            type="text"
+                            value={emailHeaderLogo}
+                            onChange={(e) => setEmailHeaderLogo(e.target.value)}
+                            placeholder="https://imgur.com/logo.png"
+                            className="w-full px-3 py-1.5 rounded-xl border border-purple-200 text-xs bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-700 mb-1">Judul Banner Header</label>
+                          <input
+                            type="text"
+                            value={emailHeaderTitle}
+                            onChange={(e) => setEmailHeaderTitle(e.target.value)}
+                            placeholder="Ada Notifikasi Baru!"
+                            className="w-full px-3 py-1.5 rounded-xl border border-purple-200 text-xs bg-white text-gray-800 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-700 mb-1">Icon Header</label>
+                          <select
+                            value={emailHeaderIcon}
+                            onChange={(e) => setEmailHeaderIcon(e.target.value)}
+                            className="w-full px-3 py-1.5 rounded-xl border border-purple-200 text-xs bg-white text-gray-800 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                          >
+                            <option value="📬">📬 Notifikasi System</option>
+                            <option value="📢">📢 Pengumuman Resmi</option>
+                            <option value="🚀">🚀 Promosi & Fitur PRO</option>
+                            <option value="📝">📝 Tugas & Magang</option>
+                            <option value="🎓">🎓 Kelulusan / Sertifikat</option>
+                            <option value="⭐️">⭐️ Notifikasi Spesial</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* RENDERED EMAIL CARD REPLICA */}
+                    <div className="max-w-lg mx-auto bg-slate-200/60 p-4 sm:p-6 rounded-3xl border border-slate-300/70 shadow-inner">
+                      <div className="bg-white rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 font-sans transition-all">
+                        
+                        {/* Header Gradient Card */}
+                        <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-purple-700 p-8 text-center text-white relative">
+                          {emailHeaderLogo || form.app_logo ? (
+                            <img
+                              src={emailHeaderLogo || form.app_logo}
+                              alt="Logo"
+                              className="h-12 mx-auto mb-3 object-contain drop-shadow max-w-[200px]"
+                            />
+                          ) : (
+                            <div className="text-[11px] font-extrabold tracking-widest uppercase text-white/80 mb-3">
+                              {form.app_name || "PRAKERIN PLATFORM"}
+                            </div>
+                          )}
+                          <div className="text-4xl mb-2">{emailHeaderIcon || "📬"}</div>
+                          <div className="text-xl font-bold text-white">{emailHeaderTitle || "Ada Notifikasi Baru!"}</div>
+                          <div className="text-xs text-white/80 mt-1">
+                            Kamu punya pembaruan di {form.app_name || "Prakerin"}
+                          </div>
+                        </div>
+
+                        {/* Content Body */}
+                        <div className="p-6 md:p-8 space-y-5">
+                          <p className="text-sm text-gray-600">
+                            Halo, <strong className="text-gray-900 font-bold">{previewRecipientName}</strong>!
+                          </p>
+
+                          <div>
+                            <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-[10px] font-extrabold tracking-wider uppercase rounded-full">
+                              BROADCAST
+                            </span>
+                          </div>
+
+                          {/* Message Card */}
+                          <div className="bg-slate-50 border border-slate-200 border-l-4 border-l-indigo-600 rounded-xl p-5 space-y-2">
+                            <h6 className="font-bold text-gray-900 text-base">
+                              {emailBroadcastTitle || "Judul Email Broadcast..."}
+                            </h6>
+                            <div className="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
+                              {emailBroadcastMessage
+                                ? emailBroadcastMessage
+                                    .replace(/{name}/g, previewRecipientName)
+                                    .replace(/{role}/g, previewRecipientRole)
+                                    .replace(/{link}/g, emailBroadcastActionUrl || "http://localhost:3000/dashboard")
+                                : "Isi pesan email akan muncul di sini..."}
+                            </div>
+                          </div>
+
+                          {/* CTA Button */}
+                          {emailBroadcastActionUrl && (
+                            <div className="text-center pt-2 pb-1">
+                              <a
+                                href={emailBroadcastActionUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-block px-7 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg transition-all"
+                              >
+                                Lihat di Prakerin →
+                              </a>
+                            </div>
+                          )}
+
+                          <hr className="border-gray-200 my-4" />
+
+                          <p className="text-[11px] text-gray-400 text-center leading-relaxed">
+                            Jangan lewatkan informasi penting terkait magang kamu.<br />
+                            Masuk ke Prakerin untuk melihat detail lengkap.
+                          </p>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="bg-slate-50 border-t border-slate-200/80 p-5 text-center space-y-1">
+                          <div className="text-xs font-bold text-indigo-600">🎓 {form.app_name || "Prakerin"}</div>
+                          <p className="text-[10px] text-gray-400">
+                            © {new Date().getFullYear()} {form.app_name || "Prakerin Platform"}. Hak cipta dilindungi.<br />
+                            Kamu menerima email ini karena notifikasi email diaktifkan di akunmu.
+                          </p>
+                        </div>
+
+                      </div>
                     </div>
                   </div>
                 </div>
