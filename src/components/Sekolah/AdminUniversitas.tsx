@@ -264,12 +264,14 @@ const AdminUniversitas: React.FC = () => {
                       )}
 
                       {/* View Students */}
-                      <Link
-                        href={`/dashboard/sekolah/${item.school.id}/murid`}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Link>
+                      {item.school?.id && (
+                        <Link
+                          href={`/dashboard/sekolah/${item.school.id}/murid`}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                      )}
 
                       <button
                         onClick={() => handleDelete(item.id, item.school?.name)}

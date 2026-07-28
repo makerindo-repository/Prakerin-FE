@@ -248,7 +248,9 @@ export default function InboxPage() {
                           {item.action_url && (
                             <Link
                               href={item.action_url}
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={() => {
+                                if (!item.is_read) markRead(item.id);
+                              }}
                               className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-semibold group-hover:underline"
                             >
                               Lihat <ChevronRight className="w-3 h-3" />

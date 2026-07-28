@@ -33,13 +33,13 @@ interface SchoolDetail {
     phone_number: string | null;
     status: string | null;
     accreditation: string | null;
-  };
+  } | null;
   city_regency: {
     name: string;
-  };
+  } | null;
   province: {
     name: string;
-  };
+  } | null;
   mou: boolean;
 }
 
@@ -49,22 +49,9 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [company, setCompany] = useState<SchoolDetail>({
     email: "",
     photo_profile: null,
-    school: {
-      name: "",
-      address: "",
-      description: null,
-      website: null,
-      npsn: null,
-      phone_number: null,
-      status: null,
-      accreditation: null,
-    },
-    city_regency: {
-      name: "",
-    },
-    province: {
-      name: "",
-    },
+    school: null,
+    city_regency: null,
+    province: null,
     mou: false,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -138,19 +125,19 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 )}
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                    {company.school.name}
+                    {company.school?.name ?? "Nama Sekolah Tidak Tersedia"}
                   </h2>
                   <div className="flex items-center space-x-2 text-gray-600 mb-1">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span className="text-sm">
-                      {company.city_regency.name ?? "-"},{" "}
-                      {company.province.name ?? "-"}
+                      {company.city_regency?.name ?? "-"},{" "}
+                      {company.province?.name ?? "-"}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Globe className="w-4 h-4 flex-shrink-0" />
 
-                    {company.school.website === null ? (
+                    {!company.school?.website ? (
                       <p className="text-sm text-gray-600">Tidak ada website</p>
                     ) : (
                       <Link
@@ -195,7 +182,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 {/* Alamat */}
-                {company.school.address && (
+                {company.school?.address && (
                   <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
                     <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
@@ -208,7 +195,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 )}
 
                 {/* NPSN */}
-                {company.school.npsn && (
+                {company.school?.npsn && (
                   <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
                     <Hash className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
@@ -221,7 +208,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 )}
 
                 {/* No Telepon */}
-                {company.school.phone_number && (
+                {company.school?.phone_number && (
                   <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
                     <Phone className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
@@ -234,7 +221,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 )}
 
                 {/* Status */}
-                {company.school.status && (
+                {company.school?.status && (
                   <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
                     <Shield className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
@@ -247,7 +234,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 )}
 
                 {/* Akreditasi */}
-                {company.school.accreditation && (
+                {company.school?.accreditation && (
                   <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
                     <Award className="w-5 h-5 text-accent shrink-0 mt-1" />
                     <div>
@@ -265,7 +252,7 @@ const DetailSekolahPage = ({ params }: { params: Promise<{ id: string }> }) => {
               Deskripsi
             </h3>
             <div className="text-gray-700 text-sm leading-relaxed space-y-3 mb-5">
-              <RenderBlocks data={company.school.description} />
+              <RenderBlocks data={company.school?.description ?? null} />
             </div>
           </>
         )}

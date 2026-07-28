@@ -150,6 +150,7 @@ export default function ProfilePage() {
   const [isSubmittingDesc, setIsSubmittingDesc] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState<boolean>(false);
+  const [isPhotoReset, setIsPhotoReset] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -189,6 +190,7 @@ export default function ProfilePage() {
       });
       console.log("fetch Profile", response.data.data);
       if (response.status === 200) {
+        setIsPhotoReset(false);
         setUserForm({
           photo_profile: response.data.data.photo_profile,
           username: response.data.data.username,
@@ -273,12 +275,25 @@ export default function ProfilePage() {
       switch (form) {
         case "user":
           text = "Informasi akun berhasil di simpan!";
-          request = { ...userForm };
-          
-          if (!(userForm.photo_profile instanceof File)) {
-            request = { ...request, photo_profile: null };
+          const userPayload: Record<string, any> = {
+            username: userForm.username,
+            email: userForm.email,
+          };
+
+          if (userForm.password) {
+            userPayload.password = userForm.password;
+            userPayload.password_confirmation = userForm.password_confirmation;
           }
 
+          if (userForm.photo_profile instanceof File) {
+            userPayload.photo_profile = userForm.photo_profile;
+          }
+
+          if (isPhotoReset) {
+            userPayload.reset_photo = true;
+          }
+
+          request = userPayload;
           break;
         case "company":
           text = "Informasi perusahaan berhasil di simpan!";
@@ -371,6 +386,7 @@ export default function ProfilePage() {
       const previewUrl = URL.createObjectURL(resized);
       setProfileImage(previewUrl);
 
+      setIsPhotoReset(false);
       setUserForm((prev) => ({
         ...prev,
         photo_profile: resized,
@@ -395,6 +411,7 @@ export default function ProfilePage() {
       ...prev,
       photo_profile: null,
     }));
+    setIsPhotoReset(true);
     setFormErrors((prev) => {
       const next = { ...prev };
       delete next.photo_profile;
