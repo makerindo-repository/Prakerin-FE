@@ -21,6 +21,13 @@ import {
   ArrowRight,
   MessageSquare,
   CreditCard,
+  Layers,
+  Sparkles,
+  Lock,
+  SlidersHorizontal,
+  Building,
+  DollarSign,
+  Banknote,
 } from "lucide-react";
 
 export default function PengaturanPage() {
@@ -32,7 +39,7 @@ export default function PengaturanPage() {
 }
 
 function PengaturanContent() {
-  const [activeTab, setActiveTab] = useState<"umum" | "kebijakan" | "integrasi" | "smtp" | "whatsapp">("umum");
+  const [activeTab, setActiveTab] = useState<"umum" | "kebijakan" | "integrasi" | "smtp" | "whatsapp" | "tier_access" | "pembayaran">("umum");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isTestingSmtp, setIsTestingSmtp] = useState(false);
@@ -79,6 +86,15 @@ function PengaturanContent() {
     whatsapp_meta_phone_number_id: "",
     whatsapp_qontak_channel_id: "",
     whatsapp_qontak_template_id: "",
+    pro_access_ai_cv_generator: true,
+    pro_access_ai_analytics: true,
+    pro_access_ai_report: true,
+    pro_monthly_price: 99000,
+    pro_yearly_price: 999000,
+    company_bank_name: "Bank Central Asia (BCA)",
+    company_bank_account_number: "",
+    company_bank_account_name: "",
+    company_bank_address: "",
   });
 
   // Password visibility toggles
@@ -112,6 +128,11 @@ function PengaturanContent() {
           auto_approve_students: fetched.auto_approve_students === true || fetched.auto_approve_students === "true",
           recaptcha_enabled: fetched.recaptcha_enabled === true || fetched.recaptcha_enabled === "true",
           whatsapp_notifications_active: fetched.whatsapp_notifications_active === true || fetched.whatsapp_notifications_active === "true",
+          pro_access_ai_cv_generator: fetched.pro_access_ai_cv_generator !== undefined ? (fetched.pro_access_ai_cv_generator === true || fetched.pro_access_ai_cv_generator === "true") : true,
+          pro_access_ai_analytics: fetched.pro_access_ai_analytics !== undefined ? (fetched.pro_access_ai_analytics === true || fetched.pro_access_ai_analytics === "true") : true,
+          pro_access_ai_report: fetched.pro_access_ai_report !== undefined ? (fetched.pro_access_ai_report === true || fetched.pro_access_ai_report === "true") : true,
+          pro_monthly_price: Number(fetched.pro_monthly_price || 99000),
+          pro_yearly_price: Number(fetched.pro_yearly_price || 999000),
           max_concurrent_applications: Number(fetched.max_concurrent_applications || 3),
           min_internship_duration: Number(fetched.min_internship_duration || 1),
           max_internship_duration: Number(fetched.max_internship_duration || 52),
@@ -622,6 +643,28 @@ function PengaturanContent() {
             <MessageSquare className={`w-5 h-5 ${activeTab === "whatsapp" ? "text-green-600" : "text-gray-400"}`} />
             WhatsApp Gateway
           </button>
+          <button
+            onClick={() => setActiveTab("tier_access")}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all border text-left cursor-pointer ${
+              activeTab === "tier_access"
+                ? "bg-amber-50 border-amber-200 text-amber-800 shadow-sm"
+                : "bg-white hover:bg-gray-50 border-gray-100 text-gray-600"
+            }`}
+          >
+            <Layers className={`w-5 h-5 ${activeTab === "tier_access" ? "text-amber-600" : "text-gray-400"}`} />
+            Akses Tier
+          </button>
+          <button
+            onClick={() => setActiveTab("pembayaran")}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all border text-left cursor-pointer ${
+              activeTab === "pembayaran"
+                ? "bg-purple-50 border-purple-200 text-purple-800 shadow-sm"
+                : "bg-white hover:bg-gray-50 border-gray-100 text-gray-600"
+            }`}
+          >
+            <CreditCard className={`w-5 h-5 ${activeTab === "pembayaran" ? "text-purple-600" : "text-gray-400"}`} />
+            Pembayaran & Langganan
+          </button>
         </div>
 
         {/* ACTIVE FORM AREA */}
@@ -906,95 +949,6 @@ function PengaturanContent() {
                             </>
                           ) : (
                             "Uji Koneksi Gemini"
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* XENDIT PAYMENT GATEWAY SECTION */}
-                  <div className="bg-amber-50/50 p-5 rounded-2xl border border-amber-100 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
-                        <CreditCard className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-gray-800">Payment Gateway (Langganan Premium)</h4>
-                        <p className="text-gray-400 text-xs">Dipakai untuk membuat invoice QRIS & memproses webhook pembayaran langganan siswa/mahasiswa.</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Xendit Secret Key</label>
-                        <div className="relative">
-                          <input
-                            type={showXenditKey ? "text" : "password"}
-                            name="xendit_secret_key"
-                            value={form.xendit_secret_key}
-                            onChange={handleInputChange}
-                            placeholder="xnd_development_..."
-                            className="w-full pl-3 pr-10 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-white focus:ring-1 focus:ring-amber-500"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowXenditKey(!showXenditKey)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-                          >
-                            {showXenditKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </button>
-                        </div>
-                        <p className="text-gray-400 text-[11px] mt-1">
-                          Pakai key yang diawali <code>xnd_development_</code> untuk testing (tidak charge uang asli), atau <code>xnd_production_</code> kalau sudah live. Ambil dari Xendit Dashboard &gt; Settings &gt; API Keys.
-                        </p>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Webhook Verification Token</label>
-                        <input
-                          type="text"
-                          name="xendit_webhook_token"
-                          value={form.xendit_webhook_token}
-                          onChange={handleInputChange}
-                          placeholder="Token dari Xendit Dashboard > Webhooks"
-                          className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-white focus:ring-1 focus:ring-amber-500"
-                        />
-                        <p className="text-gray-400 text-[11px] mt-1">
-                          Dipakai untuk verifikasi keaslian callback/webhook yang masuk, supaya tidak sembarang request bisa mengaktifkan status Premium.
-                        </p>
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Batasi Metode Pembayaran (opsional)</label>
-                        <input
-                          type="text"
-                          name="xendit_payment_methods"
-                          value={form.xendit_payment_methods}
-                          onChange={handleInputChange}
-                          placeholder="Kosongkan dulu — isi QRCODE setelah QRIS di-approve Xendit"
-                          className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-white focus:ring-1 focus:ring-amber-500"
-                        />
-                        <p className="text-gray-400 text-[11px] mt-1">
-                          Kosongkan supaya Xendit menampilkan metode pembayaran apapun yang sudah aktif di akunmu (Virtual Account, e-wallet, dll — bisa langsung dipakai tanpa approval). Isi <code>QRCODE</code> HANYA setelah QRIS berhasil diaktifkan Xendit di akunmu (Settings &gt; Payment Channels, butuh ~5 hari kerja / hubungi Account Manager Xendit).
-                        </p>
-                      </div>
-                    </div>
-
-                    {form.xendit_secret_key && (
-                      <div className="flex justify-end pt-2">
-                        <button
-                          type="button"
-                          onClick={testXenditConnection}
-                          disabled={isTestingXendit}
-                          className="px-4 py-2 border border-amber-200 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                        >
-                          {isTestingXendit ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              Menguji...
-                            </>
-                          ) : (
-                            "Uji Koneksi Xendit"
                           )}
                         </button>
                       </div>
@@ -1898,6 +1852,317 @@ function PengaturanContent() {
                       </button>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: AKSES TIER */}
+            {activeTab === "tier_access" && (
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="border-b border-gray-100 pb-4 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900">Akses Tier & Pengaturan Aksesibilitas Fitur</h3>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Atur aksesibilitas fitur dan halaman khusus untuk tingkat akun Pro (Premium). Toggle switch berikut menentukan apakah pengguna berstatus Pro dapat mengakses fitur/halaman terkait.
+                  </p>
+                </div>
+
+                {/* PRO TIER CARD */}
+                <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/70 via-orange-50/40 to-amber-100/50 p-6 md:p-8 shadow-sm">
+                  {/* CARD HEADER */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-amber-200/80">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center ring-8 ring-amber-500/5">
+                        <Sparkles className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xl font-extrabold text-gray-900">Kartu Akses Pro (Premium)</h4>
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-xs">PRO TIER</span>
+                        </div>
+                        <p className="text-xs text-amber-900/70 mt-0.5">
+                          Konfigurasi ketersediaan halaman dan fitur AI untuk akun siswa/mahasiswa bertipe Pro.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FEATURES LIST & TOGGLERS */}
+                  <div className="mt-6 space-y-4">
+                    {[
+                      {
+                        key: "pro_access_ai_cv_generator",
+                        name: "AI CV Generator (Pembuat CV Pintar)",
+                        path: "/dashboard/cv/cv-pintar",
+                        desc: "Akses ke fitur pembuat CV berbasis AI. (Catatan: Akun Free juga dapat menggunakan CV Generator).",
+                      },
+                      {
+                        key: "pro_access_ai_analytics",
+                        name: "AI CV Analyzer & Analytics",
+                        path: "/dashboard/ai-analytics",
+                        desc: "Fitur analisis kecocokan resume & insight karir otomatis menggunakan AI.",
+                      },
+                      {
+                        key: "pro_access_ai_report",
+                        name: "AI Report & Summary",
+                        path: "/dashboard/ai-report",
+                        desc: "Generator ringkasan dan evaluasi kemajuan kegiatan magang berbasis AI.",
+                      },
+                    ].map((feature) => {
+                      const isEnabled = Boolean((form as any)[feature.key]);
+                      return (
+                        <div
+                          key={feature.key}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-white/90 border border-amber-200/60 shadow-2xs hover:border-amber-300 transition-all"
+                        >
+                          <div className="space-y-1 max-w-xl">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm text-gray-900">{feature.name}</span>
+                              <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 font-mono text-[10px]">{feature.path}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 leading-relaxed">{feature.desc}</p>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                            <span className={`text-xs font-semibold ${isEnabled ? "text-green-600" : "text-gray-400"}`}>
+                              {isEnabled ? "Akses Diizinkan" : "Akses Dinonaktifkan"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleChange(feature.key, !isEnabled)}
+                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                isEnabled ? "bg-amber-500" : "bg-gray-200"
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                  isEnabled ? "translate-x-5" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: PEMBAYARAN & LANGGANAN */}
+            {activeTab === "pembayaran" && (
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="border-b border-gray-100 pb-4 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900">Pengaturan Pembayaran & Langganan</h3>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Kelola harga paket langganan Pro, informasi rekening penagihan perusahaan, serta koneksi Xendit Payment Gateway.
+                  </p>
+                </div>
+
+                {/* SECTION 1: PRO SUBSCRIPTION PRICING */}
+                <div className="bg-purple-50/60 p-5 md:p-6 rounded-2xl border border-purple-100 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 text-purple-600 rounded-xl">
+                      <Banknote className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800">Harga Paket Langganan Pro (Premium)</h4>
+                      <p className="text-gray-500 text-xs">Atur tarif biaya langganan siswa/mahasiswa dalam mata uang Rupiah (IDR).</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Harga Paket Pro Bulanan (Rp)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                        <input
+                          type="number"
+                          name="pro_monthly_price"
+                          value={form.pro_monthly_price}
+                          onChange={handleInputChange}
+                          required
+                          min={0}
+                          placeholder="99000"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-purple-500 font-semibold"
+                        />
+                      </div>
+                      <p className="text-gray-400 text-[11px] mt-1">
+                        Format angka murni tanpa titik/koma (mis. <code className="bg-white px-1 py-0.5 rounded border border-gray-200">99000</code> untuk Rp 99.000 / bulan).
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Harga Paket Pro Tahunan (Rp)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                        <input
+                          type="number"
+                          name="pro_yearly_price"
+                          value={form.pro_yearly_price}
+                          onChange={handleInputChange}
+                          required
+                          min={0}
+                          placeholder="999000"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-purple-500 font-semibold"
+                        />
+                      </div>
+                      <p className="text-gray-400 text-[11px] mt-1">
+                        Format angka murni tanpa titik/koma (mis. <code className="bg-white px-1 py-0.5 rounded border border-gray-200">999000</code> untuk Rp 999.000 / tahun).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 2: COMPANY BANK & BILLING DETAILS */}
+                <div className="bg-indigo-50/50 p-5 md:p-6 rounded-2xl border border-indigo-100 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
+                      <Building className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800">Rekening & Informasi Perusahaan (Xendit Invoice Header)</h4>
+                      <p className="text-gray-500 text-xs">Identitas bank dan alamat penagihan resmi perusahaan yang dicantumkan pada kuitansi/invoice.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Nama Bank Perusahaan</label>
+                      <input
+                        type="text"
+                        name="company_bank_name"
+                        value={form.company_bank_name}
+                        onChange={handleInputChange}
+                        placeholder="Contoh: Bank Central Asia (BCA)"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Nomor Rekening Bank</label>
+                      <input
+                        type="text"
+                        name="company_bank_account_number"
+                        value={form.company_bank_account_number}
+                        onChange={handleInputChange}
+                        placeholder="Contoh: 1234567890"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Atas Nama Pemilik Rekening</label>
+                      <input
+                        type="text"
+                        name="company_bank_account_name"
+                        value={form.company_bank_account_name}
+                        onChange={handleInputChange}
+                        placeholder="Contoh: PT Makerindo Prima Solusindo"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Alamat Cabang / Kantor Perusahaan</label>
+                      <input
+                        type="text"
+                        name="company_bank_address"
+                        value={form.company_bank_address}
+                        onChange={handleInputChange}
+                        placeholder="Contoh: Bandung, West Java, Indonesia"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 3: XENDIT PAYMENT GATEWAY CONNECTOR */}
+                <div className="bg-amber-50/50 p-5 md:p-6 rounded-2xl border border-amber-200/80 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800">Konektor API Xendit Payment Gateway</h4>
+                      <p className="text-gray-500 text-xs">Dipakai untuk membuat invoice QRIS & memproses webhook callback pembayaran langganan siswa.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Xendit Secret Key</label>
+                      <div className="relative">
+                        <input
+                          type={showXenditKey ? "text" : "password"}
+                          name="xendit_secret_key"
+                          value={form.xendit_secret_key}
+                          onChange={handleInputChange}
+                          placeholder="xnd_development_..."
+                          className="w-full pl-3 pr-10 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-amber-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowXenditKey(!showXenditKey)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        >
+                          {showXenditKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-gray-400 text-[11px] mt-1">
+                        Gunakan key berawalan <code className="bg-white px-1 py-0.5 rounded border border-gray-200">xnd_development_</code> untuk uji coba, atau <code className="bg-white px-1 py-0.5 rounded border border-gray-200">xnd_production_</code> untuk live.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Webhook Verification Token</label>
+                      <input
+                        type="text"
+                        name="xendit_webhook_token"
+                        value={form.xendit_webhook_token}
+                        onChange={handleInputChange}
+                        placeholder="Token dari Xendit Dashboard > Webhooks"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-amber-500"
+                      />
+                      <p className="text-gray-400 text-[11px] mt-1">
+                        Memverifikasi keaslian payload callback webhook dari Xendit server.
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Batasi Channel Pembayaran (Opsional)</label>
+                      <input
+                        type="text"
+                        name="xendit_payment_methods"
+                        value={form.xendit_payment_methods}
+                        onChange={handleInputChange}
+                        placeholder="Kosongkan (default) — atau isi 'QRCODE' setelah QRIS aktif"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-amber-500"
+                      />
+                      <p className="text-gray-400 text-[11px] mt-1">
+                        Kosongkan agar Xendit menampilkan semua saluran pembayaran aktif di akunmu (VA, e-wallet, QRIS).
+                      </p>
+                    </div>
+                  </div>
+
+                  {form.xendit_secret_key && (
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="button"
+                        onClick={testXenditConnection}
+                        disabled={isTestingXendit}
+                        className="px-4 py-2 border border-amber-200 hover:bg-amber-100 text-amber-800 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {isTestingXendit ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Menguji Koneksi Xendit...
+                          </>
+                        ) : (
+                          "Uji Koneksi Xendit API"
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

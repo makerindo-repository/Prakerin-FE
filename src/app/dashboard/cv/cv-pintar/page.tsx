@@ -499,10 +499,5 @@ const BuatPintarPageInner = () => {
 };
 
 export default function BuatPintarPage() {
-  const studentId = useAuthStore((s) => s.studentId);
-  return (
-    <LockedFeature featureName="AI Smart CV Generator" studentId={studentId}>
-      <BuatPintarPageInner />
-    </LockedFeature>
-  );
+  return <BuatPintarPageInner />;
 }

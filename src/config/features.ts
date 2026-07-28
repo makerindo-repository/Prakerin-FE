@@ -7,20 +7,18 @@
 
 export const PREMIUM_FEATURES = [
   'view_ai_analytics',
-  'view_advanced_reports',
-  'export_data',
-  'custom_integration',
-  'ai_cv_generator',
-  'ai_smart_search',
 ] as const;
 
 export const FREE_FEATURES = [
   'view_dashboard',
   'view_basic_reports',
+  'view_advanced_reports',
   'upload_documents',
   'view_lowongan',
   'view_profile',
   'view_feedback',
+  'ai_cv_generator',
+  'export_data',
 ] as const;
 
 export type PremiumFeature = typeof PREMIUM_FEATURES[number];
