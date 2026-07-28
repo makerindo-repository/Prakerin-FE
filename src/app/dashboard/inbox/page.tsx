@@ -42,6 +42,33 @@ interface InboxMeta {
   per_page: number;
 }
 
+export function formatActionUrl(url: string | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith("/")) return trimmed;
+
+  try {
+    const parsed = new URL(trimmed);
+    if (
+      parsed.hostname === "localhost" ||
+      parsed.hostname === "127.0.0.1" ||
+      parsed.pathname.startsWith("/dashboard") ||
+      (typeof window !== "undefined" && parsed.host === window.location.host)
+    ) {
+      return parsed.pathname + parsed.search + parsed.hash;
+    }
+  } catch {
+    const idx = trimmed.indexOf("/dashboard");
+    if (idx !== -1) {
+      return trimmed.substring(idx);
+    }
+  }
+
+  return trimmed;
+}
+
 const typeConfig: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
   application_status: {
     icon: <ClipboardList className="w-5 h-5" />,
@@ -245,9 +272,9 @@ export default function InboxPage() {
                           <span className="text-xs text-slate-400 whitespace-nowrap">
                             {timeAgo(item.created_at)}
                           </span>
-                          {item.action_url && (
+                          {item.action_url && formatActionUrl(item.action_url) && (
                             <Link
-                              href={item.action_url}
+                              href={formatActionUrl(item.action_url)!}
                               onClick={() => {
                                 if (!item.is_read) markRead(item.id);
                               }}

@@ -1876,7 +1876,7 @@ function PengaturanContent() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-xl font-extrabold text-gray-900">Kartu Akses Pro (Premium)</h4>
+                          <h4 className="text-xl font-extrabold text-gray-900">Pengaturan Fitur Premium</h4>
                           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-xs">PRO TIER</span>
                         </div>
                         <p className="text-xs text-amber-900/70 mt-0.5">

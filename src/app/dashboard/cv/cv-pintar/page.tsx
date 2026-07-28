@@ -27,7 +27,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
   const templates = [
     { key: "ATS", label: "ATS Friendly" },
     { key: "Classic", label: "Classic / Formal" },
-    { key: "Modern", label: "Modern Graphic" },
+    { key: "Modern", label: "Modern Graphic", hidden: true },
   ];
   const [selectedTemplate, setSelectedTemplate] = useState<string>("ATS");
   const [prompt, setPrompt] = useState("");
@@ -394,19 +394,21 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
           )}
         </div>
         <div className="flex gap-2 flex-wrap">
-          {templates.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setSelectedTemplate(t.key)}
-              className={`text-sm px-4 py-2 rounded-lg border font-medium transition-all ${
-                selectedTemplate === t.key
-                  ? "border-accent bg-accent/10 text-accent font-semibold shadow-sm"
-                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+          {templates
+            .filter((t) => !t.hidden)
+            .map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setSelectedTemplate(t.key)}
+                className={`text-sm px-4 py-2 rounded-lg border font-medium transition-all ${
+                  selectedTemplate === t.key
+                    ? "border-accent bg-accent/10 text-accent font-semibold shadow-sm"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
         </div>
       </div>
 

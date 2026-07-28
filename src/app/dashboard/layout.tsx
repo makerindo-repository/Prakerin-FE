@@ -114,8 +114,8 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "AI Features",
       items: [
-        { icon: Brain, label: "AI CV Analyzer", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
         { icon: Sparkles, label: "AI Smart CV Generator", href: "/dashboard/cv/cv-pintar", permission: "view_ai_analytics" },
+        { icon: Brain, label: "AI CV Analyzer", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
         { icon: FileText, label: "AI Report", href: "/dashboard/ai-report", permission: "view_ai_analytics" },
       ],
     },
@@ -181,8 +181,8 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "AI Features",
       items: [
-        { icon: Brain, label: "AI CV Analyzer", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
         { icon: Sparkles, label: "AI Smart CV Generator", href: "/dashboard/cv/cv-pintar", permission: "view_profil" },
+        { icon: Brain, label: "AI CV Analyzer", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
         { icon: FileText, label: "AI Report", href: "/dashboard/ai-report", permission: "view_dashboard" },
       ],
     },
