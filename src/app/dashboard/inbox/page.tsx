@@ -42,7 +42,7 @@ interface InboxMeta {
   per_page: number;
 }
 
-export function formatActionUrl(url: string | null): string | null {
+function formatActionUrl(url: string | null): string | null {
   if (!url) return null;
   const trimmed = url.trim();
   if (!trimmed) return null;
