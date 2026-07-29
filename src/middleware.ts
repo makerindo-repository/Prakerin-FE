@@ -107,7 +107,7 @@ export function middleware(req: NextRequest) {
   }
 
   // Allow access to homepage and public routes for everyone
-  const publicRoutes = ["/", "/masuk", "/daftar", "/tentang-kami", "/hubungi-cs", "/lapor-bug"];
+  const publicRoutes = ["/", "/masuk", "/daftar", "/tentang-kami", "/hubungi-cs", "/lapor-bug", "/hubungi-kami"];
   if (publicRoutes.includes(path)) {
     return NextResponse.next();
   }

@@ -1,7 +1,8 @@
 "use client";
 import { AlertCircle, ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Clock, HelpCircle, Mail, MessageSquare, Send, User } from "lucide-react";
 import Link from "next/link";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { API, ENDPOINTS } from "@/utils/config";
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
@@ -40,17 +41,26 @@ interface ContactMessage {
   replies: Reply[];
 }
 
-const HubungiKamiPage: React.FC = () => {
+const HubungiKamiContent: React.FC = () => {
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
+
   const [activeTab, setActiveTab] = useState<"send" | "check">("send");
   
   // Send message form state
   const [form, setForm] = useState<MessageForm>({
     name: "",
     email: "",
-    category: "general",
+    category: (categoryParam === "bug" || categoryParam === "feedback" || categoryParam === "general") ? categoryParam : "general",
     subject: "",
     message: "",
   });
+
+  useEffect(() => {
+    if (categoryParam === "bug" || categoryParam === "feedback" || categoryParam === "general") {
+      setForm((prev) => ({ ...prev, category: categoryParam }));
+    }
+  }, [categoryParam]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
@@ -501,4 +511,14 @@ const HubungiKamiPage: React.FC = () => {
   );
 };
 
-export default HubungiKamiPage;
+export default function HubungiKamiPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-gray-500 font-medium">
+        Loading...
+      </div>
+    }>
+      <HubungiKamiContent />
+    </Suspense>
+  );
+}

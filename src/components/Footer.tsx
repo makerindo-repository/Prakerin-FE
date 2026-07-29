@@ -25,7 +25,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Dukungan",
     links: [
-      { label: "Pusat Bantuan", href: "/hubungi-cs" },
+      { label: "Pusat Bantuan", href: "/hubungi-kami?category=general" },
       { label: "Hubungi Kami", href: "/hubungi-kami" },
       { label: "Kebijakan Privasi", href: "/tentang-kami" },
       { label: "Syarat & Ketentuan", href: "/tentang-kami" },

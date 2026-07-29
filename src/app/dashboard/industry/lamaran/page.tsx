@@ -19,7 +19,6 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import TabsComponent from "@/components/TabsCompenent";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
-import page from "@/app/hubungi-cs/page";
 import Loader from "@/components/loader";
 
 interface Lamaran {

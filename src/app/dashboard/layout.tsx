@@ -752,7 +752,7 @@ export default function DashboardLayout({
                       Profile
                     </Link>
                     <Link
-                      href="/lapor-bug"
+                      href="/hubungi-kami?category=bug"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
@@ -760,7 +760,7 @@ export default function DashboardLayout({
                       Laporan Bug
                     </Link>
                     <Link
-                      href="/hubungi-cs"
+                      href="/hubungi-kami?category=general"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
