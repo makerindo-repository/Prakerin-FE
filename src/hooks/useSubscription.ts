@@ -21,6 +21,14 @@ export interface SubscriptionData {
     is_expired: boolean;
     is_renewal_due: boolean;
   } | null;
+  pending_payment: {
+    invoice_id: string | null;
+    invoice_url: string | null;
+    qr_code_url: string | null;
+    amount: number;
+    package: "monthly" | "yearly" | null;
+    expiry_date: string | null;
+  } | null;
 }
 
 export function useSubscription(studentId?: string | null) {

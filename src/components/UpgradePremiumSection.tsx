@@ -4,6 +4,7 @@ import { API, createApiCall, ENDPOINTS } from "@/utils/config";
 import { alertError } from "@/libs/alert";
 import { SubscriptionStatus } from "./SubscriptionStatus";
 import { SubscriptionQRISModal } from "./SubscriptionQRISModal";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface UpgradePremiumSectionProps {
   studentId: string | null;
@@ -21,6 +22,7 @@ export interface PackageItem {
  * jadi satu alur upgrade yang utuh untuk siswa/mahasiswa.
  */
 export default function UpgradePremiumSection({ studentId }: UpgradePremiumSectionProps) {
+  const { data: subscriptionData, refreshSubscription } = useSubscription(studentId);
   const [showPicker, setShowPicker] = useState(false);
   const [creating, setCreating] = useState<string | null>(null);
   const [statusKey, setStatusKey] = useState(0); // trik buat force-refresh SubscriptionStatus
@@ -95,6 +97,10 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
           packageName: pkg.name,
           expiryDate: res.expiry_date ?? null,
         });
+        // Supaya kalau modal ini ditutup (X) lalu tombol upgrade diklik lagi,
+        // handleUpgradeClick() sudah punya data pending_payment yang terbaru
+        // untuk di-resume — bukan nunjukin picker dari awal lagi.
+        refreshSubscription();
       }
     } catch (error: any) {
       const message = error?.response?.data?.errors || "Gagal membuat invoice pembayaran.";
@@ -104,12 +110,37 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
     }
   };
 
+  // Dipanggil saat tombol "Upgrade"/"Perpanjang" di SubscriptionStatus diklik.
+  // Kalau masih ada invoice pending & belum expired, langsung tampilkan lagi
+  // QR pembayarannya (skip halaman pilih paket) — inilah yang bikin klik "X"
+  // (sengaja/tidak sengaja) lalu klik tombol beli lagi TIDAK mengulang dari
+  // awal, karena datanya diambil dari `pending_payment` (bukan bikin baru).
+  const handleUpgradeClick = () => {
+    const pending = subscriptionData?.pending_payment;
+
+    if (pending && pending.invoice_url) {
+      const matchedPkg = packages.find((p) => p.key === pending.package);
+      setSelectedPackage(matchedPkg ?? null);
+      setInvoice({
+        invoiceId: pending.invoice_id ?? "",
+        invoiceUrl: pending.invoice_url,
+        qrCodeUrl: pending.qr_code_url,
+        amount: pending.amount,
+        packageName: matchedPkg?.name ?? "Premium",
+        expiryDate: pending.expiry_date,
+      });
+      return;
+    }
+
+    setShowPicker(true);
+  };
+
   return (
     <>
       <SubscriptionStatus
         key={statusKey}
         studentId={studentId}
-        onRenewClick={() => setShowPicker(true)}
+        onRenewClick={handleUpgradeClick}
       />
 
       {/* Modal pilih paket */}
@@ -176,6 +207,7 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
         }}
         onPaymentSuccess={() => {
           setStatusKey((k) => k + 1); // paksa SubscriptionStatus refetch status terbaru
+          refreshSubscription(); // clear pending_payment supaya tidak resume invoice yang sudah lunas
         }}
       />
     </>
