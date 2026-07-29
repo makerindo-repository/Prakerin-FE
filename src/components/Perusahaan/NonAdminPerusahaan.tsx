@@ -53,6 +53,7 @@ const NonadminPerusahaan: React.FC = () => {
     pages: 1,
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   const fetchCompany = async (selectedPages = pages.activePages) => {
     setLoading(true);
@@ -184,7 +185,7 @@ const NonadminPerusahaan: React.FC = () => {
               key={index}
             >
               <div className="flex w-full md:w-auto">
-                {data.photo_profile ? (
+                {data.photo_profile && !imgErrors[data.id] ? (
                   <div className="w-15 h-15 relative rounded-full border-white border">
                     <Image
                       src={getPhotoProfileUrl(data.photo_profile) || ''}
@@ -192,6 +193,9 @@ const NonadminPerusahaan: React.FC = () => {
                       fill
                       sizes="100%"
                       className="object-cover rounded-full"
+                      onError={() =>
+                        setImgErrors((prev) => ({ ...prev, [data.id]: true }))
+                      }
                     />
                   </div>
                 ) : (

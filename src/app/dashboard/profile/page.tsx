@@ -296,10 +296,24 @@ export default function ProfilePage() {
           request = userPayload;
           break;
         case "company":
+          if (companyForm.province_id && !companyForm.city_regency_id) {
+            setFormErrors({
+              city_regency_id: "Kota/Kabupaten wajib dipilih setelah memilih provinsi",
+            });
+            setIsSubmitting(false);
+            return;
+          }
           text = "Informasi perusahaan berhasil di simpan!";
           request = { ...companyForm };
           break;
         case "school":
+          if (schoolForm.province_id && !schoolForm.city_regency_id) {
+            setFormErrors({
+              city_regency_id: "Kota/Kabupaten wajib dipilih setelah memilih provinsi",
+            });
+            setIsSubmitting(false);
+            return;
+          }
           text = "Informasi sekolah/universitas berhasil di simpan!";
           request = { ...schoolForm };
           break;
@@ -450,11 +464,12 @@ export default function ProfilePage() {
 
   const fetchCityRegencies = async () => {
     let provinceId = "";
+    const authRole = authorization || Cookies.get("authorization");
 
-    if (authorization === "company") {
+    if (authRole === "company") {
       provinceId = companyForm.province_id;
     }
-    if (authorization === "school") {
+    if (authRole === "school") {
       provinceId = schoolForm.province_id;
     }
     
@@ -475,14 +490,18 @@ export default function ProfilePage() {
 
   const fetchProvinceOptions = async () => {
     try {
-      const response = await API.get(ENDPOINTS.PROVINCES, {
-        params: {
-          is_accepted: true,
-          search: debouncedProvinceSearch,
-          limit: 5,
-          is_limit: true,
-        },
-      });
+      const params: Record<string, any> = {
+        is_accepted: true,
+        search: debouncedProvinceSearch,
+      };
+      if (debouncedProvinceSearch) {
+        params.limit = 10;
+        params.is_limit = true;
+      } else {
+        params.is_limit = false;
+      }
+
+      const response = await API.get(ENDPOINTS.PROVINCES, { params });
       console.log("fetchProvinceOptions", response.data.data);
       const mapped = response.data.data.map((item: Province) => ({
         value: item.id,
@@ -1051,6 +1070,9 @@ export default function ProfilePage() {
                         : "border-gray-300"
                     }`}
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Format: 08xxxxxxxxxx, 628xxxxxxxxxx, atau +628xxxxxxxxxx (10-15 digit)
+                  </p>
                   {formErrors.phone_number && (
                     <p className="mt-1 text-sm text-red-500">
                       {formErrors.phone_number}
@@ -1418,6 +1440,9 @@ export default function ProfilePage() {
                         : "border-gray-300"
                     }`}
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Format: 08xxxxxxxxxx, 628xxxxxxxxxx, atau +628xxxxxxxxxx (10-15 digit)
+                  </p>
                   {formErrors.phone_number && (
                     <p className="mt-1 text-sm text-red-500">
                       {formErrors.phone_number}
@@ -1712,6 +1737,9 @@ export default function ProfilePage() {
                         : "border-gray-300"
                     }`}
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Format: 08xxxxxxxxxx, 628xxxxxxxxxx, atau +628xxxxxxxxxx (10-15 digit)
+                  </p>
                   {formErrors.phone_number && (
                     <p className="mt-1 text-sm text-red-500">
                       {formErrors.phone_number}
