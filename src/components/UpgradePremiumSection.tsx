@@ -56,13 +56,20 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
     qrCodeUrl: string | null;
     amount: number;
     packageName: string;
+    expiryDate: string | null;
   } | null>(null);
+
+  // Disimpan lepas dari `invoice` supaya masih ada walau invoice sudah null
+  // (dipakai tombol "Buat Invoice Baru" saat invoice lama sudah expired).
+  const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(null);
 
   const handleSelectPackage = async (pkg: PackageItem) => {
     if (!studentId) {
       await alertError("Data siswa belum termuat. Silakan muat ulang halaman.");
       return;
     }
+
+    setSelectedPackage(pkg);
 
     try {
       setCreating(pkg.key);
@@ -72,6 +79,7 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
         qr_code_url: string | null;
         amount: number;
         package: string;
+        expiry_date: string | null;
       }>(`${ENDPOINTS.SUBSCRIPTIONS}/create-payment`, {
         method: "POST",
         data: { student_id: studentId, package: pkg.key },
@@ -85,6 +93,7 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
           qrCodeUrl: res.qr_code_url,
           amount: res.amount ?? pkg.price,
           packageName: pkg.name,
+          expiryDate: res.expiry_date ?? null,
         });
       }
     } catch (error: any) {
@@ -160,6 +169,11 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
         invoiceUrl={invoice?.invoiceUrl}
         amount={invoice?.amount ?? 0}
         packageName={invoice?.packageName}
+        expiryDate={invoice?.expiryDate ?? null}
+        onRetry={() => {
+          setInvoice(null);
+          if (selectedPackage) handleSelectPackage(selectedPackage);
+        }}
         onPaymentSuccess={() => {
           setStatusKey((k) => k + 1); // paksa SubscriptionStatus refetch status terbaru
         }}

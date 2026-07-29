@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { X, CheckCircle2, QrCode, AlertCircle, ExternalLink, Loader2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { X, CheckCircle2, QrCode, AlertCircle, ExternalLink, Loader2, TimerOff, RefreshCw } from "lucide-react";
 import { usePaymentPolling } from "@/hooks/usePaymentPolling";
 
 interface SubscriptionQRISModalProps {
@@ -12,7 +12,19 @@ interface SubscriptionQRISModalProps {
   invoiceUrl?: string | null;
   amount: number;
   packageName?: string;
+  /** ISO timestamp — kapan invoice ini kedaluwarsa (dari Xendit `expiry_date`). */
+  expiryDate?: string | null;
+  /** Dipanggil saat siswa klik "Buat Invoice Baru" di layar expired. */
+  onRetry?: () => void;
   onPaymentSuccess?: () => void;
+}
+
+/** Format detik sisa jadi "mm:ss". */
+function formatCountdown(totalSeconds: number): string {
+  const safe = Math.max(0, totalSeconds);
+  const m = Math.floor(safe / 60);
+  const s = safe % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
 export function SubscriptionQRISModal({
@@ -23,16 +35,56 @@ export function SubscriptionQRISModal({
   invoiceUrl,
   amount,
   packageName = "Monthly Premium",
+  expiryDate,
+  onRetry,
   onPaymentSuccess,
 }: SubscriptionQRISModalProps) {
+  const [failureMessage, setFailureMessage] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+
   const { isPolling, paid, status } = usePaymentPolling({
     invoiceId,
     onSuccess: () => {
       if (onPaymentSuccess) onPaymentSuccess();
     },
+    onFailure: (msg) => {
+      setFailureMessage(msg);
+    },
   });
 
+  // Reset local UI state whenever a new invoice comes in, so the modal
+  // doesn't carry over the previous invoice's expired/failure state.
+  useEffect(() => {
+    setFailureMessage(null);
+  }, [invoiceId]);
+
+  // Live countdown ticking every second toward `expiryDate`. This is the
+  // fast, visible clock for the user; the actual expiry is enforced
+  // server-side (Xendit's own `invoice_duration` + our polling/scheduled
+  // command fallback), so even if this tab is closed/asleep the payment
+  // still correctly resolves to expired.
+  useEffect(() => {
+    if (!expiryDate || paid) {
+      setSecondsLeft(null);
+      return;
+    }
+
+    const expiryTime = new Date(expiryDate).getTime();
+
+    const tick = () => {
+      const remaining = Math.round((expiryTime - Date.now()) / 1000);
+      setSecondsLeft(remaining);
+    };
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [expiryDate, paid]);
+
   if (!isOpen) return null;
+
+  const isTimeUp = secondsLeft !== null && secondsLeft <= 0;
+  const isExpired = !paid && (status === "EXPIRED" || status === "FAILED" || !!failureMessage || isTimeUp);
 
   const formattedAmount = new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -86,6 +138,36 @@ export function SubscriptionQRISModal({
                 Mulai Gunakan Premium
               </button>
             </div>
+          ) : isExpired ? (
+            <div className="py-8 flex flex-col items-center animate-fade-in">
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mb-4 ring-8 ring-red-500/10">
+                <TimerOff className="w-10 h-10" />
+              </div>
+              <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                Waktu Pembayaran Habis
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs mb-6">
+                {failureMessage ||
+                  "Invoice ini sudah kedaluwarsa karena tidak dibayar dalam batas waktu yang ditentukan."}
+              </p>
+              <div className="flex flex-col gap-2 w-full">
+                {onRetry && (
+                  <button
+                    onClick={onRetry}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm transition-colors shadow-md"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Buat Invoice Baru
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 px-6 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 font-medium text-sm transition-colors"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
           ) : (
             <>
               {/* Amount Badge */}
@@ -97,6 +179,20 @@ export function SubscriptionQRISModal({
                   {formattedAmount}
                 </div>
               </div>
+
+              {/* Countdown */}
+              {secondsLeft !== null && (
+                <div
+                  className={`mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                    secondsLeft <= 60
+                      ? "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900/40"
+                      : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/40"
+                  }`}
+                >
+                  <TimerOff className="w-3.5 h-3.5" />
+                  <span>Bayar dalam {formatCountdown(secondsLeft)}</span>
+                </div>
+              )}
 
               {/* QR Code Container */}
               <div className="relative p-4 bg-white rounded-2xl border-2 border-dashed border-gray-200 dark:border-slate-700 shadow-inner mb-4 flex flex-col items-center">
@@ -145,7 +241,7 @@ export function SubscriptionQRISModal({
         </div>
 
         {/* Footer */}
-        {!paid && (
+        {!paid && !isExpired && (
           <div className="px-6 py-3 bg-gray-50 dark:bg-slate-800/50 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
             <span className="flex items-center gap-1">
               <AlertCircle className="w-3.5 h-3.5" />
