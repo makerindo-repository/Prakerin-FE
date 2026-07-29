@@ -453,7 +453,11 @@ const DaftarMahasiswaPage: React.FC = () => {
         {/* Mobile Card View */}
         <div className="md:hidden">
           {students && !isLoading ? (
-            students.map((task, index) => (
+            students.map((task, index) => {
+              const magangStatus = task.status_magang || task.status || "not_started";
+              const subStatus = task.status_subscription || task.student?.status_subscription || "free";
+
+              return (
               <div
                 key={index}
                 className="border-b last:border-b-0 p-4 hover:bg-gray-50"
@@ -471,10 +475,10 @@ const DaftarMahasiswaPage: React.FC = () => {
                   </div>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 flex-shrink-0 ${getStatusColor(
-                      task.status
+                      magangStatus
                     )}`}
                   >
-                    {getStatusName(task.status)}
+                    {getStatusName(magangStatus)}
                   </span>
                 </div>
                 
@@ -489,6 +493,18 @@ const DaftarMahasiswaPage: React.FC = () => {
                     <span className="text-gray-500 w-16 flex-shrink-0">Jurusan:</span>
                     <span className="text-gray-900 font-medium break-words">
                       {task.major?.name ?? "-"}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-500 w-16 flex-shrink-0">Langganan:</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        subStatus === "premium"
+                          ? "bg-amber-100 text-amber-800 border border-amber-300"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {subStatus}
                     </span>
                   </div>
                 </div>
@@ -513,7 +529,8 @@ const DaftarMahasiswaPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))
+            );
+            })
           ) : (
             <div className="p-4">
               <Loader />
