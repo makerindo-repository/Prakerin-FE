@@ -481,15 +481,17 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
                   ? (MAJOR_ICON_MAP[item.icon] || Monitor)
                   : item.icon;
                 return (
-                  <div key={item.label}>
+                  <div key={item.full_name || item.label}>
                     <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${c.bg}`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${c.bg}`}>
                           <IconComponent className={`w-3.5 h-3.5 ${c.text}`} />
                         </div>
-                        <span className="text-xs font-medium text-gray-700">{item.label}</span>
+                        <span className="text-xs font-medium text-gray-700 truncate" title={item.full_name || item.label}>
+                          {item.full_name || item.label}
+                        </span>
                       </div>
-                      <span className="text-xs font-bold text-gray-900">{item.value}%</span>
+                      <span className="text-xs font-bold text-gray-900 shrink-0 ml-2">{item.value}%</span>
                     </div>
                     <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full bg-accent rounded-full" style={{ width: `${item.value}%` }} />
