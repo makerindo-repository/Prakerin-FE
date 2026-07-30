@@ -39,7 +39,7 @@ interface RevenueRecord {
   payment_date: string | null;
   period_start: string;
   period_end: string;
-  xendit_invoice_id: string | null;
+  payment_reference_id: string | null;
 }
 
 export default function RevenueDashboardPage() {
@@ -111,7 +111,7 @@ export default function RevenueDashboardPage() {
       alertSuccess(res?.message || "Status berhasil disinkronkan.");
       fetchData();
     } catch (error: any) {
-      const msg = error?.response?.data?.errors || "Gagal sinkronkan status ke Xendit.";
+      const msg = error?.response?.data?.errors || "Gagal sinkronkan status ke Midtrans.";
       alertError(msg);
     } finally {
       setSyncingId(null);
@@ -143,7 +143,7 @@ export default function RevenueDashboardPage() {
             Revenue Dashboard
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Pantau total pendapatan, transaksi langganan Xendit, dan status pembayaran.
+            Pantau total pendapatan, transaksi langganan, dan status pembayaran.
           </p>
         </div>
 
@@ -393,7 +393,7 @@ export default function RevenueDashboardPage() {
                         : "—"}
                     </td>
                     <td className="px-6 py-4 text-xs font-mono text-gray-400">
-                      {r.xendit_invoice_id || "—"}
+                      {r.payment_reference_id || "—"}
                     </td>
                     <td className="px-6 py-4">
                       {r.payment_status === "pending" ? (
@@ -405,7 +405,7 @@ export default function RevenueDashboardPage() {
                           <RefreshCw
                             className={`w-3.5 h-3.5 ${syncingId === r.id ? "animate-spin" : ""}`}
                           />
-                          {syncingId === r.id ? "Cek..." : "Sync dari Xendit"}
+                          {syncingId === r.id ? "Cek..." : "Sync dari Midtrans"}
                         </button>
                       ) : (
                         <span className="text-gray-300 text-xs">—</span>
