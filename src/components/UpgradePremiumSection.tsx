@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { X, Check } from "lucide-react";
 import { API, createApiCall, ENDPOINTS } from "@/utils/config";
-import { alertError } from "@/libs/alert";
+import { alertError, alertConfirm, alertSuccess } from "@/libs/alert";
 import { SubscriptionStatus } from "./SubscriptionStatus";
 import { SubscriptionQRISModal } from "./SubscriptionQRISModal";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -25,6 +25,7 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
   const { data: subscriptionData, refreshSubscription } = useSubscription(studentId);
   const [showPicker, setShowPicker] = useState(false);
   const [creating, setCreating] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [statusKey, setStatusKey] = useState(0); // trik buat force-refresh SubscriptionStatus
 
   const [packages, setPackages] = useState<PackageItem[]>([
@@ -97,9 +98,6 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
           packageName: pkg.name,
           expiryDate: res.expiry_date ?? null,
         });
-        // Supaya kalau modal ini ditutup (X) lalu tombol upgrade diklik lagi,
-        // handleUpgradeClick() sudah punya data pending_payment yang terbaru
-        // untuk di-resume — bukan nunjukin picker dari awal lagi.
         refreshSubscription();
       }
     } catch (error: any) {
@@ -110,11 +108,6 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
     }
   };
 
-  // Dipanggil saat tombol "Upgrade"/"Perpanjang" di SubscriptionStatus diklik.
-  // Kalau masih ada invoice pending & belum expired, langsung tampilkan lagi
-  // QR pembayarannya (skip halaman pilih paket) — inilah yang bikin klik "X"
-  // (sengaja/tidak sengaja) lalu klik tombol beli lagi TIDAK mengulang dari
-  // awal, karena datanya diambil dari `pending_payment` (bukan bikin baru).
   const handleUpgradeClick = () => {
     const pending = subscriptionData?.pending_payment;
 
@@ -135,12 +128,44 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
     setShowPicker(true);
   };
 
+  const handleCancelSubscription = async () => {
+    if (!studentId) {
+      await alertError("Data siswa belum termuat. Silakan muat ulang halaman.");
+      return;
+    }
+
+    const confirmed = await alertConfirm(
+      "Batalkan Paket Premium",
+      "Apakah Anda yakin ingin membatalkan paket langganan Premium Anda? Akses fitur Premium akan dinonaktifkan."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setIsCancelling(true);
+      await createApiCall(`${ENDPOINTS.SUBSCRIPTIONS}/cancel`, {
+        method: "POST",
+        data: { student_id: studentId },
+      });
+      await alertSuccess("Paket langganan Premium berhasil dibatalkan.");
+      setStatusKey((k) => k + 1);
+      refreshSubscription();
+    } catch (error: any) {
+      const message = error?.response?.data?.errors || "Gagal membatalkan paket langganan.";
+      await alertError(typeof message === "string" ? message : "Gagal membatalkan paket langganan.");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   return (
     <>
       <SubscriptionStatus
         key={statusKey}
         studentId={studentId}
         onRenewClick={handleUpgradeClick}
+        onCancelClick={handleCancelSubscription}
+        isCancelling={isCancelling}
       />
 
       {/* Modal pilih paket */}
