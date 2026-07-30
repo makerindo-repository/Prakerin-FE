@@ -1,17 +1,21 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Calendar, Clock, RefreshCw, AlertTriangle } from "lucide-react";
+import { Sparkles, Calendar, Clock, RefreshCw, AlertTriangle, Loader2 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 
 interface SubscriptionStatusProps {
   studentId?: string | null;
   onRenewClick?: () => void;
+  onCancelClick?: () => void;
+  isCancelling?: boolean;
 }
 
 export function SubscriptionStatus({
   studentId,
   onRenewClick,
+  onCancelClick,
+  isCancelling = false,
 }: SubscriptionStatusProps) {
   const { data, tier, isPremium, isExpired, renewalDate, loading, refreshSubscription } =
     useSubscription(studentId);
@@ -82,16 +86,34 @@ export function SubscriptionStatus({
       <div className="flex items-center gap-2">
         <button
           onClick={() => refreshSubscription()}
-          className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           title="Refresh Status"
         >
           <RefreshCw className="w-4 h-4" />
         </button>
 
+        {isPremium && onCancelClick && (
+          <button
+            type="button"
+            onClick={onCancelClick}
+            disabled={isCancelling}
+            className="px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 font-medium text-xs shadow-sm transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+          >
+            {isCancelling ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Memproses...
+              </>
+            ) : (
+              "Batalkan Paket"
+            )}
+          </button>
+        )}
+
         {onRenewClick && (
           <button
             onClick={onRenewClick}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs shadow-sm hover:shadow transition-all"
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs shadow-sm hover:shadow transition-all cursor-pointer"
           >
             {isPremium ? "Perpanjang Paket" : "Upgrade Premium"}
           </button>
