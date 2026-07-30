@@ -44,6 +44,7 @@ function PengaturanContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [isTestingSmtp, setIsTestingSmtp] = useState(false);
   const [isTestingAi, setIsTestingAi] = useState(false);
+  const [isTestingMidtrans, setIsTestingMidtrans] = useState(false);
   const [isTestingXendit, setIsTestingXendit] = useState(false);
   const [isTestingWa, setIsTestingWa] = useState(false);
 
@@ -66,6 +67,9 @@ function PengaturanContent() {
     pre_internship_class_url: "https://makerindo.myr.id/",
     ai_provider: "gemini",
     ai_api_key: "",
+    midtrans_server_key: "",
+    midtrans_client_key: "",
+    midtrans_is_production: false,
     xendit_secret_key: "",
     xendit_webhook_token: "",
     xendit_payment_methods: "",
@@ -99,6 +103,7 @@ function PengaturanContent() {
 
   // Password visibility toggles
   const [showAiKey, setShowAiKey] = useState(false);
+  const [showMidtransKey, setShowMidtransKey] = useState(false);
   const [showXenditKey, setShowXenditKey] = useState(false);
   const [showRecaptchaSecret, setShowRecaptchaSecret] = useState(false);
   const [showSmtpPassword, setShowSmtpPassword] = useState(false);
@@ -266,6 +271,44 @@ function PengaturanContent() {
       alertError(msg);
     } finally {
       setIsTestingAi(false);
+    }
+  };
+
+  const testMidtransConnection = async () => {
+    setIsTestingMidtrans(true);
+    try {
+      // First save settings so backend has latest config
+      await API.post(
+        ENDPOINTS.SETTINGS,
+        { settings: form },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      const response = await API.post(
+        `${ENDPOINTS.SETTINGS}/test-midtrans`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      if (response.data?.status === "success") {
+        alertSuccess(response.data.message || "Koneksi Midtrans Berhasil!");
+      } else {
+        alertError("Koneksi Midtrans Gagal.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Gagal menghubungi API Midtrans.";
+      alertError(msg);
+    } finally {
+      setIsTestingMidtrans(false);
     }
   };
 
@@ -1954,7 +1997,7 @@ function PengaturanContent() {
                 <div className="border-b border-gray-100 pb-4 mb-6">
                   <h3 className="text-lg font-bold text-gray-900">Pengaturan Pembayaran & Langganan</h3>
                   <p className="text-gray-500 text-xs mt-1">
-                    Kelola harga paket langganan Pro, informasi rekening penagihan perusahaan, serta koneksi Xendit Payment Gateway.
+                    Kelola harga paket langganan Pro, informasi rekening penagihan perusahaan, serta koneksi Midtrans Payment Gateway.
                   </p>
                 </div>
 
@@ -2020,7 +2063,7 @@ function PengaturanContent() {
                       <Building className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-gray-800">Rekening & Informasi Perusahaan (Xendit Invoice Header)</h4>
+                      <h4 className="text-sm font-bold text-gray-800">Rekening & Informasi Perusahaan (Header Invoice)</h4>
                       <p className="text-gray-500 text-xs">Identitas bank dan alamat penagihan resmi perusahaan yang dicantumkan pada kuitansi/invoice.</p>
                     </div>
                   </div>
@@ -2083,87 +2126,171 @@ function PengaturanContent() {
                       <CreditCard className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-gray-800">Konektor API Xendit Payment Gateway</h4>
-                      <p className="text-gray-500 text-xs">Dipakai untuk membuat invoice QRIS & memproses webhook callback pembayaran langganan siswa.</p>
+                      <h4 className="text-sm font-bold text-gray-800">Konektor API Midtrans Payment Gateway</h4>
+                      <p className="text-gray-500 text-xs">Dipakai untuk membuat transaksi QRIS & memproses notifikasi callback pembayaran langganan siswa.</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Xendit Secret Key</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Midtrans Server Key</label>
                       <div className="relative">
                         <input
-                          type={showXenditKey ? "text" : "password"}
-                          name="xendit_secret_key"
-                          value={form.xendit_secret_key}
+                          type={showMidtransKey ? "text" : "password"}
+                          name="midtrans_server_key"
+                          value={form.midtrans_server_key}
                           onChange={handleInputChange}
-                          placeholder="xnd_development_..."
+                          placeholder="SB-Mid-server-... atau Mid-server-..."
                           className="w-full pl-3 pr-10 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-amber-500"
                         />
                         <button
                           type="button"
-                          onClick={() => setShowXenditKey(!showXenditKey)}
+                          onClick={() => setShowMidtransKey(!showMidtransKey)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                         >
-                          {showXenditKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showMidtransKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
                       <p className="text-gray-400 text-[11px] mt-1">
-                        Gunakan key berawalan <code className="bg-white px-1 py-0.5 rounded border border-gray-200">xnd_development_</code> untuk uji coba, atau <code className="bg-white px-1 py-0.5 rounded border border-gray-200">xnd_production_</code> untuk live.
+                        Dipakai untuk bikin transaksi QRIS & verifikasi signature webhook. Diambil dari Midtrans Dashboard &gt; Settings &gt; Access Keys.
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Webhook Verification Token</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Midtrans Client Key</label>
                       <input
                         type="text"
-                        name="xendit_webhook_token"
-                        value={form.xendit_webhook_token}
+                        name="midtrans_client_key"
+                        value={form.midtrans_client_key}
                         onChange={handleInputChange}
-                        placeholder="Token dari Xendit Dashboard > Webhooks"
+                        placeholder="SB-Mid-client-... atau Mid-client-..."
                         className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-amber-500"
                       />
                       <p className="text-gray-400 text-[11px] mt-1">
-                        Memverifikasi keaslian payload callback webhook dari Xendit server.
+                        Gak dipakai server-side sekarang (kita pakai QRIS Core API, bukan Snap), disimpan buat referensi/kalau nanti perlu.
                       </p>
                     </div>
 
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Batasi Channel Pembayaran (Opsional)</label>
-                      <input
-                        type="text"
-                        name="xendit_payment_methods"
-                        value={form.xendit_payment_methods}
-                        onChange={handleInputChange}
-                        placeholder="Kosongkan (default) — atau isi 'QRCODE' setelah QRIS aktif"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-amber-500"
-                      />
-                      <p className="text-gray-400 text-[11px] mt-1">
-                        Kosongkan agar Xendit menampilkan semua saluran pembayaran aktif di akunmu (VA, e-wallet, QRIS).
-                      </p>
+                    <div className="md:col-span-2 flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700">Mode Production</label>
+                        <p className="text-gray-400 text-[11px] mt-0.5">
+                          {form.midtrans_is_production
+                            ? "AKTIF — transaksi asli, pembayaran betulan tersedot."
+                            : "Nonaktif — pakai Sandbox, aman buat uji coba (dana simulasi)."}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((prev) => ({ ...prev, midtrans_is_production: !prev.midtrans_is_production }))
+                        }
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                          form.midtrans_is_production ? "bg-amber-600" : "bg-gray-300"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            form.midtrans_is_production ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
                     </div>
                   </div>
 
-                  {form.xendit_secret_key && (
+                  {form.midtrans_server_key && (
                     <div className="flex justify-end pt-2">
                       <button
                         type="button"
-                        onClick={testXenditConnection}
-                        disabled={isTestingXendit}
+                        onClick={testMidtransConnection}
+                        disabled={isTestingMidtrans}
                         className="px-4 py-2 border border-amber-200 hover:bg-amber-100 text-amber-800 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                       >
-                        {isTestingXendit ? (
+                        {isTestingMidtrans ? (
                           <>
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            Menguji Koneksi Xendit...
+                            Menguji Koneksi Midtrans...
                           </>
                         ) : (
-                          "Uji Koneksi Xendit API"
+                          "Uji Koneksi Midtrans API"
                         )}
                       </button>
                     </div>
                   )}
+
+                  <p className="text-[11px] text-gray-400 border-t border-amber-200/60 pt-3">
+                    📌 Daftarkan URL webhook di Midtrans Dashboard &gt; Settings &gt; Configuration &gt; Payment Notification URL:{" "}
+                    <code className="bg-white px-1 py-0.5 rounded border border-gray-200">
+                      {`${process.env.NEXT_PUBLIC_API_URL || "https://domainmu.com"}/api/webhooks/midtrans`}
+                    </code>
+                  </p>
                 </div>
+
+                {/* Xendit — LEGACY, tidak dipakai lagi sejak migrasi ke Midtrans.
+                    Field disembunyikan default, dibiarkan tetap ada (jangan
+                    dihapus) buat jaga-jaga kalau perlu rollback cepat. */}
+                <details className="bg-gray-50 rounded-2xl border border-gray-200 group">
+                  <summary className="cursor-pointer select-none px-5 py-3 text-xs font-semibold text-gray-500 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    Konektor Xendit (Legacy — tidak dipakai lagi)
+                  </summary>
+                  <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Xendit Secret Key</label>
+                        <div className="relative">
+                          <input
+                            type={showXenditKey ? "text" : "password"}
+                            name="xendit_secret_key"
+                            value={form.xendit_secret_key}
+                            onChange={handleInputChange}
+                            placeholder="xnd_development_..."
+                            className="w-full pl-3 pr-10 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-gray-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowXenditKey(!showXenditKey)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                          >
+                            {showXenditKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Webhook Verification Token</label>
+                        <input
+                          type="text"
+                          name="xendit_webhook_token"
+                          value={form.xendit_webhook_token}
+                          onChange={handleInputChange}
+                          placeholder="Token dari Xendit Dashboard > Webhooks"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-white focus:ring-2 focus:ring-gray-400"
+                        />
+                      </div>
+                    </div>
+
+                    {form.xendit_secret_key && (
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={testXenditConnection}
+                          disabled={isTestingXendit}
+                          className="px-4 py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          {isTestingXendit ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              Menguji Koneksi Xendit...
+                            </>
+                          ) : (
+                            "Uji Koneksi Xendit API"
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </details>
               </div>
             )}
 
