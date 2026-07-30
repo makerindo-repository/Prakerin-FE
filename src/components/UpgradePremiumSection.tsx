@@ -111,7 +111,10 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
   const handleUpgradeClick = () => {
     const pending = subscriptionData?.pending_payment;
 
-    if (pending && pending.invoice_url) {
+    // Cek qr_code_url ATAU invoice_url ATAU invoice_id — JANGAN cuma invoice_url,
+    // karena Midtrans (QRIS Core API) selalu invoice_url=null (gak ada
+    // hosted page kayak Xendit dulu), cuma qr_code_url yang keisi.
+    if (pending && (pending.qr_code_url || pending.invoice_url || pending.invoice_id)) {
       const matchedPkg = packages.find((p) => p.key === pending.package);
       setSelectedPackage(matchedPkg ?? null);
       setInvoice({
