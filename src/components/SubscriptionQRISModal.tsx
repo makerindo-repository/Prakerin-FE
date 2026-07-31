@@ -12,7 +12,7 @@ interface SubscriptionQRISModalProps {
   invoiceUrl?: string | null;
   amount: number;
   packageName?: string;
-  /** ISO timestamp — kapan invoice ini kedaluwarsa (dari Xendit `expiry_date`). */
+  /** ISO timestamp — kapan invoice ini kedaluwarsa. */
   expiryDate?: string | null;
   /** Dipanggil saat siswa klik "Buat Invoice Baru" di layar expired. */
   onRetry?: () => void;
@@ -204,9 +204,11 @@ export function SubscriptionQRISModal({
                     className="w-56 h-56 object-contain rounded-lg"
                   />
                 ) : (
-                  <div className="w-56 h-56 flex flex-col items-center justify-center bg-gray-50 rounded-lg text-gray-400">
+                  <div className="w-56 h-56 flex flex-col items-center justify-center bg-gray-50 rounded-lg text-gray-400 text-center px-4">
                     <QrCode className="w-16 h-16 mb-2 stroke-1" />
-                    <span className="text-xs">Scan QR melalui Xendit</span>
+                    <span className="text-xs">
+                      QR belum tersedia — pakai tombol "Metode Pembayaran Lain" di bawah
+                    </span>
                   </div>
                 )}
 
@@ -220,21 +222,38 @@ export function SubscriptionQRISModal({
               </div>
 
               {/* Instructions */}
-              <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs mb-4">
-                Buka aplikasi e-wallet atau m-banking kamu (GoPay, OVO, ShopeePay, BCA, Mandiri, dll) lalu scan kode QRIS di atas.
-              </p>
+              {qrCodeUrl && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs mb-4">
+                  Buka aplikasi e-wallet atau m-banking kamu (GoPay, OVO, ShopeePay, BCA, Mandiri, dll) lalu scan kode QRIS di atas.
+                </p>
+              )}
 
-              {/* External Invoice Link fallback */}
+              {/* Link ke halaman Snap Midtrans — bank transfer/VA, e-wallet,
+                  Indomaret/Alfamart, kartu kredit, dst. Kalau qrCodeUrl kosong
+                  (QRIS belum aktif), ini jadi tombol UTAMA bukan cuma fallback. */}
               {invoiceUrl && (
                 <a
                   href={invoiceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline mb-2"
+                  className={
+                    qrCodeUrl
+                      ? "inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline mb-2"
+                      : "inline-flex items-center justify-center gap-2 w-full max-w-xs bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold py-3 rounded-xl mb-2 transition-colors"
+                  }
                 >
-                  <span>Atau bayar via Halaman Invoice Xendit</span>
+                  <span>
+                    {qrCodeUrl
+                      ? "Atau bayar dengan metode lain"
+                      : "Bayar dengan Metode Lain"}
+                  </span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
+              )}
+              {invoiceUrl && (
+                <p className="text-[11px] text-gray-400 max-w-xs mb-2">
+                  Bank Transfer/VA, E-Wallet (GoPay/ShopeePay/dll), Indomaret/Alfamart, Kartu Kredit, dan lainnya.
+                </p>
               )}
             </>
           )}
