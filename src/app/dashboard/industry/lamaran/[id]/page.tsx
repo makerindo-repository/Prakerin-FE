@@ -220,7 +220,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   const handleTestChange = async (testId: string) => {
     try {
       await suppressErrorForSuperAdmin(() => API.patch(
-        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}/test/${testId}`,
+        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${id}/tests/${testId}`,
         {},
         {
           headers: {
@@ -344,35 +344,43 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(application?.test || []).map((test, idx) => (
-                      <tr
-                        key={test.pivot.test_id}
-                        className={`${
-                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                        } hover:bg-gray-100 transition`}
-                      >
-                        <td className="py-3 px-4 font-medium">{test.title}</td>
-
-                        {["belum_lulus", "lulus"].map((val) => (
-                          <td key={val} className="py-2 px-4 text-center">
-                            <input
-                              type="radio"
-                              name={`test-${test.pivot.test_id}`}
-                              checked={
-                                test.pivot.is_passed
-                                  ? val === "lulus"
-                                  : val === "belum_lulus"
-                              }
-                              value={val}
-                              className="accent-accent scale-110 cursor-pointer"
-                              onChange={() =>
-                                handleTestChange(test.pivot.test_id)
-                              }
-                            />
-                          </td>
-                        ))}
+                    {(application?.test || []).length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="py-4 text-center text-gray-500">
+                          Belum ada tes untuk lamaran ini
+                        </td>
                       </tr>
-                    ))}
+                    ) : (
+                      (application?.test || []).map((test, idx) => (
+                        <tr
+                          key={test.pivot.test_id}
+                          className={`${
+                            idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          } hover:bg-gray-100 transition`}
+                        >
+                          <td className="py-3 px-4 font-medium">{test.title}</td>
+
+                          {["belum_lulus", "lulus"].map((val) => (
+                            <td key={val} className="py-2 px-4 text-center">
+                              <input
+                                type="radio"
+                                name={`test-${test.pivot.test_id}`}
+                                checked={
+                                  Boolean(test.pivot.is_passed)
+                                    ? val === "lulus"
+                                    : val === "belum_lulus"
+                                }
+                                value={val}
+                                className="accent-accent scale-110 cursor-pointer"
+                                onChange={() =>
+                                  handleTestChange(test.pivot.test_id)
+                                }
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
