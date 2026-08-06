@@ -110,7 +110,6 @@ const DetailSekolahPage = ({
           search: searchTerm,
           page: pages.activePages,
           limit: 10,
-          is_verified: true,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
