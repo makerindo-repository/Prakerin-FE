@@ -213,7 +213,7 @@ const PrakerinRegistrationSiswaForm: React.FC<
             role: "school",
             search: debouncedQuery,
             is_school: typeStudent === "siswa" ? true : false,
-            limit: 5 },
+            limit: 100 },
         });
         setSchoolOptions(
           res.data.data.map((school: any) => ({
