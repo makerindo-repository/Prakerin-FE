@@ -7,7 +7,7 @@ module.exports = {
       // Anda bisa mengganti 'max' dengan angka (misal: 2) jika RAM VPS terbatas
       instances: 'max', 
       exec_mode: 'cluster',
-      env: {
+      env_production: {
         NODE_ENV: 'production',
         PORT: 3000
       }
