@@ -9,6 +9,7 @@ interface ImportSummary {
   total_rows: number;
   created: number;
   skipped_existing: number;
+  skipped_not_verified: number;
   skipped_invalid: number;
   failed: number;
 }
@@ -124,7 +125,11 @@ export default function ImportInstitutionModal({
                   <p className="text-amber-600 text-xs">Dilewati (Sudah Ada)</p>
                   <p className="font-bold text-amber-700 text-lg">{summary.skipped_existing}</p>
                 </div>
-                <div className="bg-red-50 rounded-xl p-3">
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-slate-500 text-xs">Dilewati (Bukan LLDikti Resmi)</p>
+                  <p className="font-bold text-slate-700 text-lg">{summary.skipped_not_verified}</p>
+                </div>
+                <div className="bg-red-50 rounded-xl p-3 col-span-2">
                   <p className="text-red-500 text-xs">Gagal / Data Tidak Valid</p>
                   <p className="font-bold text-red-600 text-lg">{summary.failed + summary.skipped_invalid}</p>
                 </div>
@@ -178,7 +183,10 @@ export default function ImportInstitutionModal({
                 <p className="text-xs text-blue-700">
                   Sistem otomatis mengambil kolom <b>Nama</b>, <b>Email</b>, <b>Password</b>, dan{" "}
                   <b>Alamat</b> saja dari file (nama kolom fleksibel, tidak harus urutan persis).
-                  Baris dengan nama yang sudah terdaftar otomatis dilewati (tidak dobel).
+                  Baris dengan nama yang sudah terdaftar otomatis dilewati (tidak dobel). File{" "}
+                  <b>wajib punya kolom status</b> (mis. "Sumber Data Provinsi") — hanya baris
+                  berstatus persis <b>"Kode LLDikti resmi"</b> yang akan diimpor; baris lain
+                  (perkiraan/tidak diketahui) otomatis dilewati.
                 </p>
               </div>
 
