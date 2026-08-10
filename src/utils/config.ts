@@ -57,6 +57,7 @@ export const ENDPOINTS = {
   SUBSCRIPTIONS: '/api/v1/subscriptions',
   ADMIN_SUBSCRIPTIONS: '/api/v1/admin/subscriptions',
   ADMIN_REVENUE: '/api/v1/admin/revenue',
+  ADMIN_SCHOOLS: '/api/v1/admin/schools',
 };
 
 export const API = axios.create({

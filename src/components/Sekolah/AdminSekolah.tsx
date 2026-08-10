@@ -9,6 +9,7 @@ import {
   Trash,
   X,
   Eye,
+  Upload,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
@@ -20,6 +21,7 @@ import PaginationComponent from "@/components/PaginationComponent";
 import LoaderData from "@/components/loader";
 import { API, ENDPOINTS } from "@/utils/config";
 import Link from "next/link";
+import ImportInstitutionModal from "./ImportInstitutionModal";
 
 type ActiveTab = "Semua" | "Diterima" | "Belum Diterima";
 
@@ -51,6 +53,7 @@ const AdminSekolah: React.FC = () => {
   });
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const [data, setData] = useState<Data[]>([]);
 
@@ -182,6 +185,14 @@ const AdminSekolah: React.FC = () => {
               </button>
             ))}
           </div>
+
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white shadow-sm hover:bg-accent-hover transition-colors cursor-pointer"
+          >
+            <Upload className="w-4 h-4" />
+            Import Excel
+          </button>
         </div>
       
 
@@ -305,6 +316,13 @@ const AdminSekolah: React.FC = () => {
         totalPages={pages.pages}
         onPageChange={handleChangePage}
         loading={loading}
+      />
+
+      <ImportInstitutionModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        type="school"
+        onImported={fetchData}
       />
     </>
   );
