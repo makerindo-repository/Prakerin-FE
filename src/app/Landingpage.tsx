@@ -541,13 +541,13 @@ export default function LandingPage({
               subtitle="Bergabung bersama industri dan institusi pendidikan yang memercayakan program magangnya kepada PRAKERIN.ID."
             />
             <div className="mt-8 flex flex-wrap justify-center gap-2">
-              <TabPill active={partnerTab === "company"} onClick={() => setPartnerTab("company")} count={companyPartners.length}>
+              <TabPill active={partnerTab === "company"} onClick={() => setPartnerTab("company")} count={stats?.companies ?? companyPartners.length}>
                 Industri
               </TabPill>
-              <TabPill active={partnerTab === "school"} onClick={() => setPartnerTab("school")} count={schoolPartners.length}>
+              <TabPill active={partnerTab === "school"} onClick={() => setPartnerTab("school")} count={stats?.schools ?? schoolPartners.length}>
                 Sekolah
               </TabPill>
-              <TabPill active={partnerTab === "university"} onClick={() => setPartnerTab("university")} count={universityPartners.length}>
+              <TabPill active={partnerTab === "university"} onClick={() => setPartnerTab("university")} count={stats?.universities ?? universityPartners.length}>
                 Perguruan Tinggi
               </TabPill>
             </div>
