@@ -134,7 +134,7 @@ export const createApiCall = async <T = any>(arg1: any, arg2: any = {}): Promise
 };
 
 export const getPhotoProfileUrl = (photo: string | null | undefined): string | null => {
-  if (!photo) return null;
+  if (!photo || photo.startsWith("ai_failed")) return null;
   if (photo.startsWith("http://") || photo.startsWith("https://")) {
     return photo;
   }

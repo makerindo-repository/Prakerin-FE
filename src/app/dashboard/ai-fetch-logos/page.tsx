@@ -11,6 +11,7 @@ import { AxiosError } from "axios";
 interface Status {
   total: number;
   done: number;
+  failed: number;
   pending: number;
 }
 
@@ -69,13 +70,9 @@ export default function AiFetchLogosPage() {
         setLog(prev => [...data.results, ...prev].slice(0, 50));
       }
 
-      setStatus(prev => prev ? {
-        ...prev,
-        done:    prev.done + (data.succeeded ?? 0),
-        pending: data.remaining,
-      } : prev);
-
-      return data.remaining;
+      // Fetch fresh stats to display correct done/failed/pending values
+      const freshStatus = await fetchStatus();
+      return freshStatus ? freshStatus.pending : data.remaining;
     } catch (err) {
       if (err instanceof AxiosError && err.code === "ERR_CANCELED") {
         setCancelled(true);
@@ -84,7 +81,7 @@ export default function AiFetchLogosPage() {
     } finally {
       abortControllerRef.current = null;
     }
-  }, []);
+  }, [fetchStatus]);
 
   const runLoop = useCallback(async () => {
     setLoadingBatch(true);
@@ -130,7 +127,7 @@ export default function AiFetchLogosPage() {
 
   const progressPct =
     status && status.total > 0
-      ? Math.round((status.done / status.total) * 100)
+      ? Math.round(((status.done + status.failed) / status.total) * 100)
       : 0;
 
   return (
@@ -177,24 +174,31 @@ export default function AiFetchLogosPage() {
             </div>
             <p className="text-xs text-gray-400 text-right mb-4">{progressPct}% selesai</p>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-gray-50 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-gray-700">{status.total.toLocaleString()}</p>
-                <p className="text-xs text-gray-400 mt-0.5">Total</p>
+            <div className="grid grid-cols-4 gap-2">
+              <div className="bg-gray-50 rounded-xl p-2.5 text-center">
+                <p className="text-xl font-bold text-gray-700">{status.total.toLocaleString()}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">Total</p>
               </div>
-              <div className="bg-green-50 rounded-xl p-3 text-center">
-                <div className="flex items-center justify-center gap-1 mb-0.5">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <p className="text-2xl font-bold text-green-600">{status.done.toLocaleString()}</p>
+              <div className="bg-green-50 rounded-xl p-2.5 text-center">
+                <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                  <p className="text-xl font-bold text-green-600">{status.done.toLocaleString()}</p>
                 </div>
-                <p className="text-xs text-gray-400">Done</p>
+                <p className="text-[10px] text-gray-400">Succeeded</p>
               </div>
-              <div className="bg-orange-50 rounded-xl p-3 text-center">
-                <div className="flex items-center justify-center gap-1 mb-0.5">
-                  <Clock className="w-4 h-4 text-orange-400" />
-                  <p className="text-2xl font-bold text-orange-500">{status.pending.toLocaleString()}</p>
+              <div className="bg-red-50 rounded-xl p-2.5 text-center">
+                <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                  <p className="text-xl font-bold text-red-600">{status.failed.toLocaleString()}</p>
                 </div>
-                <p className="text-xs text-gray-400">Pending</p>
+                <p className="text-[10px] text-gray-400">Failed</p>
+              </div>
+              <div className="bg-orange-50 rounded-xl p-2.5 text-center">
+                <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                  <Clock className="w-3.5 h-3.5 text-orange-400" />
+                  <p className="text-xl font-bold text-orange-500">{status.pending.toLocaleString()}</p>
+                </div>
+                <p className="text-[10px] text-gray-400">Pending</p>
               </div>
             </div>
           </>
