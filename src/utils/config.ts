@@ -58,6 +58,10 @@ export const ENDPOINTS = {
   ADMIN_SUBSCRIPTIONS: '/api/v1/admin/subscriptions',
   ADMIN_REVENUE: '/api/v1/admin/revenue',
   ADMIN_SCHOOLS: '/api/v1/admin/schools',
+
+  // AI Logo Fetcher (temporary admin tool — delete when done)
+  AI_FETCH_LOGOS: '/api/v1/users/ai-fetch-logos',
+  AI_FETCH_LOGOS_STATUS: '/api/v1/users/ai-fetch-logos/status',
 };
 
 export const API = axios.create({

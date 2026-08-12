@@ -51,6 +51,7 @@ import {
   Sparkles,
   DollarSign,
   CreditCard,
+  Wand2,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -166,6 +167,8 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: Settings, label: "Pengaturan", href: "/dashboard/pengaturan", permission: "view_pengaturan" },
         { icon: Bell, label: "Notifikasi", href: "/dashboard/inbox", permission: "view_profil" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
+        // NOTE: temporary tool — delete after all logos are uploaded
+        { icon: Wand2, label: "hehe", href: "/dashboard/ai-fetch-logos", permission: "manage_permissions" },
       ],
     },
   ],
