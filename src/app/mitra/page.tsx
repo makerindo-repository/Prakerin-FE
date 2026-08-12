@@ -45,16 +45,12 @@ function PartnerPageContent() {
   const searchParams = useSearchParams();
   const keyword = searchParams.get("search") || "";
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [totalPartnerPages, setTotalPartnerPages] = useState(1);
 
   const [currentPage, setCurrentPage] = useState(1);
   const partnerPerPage = 9;
 
   const type = searchParams.get("type") || "company";
-  const displayedPartners = (partners || []).filter((p) => p.type === type);
-
-  const filteredPartners = displayedPartners.filter((partner) =>
-    partner.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   const pageContent = {
     company: {
@@ -75,10 +71,22 @@ function PartnerPageContent() {
   };
   const currentContent = pageContent[type as keyof typeof pageContent] ?? pageContent.company;
 
+  // Server yang nge-filter type/search & yang paginate — bukan fetch semua
+  // partner terus di-slice di browser. Penting banget begitu jumlah partner
+  // nembus ribuan (hasil bulk import kampus/sekolah).
   const fetchData = async () => {
+    setIsLoading(true);
     try {
-      const response = await API.get(ENDPOINTS.PARTNERS);
-      setPartners(response.data.data);
+      const response = await API.get(ENDPOINTS.PARTNERS, {
+        params: {
+          type,
+          search,
+          page: currentPage,
+          limit: partnerPerPage,
+        },
+      });
+      setPartners(response.data.data || []);
+      setTotalPartnerPages(response.data.meta?.last_page ?? 1);
     } catch (error) {
       console.error("Error fetching partners:", error);
     } finally {
@@ -93,17 +101,14 @@ function PartnerPageContent() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, search, currentPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [type]);
+  }, [type, search]);
 
-  const totalPartnerPages = Math.ceil(filteredPartners.length / partnerPerPage);
-  const paginatedPartners = filteredPartners.slice(
-    (currentPage - 1) * partnerPerPage,
-    currentPage * partnerPerPage
-  );
+  const paginatedPartners = partners;
 
   return (
     <>
