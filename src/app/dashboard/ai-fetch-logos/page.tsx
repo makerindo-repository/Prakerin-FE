@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Wand2, RefreshCw, Rocket, CheckCircle, Clock,
-  AlertCircle, XCircle, Play, Square,
+  AlertCircle, XCircle, Play, Square, RotateCcw,
 } from "lucide-react";
 import { API, ENDPOINTS } from "@/utils/config";
 import { AxiosError } from "axios";
@@ -34,6 +34,7 @@ export default function AiFetchLogosPage() {
   const [status, setStatus]               = useState<Status | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [loadingBatch, setLoadingBatch]   = useState(false);
+  const [resetting, setResetting]         = useState(false);
   const [autoRun, setAutoRun]             = useState(false);
   const [cancelled, setCancelled]         = useState(false);
   const [log, setLog]                     = useState<UniversityResult[]>([]);
@@ -53,6 +54,19 @@ export default function AiFetchLogosPage() {
       setLoadingStatus(false);
     }
   }, []);
+
+  const handleResetFailed = async () => {
+    if (loadingBatch || resetting) return;
+    setResetting(true);
+    try {
+      await API.post(ENDPOINTS.AI_FETCH_LOGOS_RESET);
+      await fetchStatus();
+    } catch {
+      // ignore
+    } finally {
+      setResetting(false);
+    }
+  };
 
   // Process exactly 1 university. Returns remaining count (or -1 on cancel/error).
   const processOne = useCallback(async (): Promise<number> => {
@@ -240,6 +254,19 @@ export default function AiFetchLogosPage() {
           <Rocket className="w-4 h-4" />
           {loadingBatch && !autoRun ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "×1"}
         </button>
+
+        {/* Reset Failed button */}
+        {status && status.failed > 0 && (
+          <button
+            onClick={handleResetFailed}
+            disabled={resetting || loadingBatch}
+            title="Reset failed attempts back to pending"
+            className="flex items-center gap-1.5 px-4 py-3.5 rounded-xl font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            <RotateCcw className={`w-4 h-4 ${resetting ? "animate-spin" : ""}`} />
+            Reset Gagal ({status.failed})
+          </button>
+        )}
       </div>
 
       {/* Auto-run indicator */}

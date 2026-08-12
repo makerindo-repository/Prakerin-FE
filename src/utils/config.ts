@@ -62,6 +62,7 @@ export const ENDPOINTS = {
   // AI Logo Fetcher (temporary admin tool — delete when done)
   AI_FETCH_LOGOS: '/api/v1/users/ai-fetch-logos',
   AI_FETCH_LOGOS_STATUS: '/api/v1/users/ai-fetch-logos/status',
+  AI_FETCH_LOGOS_RESET: '/api/v1/users/ai-fetch-logos/reset-failed',
 };
 
 export const API = axios.create({
