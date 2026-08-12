@@ -24,6 +24,28 @@ import Image from "next/image";
 import { AxiosError } from "axios";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import ImageWithFallback from "@/components/ImageWithFallback";
+import SlideControls from "@/components/SlideControls";
+
+const ITEMS_PER_SLIDE = 20;
+
+/**
+ * Pecah array jadi per-slide (20 item/slide default). Otomatis balik ke
+ * slide pertama kalau daftar berubah (mis. karena search/filter) dan slide
+ * yang lagi aktif jadi di luar jangkauan.
+ */
+function useSlides<T>(items: T[], perSlide: number = ITEMS_PER_SLIDE) {
+  const [page, setPage] = useState(0);
+  const totalPages = Math.max(1, Math.ceil(items.length / perSlide));
+
+  useEffect(() => {
+    if (page > totalPages - 1) setPage(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length, totalPages]);
+
+  const pageItems = items.slice(page * perSlide, page * perSlide + perSlide);
+
+  return { pageItems, page, setPage, totalPages };
+}
 
 interface Data {
   id: string;
@@ -95,6 +117,13 @@ const PerusahaanPage: React.FC = () => {
       (c.position && c.position.toLowerCase().includes(inputSearch.toLowerCase())) ||
       (c.comment && c.comment.toLowerCase().includes(inputSearch.toLowerCase()))
   );
+
+  // Dipecah per 20 item/slide supaya halaman ini nggak penuh sesak kalau
+  // datanya banyak (mis. ratusan mitra/ulasan) — 1 slide/hook per section,
+  // masing-masing reset ke slide pertama otomatis kalau hasil search berubah.
+  const mitraSekolahSlides = useSlides(filteredPartners.filter((p) => p.type !== "company"));
+  const mitraPerusahaanSlides = useSlides(filteredPartners.filter((p) => p.type === "company"));
+  const ulasanSlides = useSlides(filteredComments);
 
   const [formData, setFormData] = useState<Data[]>([]);
 
@@ -423,9 +452,8 @@ const PerusahaanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative min-h-[200px]">
-          {filteredPartners.filter((p) => p.type !== "company").length > 0 ? (
-            filteredPartners
-              .filter((p) => p.type !== "company")
+          {mitraSekolahSlides.pageItems.length > 0 ? (
+            mitraSekolahSlides.pageItems
               .map((item) => (
                 <div
                   key={item.id}
@@ -485,6 +513,14 @@ const PerusahaanPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        <SlideControls
+          page={mitraSekolahSlides.page}
+          totalPages={mitraSekolahSlides.totalPages}
+          onChange={mitraSekolahSlides.setPage}
+          itemsOnThisSlide={ITEMS_PER_SLIDE}
+          totalItems={filteredPartners.filter((p) => p.type !== "company").length}
+        />
       </section>
 
       <section id="mitra-perusahaan" className="mt-10">
@@ -494,9 +530,8 @@ const PerusahaanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative min-h-[200px]">
-          {filteredPartners.filter((p) => p.type === "company").length > 0 ? (
-            filteredPartners
-              .filter((p) => p.type === "company")
+          {mitraPerusahaanSlides.pageItems.length > 0 ? (
+            mitraPerusahaanSlides.pageItems
               .map((item) => (
                 <div
                   key={item.id}
@@ -556,6 +591,14 @@ const PerusahaanPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        <SlideControls
+          page={mitraPerusahaanSlides.page}
+          totalPages={mitraPerusahaanSlides.totalPages}
+          onChange={mitraPerusahaanSlides.setPage}
+          itemsOnThisSlide={ITEMS_PER_SLIDE}
+          totalItems={filteredPartners.filter((p) => p.type === "company").length}
+        />
       </section>
 
       <section id="ulasan" className="mt-16">
@@ -565,8 +608,8 @@ const PerusahaanPage: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative min-h-[260px]">
-          {filteredComments.length > 0 ? (
-            filteredComments.map((item) => (
+          {ulasanSlides.pageItems.length > 0 ? (
+            ulasanSlides.pageItems.map((item) => (
               <div
                 key={item.id}
                 className="bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col items-center text-center group relative border border-gray-100 overflow-hidden"
@@ -629,6 +672,14 @@ const PerusahaanPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        <SlideControls
+          page={ulasanSlides.page}
+          totalPages={ulasanSlides.totalPages}
+          onChange={ulasanSlides.setPage}
+          itemsOnThisSlide={ITEMS_PER_SLIDE}
+          totalItems={filteredComments.length}
+        />
       </section>
 
       {/* Untuk bagian upload dokumen, kalo backendnya udah ada, tolong disambung agar bisa GET dan POST ke database (harus tambah tabel juga mungkin?) */}
