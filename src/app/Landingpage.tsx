@@ -754,7 +754,7 @@ function StatsSection({ stats }: { stats?: LandingStats }) {
   const items = [
     { icon: Building2, value: stats?.companies ?? 0, label: "Industri Bergabung" },
     { icon: Landmark, value: stats?.universities ?? 0, label: "Perguruan Tinggi" },
-    { icon: Briefcase, value: stats?.active_jobs ?? 0, label: "Lowongan Tersedia" },
+    { icon: School, value: stats?.schools ?? 0, label: "Sekolah" },
     { icon: Users, value: stats?.total_students ?? 0, label: "Peserta Terdaftar" },
   ];
   return (
