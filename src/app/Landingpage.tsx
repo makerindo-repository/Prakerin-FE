@@ -181,12 +181,22 @@ const FALLBACK_STORIES: CommentPrakerin[] = [
 const nf = new Intl.NumberFormat("id-ID");
 const fmt = (n: number) => nf.format(n);
 
-const partnerLogo = (logo?: string): string | null =>
-  logo
-    ? logo.startsWith("pfpupload/")
-      ? getPhotoProfileUrl(logo)
-      : `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${logo}`
-    : null;
+const partnerLogo = (logo?: string): string | null => {
+  if (!logo) return null;
+  if (logo.startsWith("http://") || logo.startsWith("https://") || logo.startsWith("//")) {
+    return logo;
+  }
+  if (logo.startsWith("pfpupload/")) {
+    return getPhotoProfileUrl(logo);
+  }
+  if (logo.startsWith("storage/")) {
+    return `${process.env.NEXT_PUBLIC_API_URL}/${logo}`;
+  }
+  if (logo.startsWith("/storage/")) {
+    return `${process.env.NEXT_PUBLIC_API_URL}${logo}`;
+  }
+  return `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${logo}`;
+};
 
 function categoryIcon(name: string) {
   const n = name.toLowerCase();

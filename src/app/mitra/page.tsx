@@ -201,10 +201,16 @@ function PartnerPageContent() {
                       <img
                         src={
                           item.logo
-                            ? item.logo.startsWith("pfpupload/")
+                            ? item.logo.startsWith("http://") || item.logo.startsWith("https://") || item.logo.startsWith("//")
+                              ? item.logo
+                              : item.logo.startsWith("pfpupload/")
                               ? getPhotoProfileUrl(item.logo) || ""
+                              : item.logo.startsWith("storage/")
+                              ? `${process.env.NEXT_PUBLIC_API_URL}/${item.logo}`
+                              : item.logo.startsWith("/storage/")
+                              ? `${process.env.NEXT_PUBLIC_API_URL}${item.logo}`
                               : `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`
-                            : "/images/default-logo.png"
+                            : "/PrakerinID_ico.svg"
                         }
                         alt={`${item.name} Logo`}
                         className="h-9 max-w-full object-contain"
