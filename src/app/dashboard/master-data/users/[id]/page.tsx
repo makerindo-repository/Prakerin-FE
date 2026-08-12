@@ -27,7 +27,7 @@ import { CityRegency } from "@/models/cityRegency";
 import { Sector } from "@/models/sector";
 import Loader from "@/components/loader";
 import useDebounce from "@/hooks/useDebounce";
-import { API, createApiCall, ENDPOINTS } from "@/utils/config";
+import { API, createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 
 // Lazy load heavy components
 const Editor = dynamic<EditorProps>(() => import("@/components/Editor"), {
@@ -195,9 +195,9 @@ export default function UserDetailPage() {
         });
       
         if (data.photo_profile) {
-          setProfileImage(
-            `${BASE_URL}/storage/photo-profile/${data.photo_profile}`
-          );
+          setProfileImage(getPhotoProfileUrl(data.photo_profile));
+        } else {
+          setProfileImage(null);
         }
 
         const role = (data.role as string) ?? "";
@@ -566,9 +566,9 @@ export default function UserDetailPage() {
                     alt="Profile"
                     className="w-full h-full object-cover rounded-lg"
                   />
-                ) : typeof userForm.photo_profile === "string" ? (
+                ) : typeof userForm.photo_profile === "string" && getPhotoProfileUrl(userForm.photo_profile) ? (
                   <Image
-                    src={`${BASE_URL}/storage/photo-profile/${userForm.photo_profile}`} //explicitly use BASE_URL above
+                    src={getPhotoProfileUrl(userForm.photo_profile)!}
                     alt="Profile"
                     width={100}
                     height={100}
