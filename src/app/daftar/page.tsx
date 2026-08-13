@@ -32,7 +32,7 @@ function DaftarContent() {
         } items-center justify-center min-h-screen bg-background px-4`}
       >
         <div className="w-full max-w-md gap-6 bg-white shadow-2xl p-6 md:p-10 rounded-xl flex flex-col justify-center items-center">
-          <img src="PrakerinID_ico.svg" alt="" className="lg:w-50 " />
+          <img src="/logo_prakerin_new_transparent.png" alt="" className="lg:w-50 " />
           <h1 className="text-2xl font-bold">Daftar</h1>
           <form className="w-full">
             <label htmlFor="email" className="block text-sm font-medium">

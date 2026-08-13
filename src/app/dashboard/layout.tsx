@@ -551,11 +551,11 @@ export default function DashboardLayout({
           !isDesktopClosed ? "lg:translate-x-0" : "lg:-translate-x-full"
         }`}
       >
-        {/* Logo — tetap pakai aset original PrakerinID_ico.svg */}
+        {/* Logo — logo_prakerin_new_transparent.png */}
         <div className="px-5 py-5 flex items-center" data-purpose="sidebar-logo">
           <Link href={"/"} className="flex items-center">
             <img
-              src="/PrakerinID_ico.svg"
+              src="/logo_prakerin_new_transparent.png"
               alt="Prakerin.ID Logo"
               className="h-9 w-auto"
             />

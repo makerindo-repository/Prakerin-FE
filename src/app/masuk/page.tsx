@@ -129,7 +129,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md space-y-6 bg-white shadow-2xl p-6 md:p-10 rounded-xl">
           <div className="flex justify-center">
             <img
-              src="/PrakerinID_ico.svg"
+              src="/logo_prakerin_new_transparent.png"
               alt="Logo"
               className="w-28 md:w-48"
             />

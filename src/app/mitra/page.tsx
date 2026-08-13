@@ -210,12 +210,12 @@ function PartnerPageContent() {
                               : item.logo.startsWith("/storage/")
                               ? `${process.env.NEXT_PUBLIC_API_URL}${item.logo}`
                               : `${process.env.NEXT_PUBLIC_API_URL}/storage/partner/${item.logo}`
-                            : "/PrakerinID_ico.svg"
+                            : "/logo_prakerin_new_transparent.png"
                         }
                         alt={`${item.name} Logo`}
                         className="h-9 max-w-full object-contain"
                         onError={(e) => {
-                          e.currentTarget.src = "/PrakerinID_ico.svg"; // Fallback image
+                          e.currentTarget.src = "/logo_prakerin_new_transparent.png"; // Fallback image
                         }}
                       />
                     </div>

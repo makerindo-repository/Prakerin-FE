@@ -28,6 +28,8 @@ import {
   Building,
   DollarSign,
   Banknote,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 
 export default function PengaturanPage() {
@@ -42,6 +44,7 @@ function PengaturanContent() {
   const [activeTab, setActiveTab] = useState<"umum" | "kebijakan" | "integrasi" | "smtp" | "whatsapp" | "tier_access" | "pembayaran">("umum");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isTestingSmtp, setIsTestingSmtp] = useState(false);
   const [isTestingAi, setIsTestingAi] = useState(false);
   const [isTestingMidtrans, setIsTestingMidtrans] = useState(false);
@@ -195,6 +198,43 @@ function PengaturanContent() {
       alertError(msg);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alertError("Ukuran file logo terlalu besar (Maksimal 5MB).");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("logo", file);
+
+    setIsUploadingLogo(true);
+    try {
+      const response = await API.post(`${ENDPOINTS.SETTINGS}/upload-logo`, formData, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data?.status === "success") {
+        const logoUrl = response.data.url;
+        setForm((prev) => ({ ...prev, app_logo: logoUrl }));
+        alertSuccess(response.data?.message || "Logo / Ikon platform berhasil diunggah!");
+      } else {
+        alertError(response.data?.message || "Gagal mengunggah logo.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Gagal mengunggah logo.";
+      alertError(msg);
+    } finally {
+      setIsUploadingLogo(false);
     }
   };
 
@@ -720,6 +760,81 @@ function PengaturanContent() {
                 <div className="border-b border-gray-100 pb-4 mb-6">
                   <h3 className="text-lg font-bold text-gray-900">Pengaturan Umum & Branding</h3>
                   <p className="text-gray-500 text-xs mt-1">Sesuaikan identitas nama dan kontak dukungan pada platform.</p>
+                </div>
+
+                {/* Logo & Branding Card */}
+                <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-5 md:p-6 mb-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-indigo-600" />
+                        Logo & Ikon Platform (Branding)
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Unggah logo transparan baru (.png, .svg, .ico, .webp) untuk memperbarui tampilan identitas di seluruh portal.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center pt-2">
+                    {/* Logo Preview */}
+                    <div className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-xl shadow-xs text-center space-y-2">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Preview Logo Aktif</p>
+                      <div className="w-full h-20 flex items-center justify-center bg-gray-50 rounded-lg p-2 border border-dashed border-gray-200">
+                        <img
+                          src={form.app_logo || "/logo_prakerin_new_transparent.png"}
+                          alt="Logo Preview"
+                          className="max-h-16 w-auto object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src = "/logo_prakerin_new_transparent.png";
+                          }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-gray-400">Format disarankan: PNG / SVG transparan</span>
+                    </div>
+
+                    {/* Upload & Input Controls */}
+                    <div className="md:col-span-2 space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Unggah File Logo Baru</label>
+                        <div className="flex items-center gap-3">
+                          <label className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-xs transition-all shadow-sm cursor-pointer disabled:opacity-50">
+                            {isUploadingLogo ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Mengunggah Logo...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4" />
+                                <span>Pilih File Logo / Icon</span>
+                              </>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/png,image/svg+xml,image/x-icon,image/jpeg,image/webp"
+                              onChange={handleLogoUpload}
+                              disabled={isUploadingLogo}
+                              className="hidden"
+                            />
+                          </label>
+                          <span className="text-xs text-gray-500">Maksimal file 5MB</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Atau Gunakan Direct URL Logo</label>
+                        <input
+                          type="text"
+                          name="app_logo"
+                          value={form.app_logo}
+                          onChange={handleInputChange}
+                          placeholder="https://domain.com/logo.png atau /logo_prakerin_new_transparent.png"
+                          className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
