@@ -90,6 +90,7 @@ export default function IndustryDashboard({
       });
       const jobOpeningCount = API.get(`${ENDPOINTS.JOB_OPENINGS}/count`, {
         headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
+        params: { dashboard: true },
       });
       const achievementCount = API.get(`${ENDPOINTS.ACHIEVEMENTS}/count`, {
         headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },

@@ -53,6 +53,7 @@ export function IndustryLowongan() {
         params: {
           page: selectedPage,
           limit: 6,
+          dashboard: true,
         },
       });
       if (response.status === 200) {
