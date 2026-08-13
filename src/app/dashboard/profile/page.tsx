@@ -1222,15 +1222,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
-                </button>
-              </div>
+              
             </div>
           </div>
         )}
@@ -1601,15 +1593,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
-                </button>
-              </div>
+              
             </div>
           </div>
         )}
@@ -2042,18 +2026,6 @@ export default function ProfilePage() {
                   )}
                 </div>
               </div>
-
-              <div className="flex justify-end pt-4">
-                <div className="flex justify-end pt-4">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -2074,15 +2046,7 @@ export default function ProfilePage() {
                 onChange={handleEditorChange}
                 initialData={descriptionForm.description}
               />
-              <div className="flex justify-end pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
-                </button>
-              </div>
+              
             </div>
           </div>
         )}
