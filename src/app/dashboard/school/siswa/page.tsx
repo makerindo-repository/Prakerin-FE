@@ -30,10 +30,20 @@ interface Student {
   status?: "ongoing" | "not_started" | "completed";
   status_magang?: "ongoing" | "not_started" | "completed";
   status_subscription?: "free" | "premium";
+  school_name?: string | null;
+  school?: {
+    id?: string;
+    name?: string;
+  } | null;
   student: {
     id: string;
     name: string;
     class: string | null;
+    school_name?: string | null;
+    school?: {
+      id?: string;
+      name?: string;
+    } | null;
     status_subscription?: "free" | "premium";
     status_magang?: "ongoing" | "not_started" | "completed";
   } | null;
@@ -358,6 +368,9 @@ const DaftarSiswaPage: React.FC = () => {
                   Nama
                 </th>
                 <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
+                  Sekolah
+                </th>
+                <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
                   Kelas
                 </th>
                 <th className="text-left p-3 font-medium text-gray-600 uppercase text-xs">
@@ -379,6 +392,7 @@ const DaftarSiswaPage: React.FC = () => {
                 students.map((task, index) => {
                   const magangStatus = task.status_magang || task.status || "not_started";
                   const subStatus = task.status_subscription || task.student?.status_subscription || "free";
+                  const schoolName = task.school_name || task.school?.name || task.student?.school_name || task.student?.school?.name || "-";
 
                   return (
                   <tr key={index} className="border-b hover:bg-gray-50">
@@ -387,6 +401,9 @@ const DaftarSiswaPage: React.FC = () => {
                     </td>
                     <td className="p-4 text-gray-800 text-sm">
                       <HighlightText text={task.student?.name} highlight={searchTerm} />
+                    </td>
+                    <td className="p-4 text-gray-800 text-sm font-medium">
+                      {schoolName}
                     </td>
                     <td className="p-4 text-gray-800 text-sm">
                       {task.student?.class ?? "-"}
@@ -480,6 +497,12 @@ const DaftarSiswaPage: React.FC = () => {
                 </div>
                 
                 <div className="space-y-1.5 text-xs">
+                  <div className="flex">
+                    <span className="text-gray-500 w-16 flex-shrink-0">Sekolah:</span>
+                    <span className="text-gray-900 font-medium break-words">
+                      {task.school_name || task.school?.name || task.student?.school_name || task.student?.school?.name || "-"}
+                    </span>
+                  </div>
                   <div className="flex">
                     <span className="text-gray-500 w-16 flex-shrink-0">Kelas:</span>
                     <span className="text-gray-900 font-medium break-words">

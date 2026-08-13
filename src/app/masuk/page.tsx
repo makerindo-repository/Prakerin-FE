@@ -194,22 +194,30 @@ export default function LoginPage() {
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="remember"
-                id="remember"
-                disabled={isSubmitting}
-                className="h-4 w-4"
-                checked={isRemember}
-                onChange={(e) => setIsRemember(e.target.checked)}
-              />
-              <label
-                htmlFor="remember"
-                className="text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="remember"
+                  id="remember"
+                  disabled={isSubmitting}
+                  className="h-4 w-4"
+                  checked={isRemember}
+                  onChange={(e) => setIsRemember(e.target.checked)}
+                />
+                <label
+                  htmlFor="remember"
+                  className="text-sm text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Ingat saya
+                </label>
+              </div>
+              <Link
+                href="/lupa-password"
+                className="text-sm font-medium text-accent hover:underline"
               >
-                Ingat saya
-              </label>
+                Lupa password?
+              </Link>
             </div>
 
             {/* <ReCAPTCHA

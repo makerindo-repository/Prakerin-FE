@@ -25,6 +25,9 @@ interface MentorUser {
   username: string;
   email: string;
   role: string;
+  school?: { id: string; name: string };
+  company?: { id: string; name: string };
+  student?: { id: string; school?: { id: string; name: string } };
 }
 
 interface Mentor {
@@ -453,7 +456,7 @@ const PembimbingManager = ({ roleFilter, title, eyebrow = "Manajemen Pembimbing"
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      {["No", "Nama", "Email", "Keahlian", "Telepon", "Status", "Murid", "Aksi"].map((h) => (
+                      {["No", "Nama", "Asal Instansi", "Email", "Keahlian", "Telepon", "Status", "Murid", "Aksi"].map((h) => (
                         <th
                           key={h}
                           className="text-left p-3 font-medium text-gray-500 uppercase text-xs"
@@ -464,11 +467,22 @@ const PembimbingManager = ({ roleFilter, title, eyebrow = "Manajemen Pembimbing"
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredMentors.map((m, i) => (
+                    {filteredMentors.map((m, i) => {
+                      const institutionName =
+                        m.user?.school?.name ||
+                        m.user?.company?.name ||
+                        m.user?.student?.school?.name ||
+                        (m as any).institution_name ||
+                        "-";
+
+                      return (
                       <tr key={m.id} className="border-b hover:bg-gray-50">
                         <td className="p-3 text-sm text-gray-500">{i + 1}</td>
                         <td className="p-3 text-sm font-medium text-gray-800">
                           {m.user?.username || "-"}
+                        </td>
+                        <td className="p-3 text-sm font-medium text-gray-800">
+                          {institutionName}
                         </td>
                         <td className="p-3 text-sm text-gray-600">
                           {m.user?.email || "-"}
@@ -506,14 +520,23 @@ const PembimbingManager = ({ roleFilter, title, eyebrow = "Manajemen Pembimbing"
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               {/* Mobile cards */}
               <div className="md:hidden divide-y divide-gray-100">
-                {filteredMentors.map((m) => (
+                {filteredMentors.map((m) => {
+                  const institutionName =
+                    m.user?.school?.name ||
+                    m.user?.company?.name ||
+                    m.user?.student?.school?.name ||
+                    (m as any).institution_name ||
+                    "-";
+
+                  return (
                   <div key={m.id} className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -525,6 +548,10 @@ const PembimbingManager = ({ roleFilter, title, eyebrow = "Manajemen Pembimbing"
                       <AvailabilityBadge status={m.availability} />
                     </div>
                     <div className="text-xs text-gray-600 space-y-1 mb-3">
+                      <p>
+                        <span className="font-medium">Asal Instansi:</span>{" "}
+                        {institutionName}
+                      </p>
                       <p>
                         <span className="font-medium">Keahlian:</span>{" "}
                         {m.expertise}
@@ -555,7 +582,8 @@ const PembimbingManager = ({ roleFilter, title, eyebrow = "Manajemen Pembimbing"
                       </button>
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
             </>
           )}

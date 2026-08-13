@@ -9,6 +9,9 @@ export const ENDPOINTS = {
   LOGIN: '/api/v1/users/login',
   REGISTER: '/api/v1/users/register',
   LOGOUT: '/api/v1/users/logout',
+  FORGOT_PASSWORD: '/api/v1/users/forgot-password',
+  VERIFY_OTP: '/api/v1/users/verify-otp',
+  RESET_PASSWORD: '/api/v1/users/reset-password',
   USERS: '/api/v1/users', 
 
   // Dashboard Admin
