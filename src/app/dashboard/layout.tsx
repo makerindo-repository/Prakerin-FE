@@ -557,7 +557,7 @@ export default function DashboardLayout({
             <img
               src="/logo_prakerin_new_transparent.png"
               alt="Prakerin.ID Logo"
-              className="h-9 w-auto"
+              className="h-11 w-auto max-w-[180px] object-contain"
             />
           </Link>
         </div>

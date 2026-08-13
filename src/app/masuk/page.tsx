@@ -131,7 +131,7 @@ export default function LoginPage() {
             <img
               src="/logo_prakerin_new_transparent.png"
               alt="Logo"
-              className="w-28 md:w-48"
+              className="w-36 md:w-56 object-contain"
             />
           </div>
           <h1 className="text-2xl font-bold text-center">Login</h1>
