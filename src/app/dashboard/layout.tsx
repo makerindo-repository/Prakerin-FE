@@ -381,6 +381,21 @@ export default function DashboardLayout({
         photoProfile = data.photo_profile;
       }
 
+      const isVerified = Boolean(
+        data.is_verified ??
+        data.student?.is_verified ??
+        data.school?.is_verified ??
+        data.company?.is_verified ??
+        (data.role === "super_admin" || roleLabel === "Super Admin")
+      );
+
+      setIsActive(isVerified);
+      Cookies.set("active", String(isVerified), {
+        expires: 30,
+        path: "/",
+        sameSite: "strict",
+      });
+
       setProfile({
         ...data,
         photo_profile: photoProfile,
