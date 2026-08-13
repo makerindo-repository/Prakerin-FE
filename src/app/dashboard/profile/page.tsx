@@ -306,6 +306,77 @@ export default function ProfilePage() {
     }
   };
 
+  const handleGlobalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      let request: any = {};
+      let text = "Profil berhasil disimpan!";
+
+      const userPayload: Record<string, any> = {
+        username: userForm.username,
+        email: userForm.email,
+      };
+
+      if (userForm.password) {
+        userPayload.password = userForm.password;
+        userPayload.password_confirmation = userForm.password_confirmation;
+      }
+
+      if (userForm.photo_profile instanceof File) {
+        userPayload.photo_profile = userForm.photo_profile;
+      }
+
+      if (isPhotoReset) {
+        userPayload.reset_photo = true;
+      }
+      
+      request = { ...userPayload };
+
+      if (authorization === "company" || Cookies.get("authorization") === "company") {
+        if (companyForm.province_id && !companyForm.city_regency_id) {
+          setFormErrors({ city_regency_id: "Kota/Kabupaten wajib dipilih setelah memilih provinsi" });
+          setIsSubmitting(false);
+          return;
+        }
+        request = { ...request, ...companyForm, ...descriptionForm };
+      } else if (authorization === "school" || Cookies.get("authorization") === "school") {
+        if (schoolForm.province_id && !schoolForm.city_regency_id) {
+          setFormErrors({ city_regency_id: "Kota/Kabupaten wajib dipilih setelah memilih provinsi" });
+          setIsSubmitting(false);
+          return;
+        }
+        request = { ...request, ...schoolForm, ...descriptionForm };
+      } else if (authorization === "student" || Cookies.get("authorization") === "student") {
+        request = { ...request, ...studentForm };
+      }
+
+      const response = await API.post(
+        `${ENDPOINTS.USERS}/profile`,
+        { ...request, _method: "PATCH" },
+        { headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${Cookies.get("userToken")}` } }
+      );
+
+      fetchData();
+      setFormErrors({});
+      alertSuccess(text);
+    } catch (error: AxiosError | unknown) {
+      if (error instanceof AxiosError) {
+        const responseError = error.response?.data.errors;
+        if (typeof responseError === "string") {
+          await alertError(responseError);
+        } else {
+          setFormErrors(responseError);
+        }
+      }
+      console.error(error);
+    } finally {
+      setIsSubmittingDesc(false);
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent, form: string) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -591,7 +662,7 @@ export default function ProfilePage() {
       {studentId && <UpgradePremiumSection studentId={studentId} />}
 
       {/* Grid Utama Halaman */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form className="grid grid-cols-1 lg:grid-cols-3 gap-8" onSubmit={handleGlobalSubmit}>
         {/* Wrapper untuk Kartu Foto & Informasi Akun */}
         <div className="lg:col-span-3 grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* --- Kartu Foto --- */}
@@ -686,10 +757,7 @@ export default function ProfilePage() {
                 Informasi Akun
               </h3>
             </div>
-            <form
-              className="space-y-6"
-              onSubmit={(e) => handleSubmit(e, "user")}
-            >
+            <div className="space-y-6">
               {/* Username */}
               <div>
                 <label
@@ -835,16 +903,8 @@ export default function ProfilePage() {
               </div>
 
               {/* Simpan */}
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-accent hover:bg-accent-hover text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
-                </button>
-              </div>
-            </form>
+              
+            </div>
           </div>
         </div>
 
@@ -857,10 +917,7 @@ export default function ProfilePage() {
                 Informasi Perusahaan
               </h3>
             </div>
-            <form
-              className="space-y-6"
-              onSubmit={(e) => handleSubmit(e, "company")}
-            >
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Nama Perusahaan */}
                 <div>
@@ -1174,7 +1231,7 @@ export default function ProfilePage() {
                   {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         )}
 
@@ -1187,10 +1244,7 @@ export default function ProfilePage() {
                 Informasi Sekolah/Universitas
               </h3>
             </div>
-            <form
-              className="space-y-6"
-              onSubmit={(e) => handleSubmit(e, "school")}
-            >
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Nama Sekolah */}
                 <div>
@@ -1556,7 +1610,7 @@ export default function ProfilePage() {
                   {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         )}
 
@@ -1569,10 +1623,7 @@ export default function ProfilePage() {
                 Informasi Siswa/Mahasiswa
               </h3>
             </div>
-            <form
-              className="space-y-6"
-              onSubmit={(e) => handleSubmit(e, "student")}
-            >
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Nama Lengkap */}
                 <div>
@@ -2003,7 +2054,7 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </div>
-            </form>
+            </div>
           </div>
         )}
 
@@ -2018,10 +2069,7 @@ export default function ProfilePage() {
                 </h3>
               </div>
             </div>
-            <form
-              className="space-y-6"
-              onSubmit={(e) => handleSubmit(e, "description")}
-            >
+            <div className="space-y-6">
               <Editor
                 onChange={handleEditorChange}
                 initialData={descriptionForm.description}
@@ -2035,7 +2083,7 @@ export default function ProfilePage() {
                   {isSubmitting ? "Sedang menyimpan..." : "Simpan"}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         )}
 
@@ -2168,7 +2216,16 @@ export default function ProfilePage() {
           </div>
         </div>
 
-      </div>
+        <div className="lg:col-span-3 flex justify-end mt-6 sticky bottom-6 z-50">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-8 py-3 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg shadow-lg transition-all transform hover:-translate-y-1 hover:shadow-xl flex items-center justify-center min-w-[150px] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+          </button>
+        </div>
+      </form>
     </main>
   );
 }

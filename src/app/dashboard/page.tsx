@@ -168,8 +168,9 @@ const Dashboard: React.FC = () => {
                     Perhatian: Wajib Melengkapi Data Diri!
                   </h3>
                   <p className="text-sm text-amber-800 mt-1">
-                    Akun Anda belum melengkapi data diri (sekolah/kampus, jurusan, nomor telepon, alamat). 
-                    Fungsi-fungsi semestinya seperti pembuatan CV dan pendaftaran magang tidak akan dapat berfungsi hingga data diri Anda dilengkapi.
+                    {profile.role === "Perusahaan"
+                      ? "Akun Anda belum melengkapi profil perusahaan (alamat, kota/kabupaten). Beberapa fungsi mungkin tidak berjalan dengan baik hingga profil Anda dilengkapi."
+                      : "Akun Anda belum melengkapi data diri (sekolah/kampus, jurusan, nomor telepon, alamat). Fungsi-fungsi semestinya seperti pembuatan CV dan pendaftaran magang tidak akan dapat berfungsi hingga data diri Anda dilengkapi."}
                   </p>
                 </div>
               </div>
