@@ -553,11 +553,11 @@ export default function DashboardLayout({
       >
         {/* Logo — logo_prakerin_new_transparent.png */}
         <div className="px-5 py-5 flex items-center" data-purpose="sidebar-logo">
-          <Link href={"/"} className="flex items-center">
+          <Link href={"/"} className="flex items-center w-full">
             <img
               src="/logo_prakerin_new_transparent.png"
               alt="Prakerin.ID Logo"
-              className="h-11 w-auto max-w-[180px] object-contain"
+              className="h-10 w-auto max-w-[200px] object-contain"
             />
           </Link>
         </div>
