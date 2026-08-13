@@ -248,168 +248,71 @@ const PrakerinRegistrationSiswaForm: React.FC<
         </div>
 
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Profile Photo Upload */}
-            <div className="lg:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tambah Foto
-              </label>
-              <div className="relative">
-                <div
-                  className={`w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
-                    isSubmitting
-                      && "opacity-50"
+          <div className="space-y-4">
+            {/* Username and Full Name */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Username<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  disabled={isSubmitting}
+                  onChange={handleInputChange}
+                  placeholder="Masukan username anda disini"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    errors.username ? "border-red-500" : "border-gray-300"
                   }`}
-                >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={isSubmitting}
-                    onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                  />
-                  {profileImage ? (
-                    <img
-                      src={profileImage}
-                      alt="Profile"
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-12 h-12 text-gray-400 mb-2 mx-auto" />
-                      <p className="text-sm text-gray-500">
-                        Klik untuk upload max (2mb)
-                      </p>
-                    </div>
-                  )}
-                </div>
+                />
+                {errors.username && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.username}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nama Lengkap<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  placeholder="Masukan nama anda disini"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    errors.name ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                )}
               </div>
             </div>
 
-            {/* Form Fields */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* Username and Full Name */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Username<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    disabled={isSubmitting}
-                    onChange={handleInputChange}
-                    placeholder="Masukan username anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      errors.username ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.username && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.username}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nama Lengkap<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    disabled={isSubmitting}
-                    placeholder="Masukan nama anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      errors.name ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* School and Email */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Asal {typeStudent === "siswa" ? "Sekolah" : "Perguruan Tinggi"}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <Select
-                    isClearable
-                    isDisabled={isSubmitting}
-                    isLoading={isLoadingSchools}
-                    value={
-                      schoolOptions.find((opt) => opt.value === formData.school_id) || null
-                    }
-                    onChange={(selected) =>
-                      setFormData({
-                        ...formData,
-                        school_id: selected?.value || "",
-                      })
-                    }
-                    onInputChange={(val) => setInputSearch(val)}
-                    options={schoolOptions}
-                    placeholder={`Pilih ${
-                      typeStudent === "siswa" ? "sekolah" : "perguruan tinggi"
-                    } anda`}
-                    className="text-sm"
-                    classNames={{
-                      control: ({ isFocused }) =>
-                        `w-full px-2 py-1 border rounded-lg transition-all ${
-                          errors?.school_id
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        } ${
-                          isFocused
-                            ? "ring-2 ring-accent border-accent"
-                            : "focus:border-accent"
-                        }`,
-                      menu: () =>
-                        "bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-50",
-                      option: ({ isFocused, isSelected }) =>
-                        `px-3 py-2 cursor-pointer text-sm ${
-                          isSelected
-                            ? "bg-accent text-white"
-                            : isFocused
-                            ? "bg-blue-50"
-                            : "hover:bg-gray-100"
-                        }`,
-                      singleValue: () => "text-gray-800",
-                      placeholder: () => "text-gray-400",
-                    }}
-                  />
-                  {errors?.school_id && (
-                    <p className="mt-1 text-sm text-red-500">{errors.school_id}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    disabled={isSubmitting}
-                    onChange={handleInputChange}
-                    placeholder="Masukan email anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      errors.email ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-                  )}
-                </div>
-                
-              </div>
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                disabled={isSubmitting}
+                onChange={handleInputChange}
+                placeholder="Masukan email anda disini"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  errors.email ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+              )}
+            </div>
 
               {/* Password and Confirm Password */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -533,7 +436,6 @@ const PrakerinRegistrationSiswaForm: React.FC<
           </div>
         </div>
       </div>
-    </div>
   );
 };
 

@@ -211,133 +211,72 @@ const PrakerinRegistrationSekolahForm: React.FC<
         </div>
 
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Profile Photo Upload */}
-            <div className="lg:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tambah Foto
-              </label>
-              <div className="relative">
-                <div className={`w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
-                  isSubmitting && "opacity-50"
-                }`}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={isSubmitting}
-                    onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed "
-                  />
-                  {profileImage ? (
-                    <img
-                      src={profileImage}
-                      alt="Profile"
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-12 h-12 text-gray-400 mb-2 mx-auto" />
-                      <p className="text-sm text-gray-500">
-                        Klik untuk upload max (2mb)
-                      </p>
-                    </div>
-                  )}
-                </div>
+          <div className="space-y-4">
+            {/* Username and Full Name */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Username<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  placeholder="Masukan username anda disini"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    errors.username ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.username && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.username}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nama {label()}
+                  <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  placeholder={`Masukan nama ${label().toLowerCase()} anda`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    errors.name ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                )}
               </div>
             </div>
 
-            {/* Form Fields */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* Username and Full Name */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Username<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    disabled={isSubmitting}
-                    placeholder="Masukan username anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                      errors.username ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.username && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.username}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nama {label()}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    disabled={isSubmitting}
-                    placeholder={`Masukan nama ${label().toLowerCase()} anda`}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                      errors.name ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* School and Email */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Alamat<span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder={`Masukan alamat ${label().toLowerCase()} anda`}
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      disabled={isSubmitting}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors appearance-none bg-white disabled:cursor-not-allowed disabled:opacity-50 ${
-                        errors.address ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                  </div>
-                  {errors.address && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.address}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    disabled={isSubmitting}
-                    placeholder="Masukan email anda disini"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                      errors.email ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-                  )}
-                </div>
-              </div>
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="Masukan email anda disini"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                  errors.email ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+              )}
+            </div>
 
               {/* Password and Confirm Password */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -461,7 +400,6 @@ const PrakerinRegistrationSekolahForm: React.FC<
           </div>
         </div>
       </div>
-    </div>
   );
 };
 

@@ -86,7 +86,9 @@ interface StudentForm {
   skill: string;
   social_media_link: string;
   gender: string;
+  school_id: string;
   school_name: string;
+  school_type: string;
   major_id: string;
 }
 
@@ -132,7 +134,9 @@ export default function ProfilePage() {
     name: "",
     date_of_birth: "",
     phone_number: "",
+    school_id: "",
     school_name: "",
+    school_type: "school",
     gender: "",
     address: "",
     major_id: "",
@@ -180,6 +184,40 @@ export default function ProfilePage() {
 
   const debouncedProvinceSearch = useDebounce(provinceSearch, 500);
 
+  const [studentSchoolSearch, setStudentSchoolSearch] = useState("");
+  const debouncedStudentSchoolSearch = useDebounce(studentSchoolSearch, 500);
+  const [studentSchoolOptions, setStudentSchoolOptions] = useState<{ value: string; label: string; type?: string }[]>([]);
+  const [isLoadingStudentSchools, setIsLoadingStudentSchools] = useState(false);
+
+  useEffect(() => {
+    const fetchStudentSchools = async () => {
+      const currentRole = authorization || Cookies.get("authorization");
+      if (currentRole !== "student") return;
+      setIsLoadingStudentSchools(true);
+      try {
+        const res = await API.get(ENDPOINTS.USERS, {
+          params: { 
+            role: "school",
+            search: debouncedStudentSchoolSearch,
+            limit: 100 
+          },
+        });
+        setStudentSchoolOptions(
+          (res.data.data || []).map((userSchool: any) => ({
+            value: userSchool.school?.id || userSchool.id,
+            label: userSchool.school?.name || userSchool.name,
+            type: userSchool.school?.type || "school",
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to fetch schools for student profile:", err);
+      } finally {
+        setIsLoadingStudentSchools(false);
+      }
+    };
+
+    fetchStudentSchools();
+  }, [debouncedStudentSchoolSearch, authorization]);
 
   const fetchProfile = async () => {
     try {
@@ -232,7 +270,9 @@ export default function ProfilePage() {
                 response.data.data.student?.social_media_link || "",
               gender: response.data.data.student?.gender || "",
               major_id: response.data.data.student?.major_id || "",
+              school_id: response.data.data.student?.school_id || "",
               school_name: response.data.data.student?.school_name || "",
+              school_type: response.data.data.student?.school_type || "school",
             });
             break;
         }
@@ -1565,26 +1605,50 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {/* Asal Sekolah */}
+                {/* Asal Sekolah / Perguruan Tinggi */}
                 <div>
                   <label
                     htmlFor="school"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Asal Sekolah/Universitas
+                    Asal {studentForm.school_type === "university" ? "Perguruan Tinggi / Kampus" : "Sekolah"}
+                    <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    disabled={true}
-                    id="school"
-                    type="text"
-                    value={studentForm?.school_name}
-                    placeholder="SMKN NEGERI 1 CIPAGALO"
-                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
-                      formErrors.school_name
-                        ? "border-red-500"
-                        : "border-gray-300"
+                  <Select
+                    isClearable
+                    isSearchable
+                    isDisabled={isSubmitting}
+                    isLoading={isLoadingStudentSchools}
+                    value={
+                      studentSchoolOptions.find((opt) => opt.value === studentForm.school_id) ||
+                      (studentForm.school_name ? { value: studentForm.school_id, label: studentForm.school_name } : null)
+                    }
+                    onChange={(selected: any) => {
+                      setStudentForm({
+                        ...studentForm,
+                        school_id: selected?.value || "",
+                        school_name: selected?.label || "",
+                        school_type: selected?.type || studentForm.school_type,
+                      });
+                    }}
+                    onInputChange={(val) => setStudentSchoolSearch(val)}
+                    options={studentSchoolOptions}
+                    placeholder={`Pilih / cari ${
+                      studentForm.school_type === "university" ? "perguruan tinggi / kampus" : "sekolah"
                     }`}
+                    className="text-sm"
+                    classNames={{
+                      control: ({ isFocused }) =>
+                        `w-full border rounded-md shadow-sm sm:text-sm p-1 transition-colors ${
+                          formErrors.school_id ? "border-red-500" : "border-gray-300"
+                        } ${isFocused ? "ring-2 ring-accent border-accent" : ""}`,
+                    }}
                   />
+                  {formErrors.school_id && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formErrors.school_id}
+                    </p>
+                  )}
                 </div>
 
                 {/* Jenis Kelamin */}
@@ -1646,13 +1710,14 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {/* Jurusan */}
+                {/* Jurusan / Program Studi */}
                 <div>
                   <label
-                    htmlFor="school-phone-number"
+                    htmlFor="major"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Jurusan
+                    {studentForm.school_type === "university" ? "Program Studi (Prodi)" : "Jurusan"}
+                    <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="major"
@@ -1667,7 +1732,9 @@ export default function ProfilePage() {
                       formErrors.major_id ? "border-red-500" : "border-gray-300"
                     }`}
                   >
-                    <option value="">Pilih Jurusan</option>
+                    <option value="">
+                      Pilih {studentForm.school_type === "university" ? "Program Studi" : "Jurusan"}
+                    </option>
                     {majors.map((major) => (
                       <option key={major.id} value={major.id}>
                         {major.name}

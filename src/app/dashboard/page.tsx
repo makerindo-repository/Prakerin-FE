@@ -1,8 +1,9 @@
 "use client";
 import React, { useEffect, useState, useCallback, Suspense } from "react";
-import { UserCircle } from "lucide-react";
+import { UserCircle, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import Cookies from "js-cookie";
+import Link from "next/link";
 import { createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import { getGreeting, getGreetingDetails } from "@/utils/getGreeting";
 import Image from "next/image";
@@ -28,6 +29,8 @@ interface Profile {
   name: string;
   username?: string;
   role?: string;
+  is_profile_complete?: boolean;
+  missing_fields?: string[];
   student?: {
     photo_profile?: string | null;
     school?: {
@@ -154,6 +157,30 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Alert Wajib Melengkapi Data Diri */}
+          {profile.is_profile_complete === false && (
+            <div className="mb-8 bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-lg shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-amber-900 text-base">
+                    Perhatian: Wajib Melengkapi Data Diri!
+                  </h3>
+                  <p className="text-sm text-amber-800 mt-1">
+                    Akun Anda belum melengkapi data diri (sekolah/kampus, jurusan, nomor telepon, alamat). 
+                    Fungsi-fungsi semestinya seperti pembuatan CV dan pendaftaran magang tidak akan dapat berfungsi hingga data diri Anda dilengkapi.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/profile"
+                className="whitespace-nowrap px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm rounded-lg transition-colors shadow-sm self-stretch md:self-auto text-center"
+              >
+                Lengkapi Data Diri
+              </Link>
+            </div>
+          )}
         </>
       )}
 
