@@ -254,23 +254,27 @@ export default function LowonganDetail({
         <div className="text-gray-600 py-6 mb-6">
         <RenderBlocks data={data.description} />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Test
-        </h3>
-        <div className="py-6 mb-6">
-        {data.test &&
-            data.test.map((test: any, index: number) => (
-            <div key={index} className="bg-white shadow-md my-5 p-5">
-                <span className="text-lg font-medium">
-                {test.title}{" "}
-                <span className="text-gray-400">
-                    - {getTypeTest(test.type)}
-                </span>
-                </span>
-                <p>{test.description}</p>
-            </div>
-            ))}
-        </div>
+        {/* Conditionally render Test section only if there are tests */}
+        {data.test && data.test.length > 0 && (
+            <>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Ujian Seleksi (Test)
+                </h3>
+                <div className="py-6 mb-6">
+                    {data.test.map((test: any, index: number) => (
+                        <div key={index} className="bg-white shadow-md my-5 p-5">
+                            <span className="text-lg font-medium">
+                                {test.title}{" "}
+                                <span className="text-gray-400">
+                                    - {getTypeTest(test.type)}
+                                </span>
+                            </span>
+                            <p>{test.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </>
+        )}
     </div>
   );
 }

@@ -129,8 +129,10 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   >([]);
   const [isLoadingField, setIsLoadingField] = useState(false);
   const [isLoadingDuration, setIsLoadingDuration] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const fetchJobOpening = async () => {
+    setIsLoadingData(true);
     try {
       const response = await API.get(`${ENDPOINTS.JOB_OPENINGS}/${id}`, {
         headers: {
@@ -171,6 +173,8 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       }
     } catch (error: any) {
       console.error("Error fetching job opening:", error);
+    } finally {
+      setIsLoadingData(false);
     }
   };
 
@@ -429,7 +433,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const isCompanyOwner = userRole === "company";
 
-  if (isLoadingDuration) {
+  if (isLoadingDuration || isLoadingData) {
     return (
       <main className="p-6 flex justify-center items-center min-h-[400px]">
         <p className="text-gray-400">Memuat data...</p>

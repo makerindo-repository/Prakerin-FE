@@ -21,9 +21,8 @@ export default function Editor({
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    // Cek apakah editor belum diinisialisasi DAN initialData bukan string kosong
-    const shouldInitialize =
-      !hasInitialized && !editorRef.current && initialData !== "";
+    // Cek apakah editor belum diinisialisasi
+    const shouldInitialize = !hasInitialized && !editorRef.current;
 
     if (shouldInitialize) {
       console.log("panggil - menginisialisasi editor");
