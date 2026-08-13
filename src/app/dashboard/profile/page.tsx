@@ -956,7 +956,19 @@ export default function ProfilePage() {
                       }),
                       singleValue: (base, state) => ({
                         ...base,
-                        color: state.isDisabled ? "#6b7280" : "#000000",
+                        color: state.isDisabled ? "#6b7280" : "#1f2937",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        color: state.isSelected ? "#ffffff" : "#1f2937",
+                        backgroundColor: state.isSelected
+                          ? "#035a70"
+                          : state.isFocused
+                          ? "#e0f2fe"
+                          : "#ffffff",
+                        cursor: "pointer",
+                        fontSize: "0.875rem",
+                        padding: "8px 12px",
                       }),
                       menu: (base) => ({
                         ...base,
@@ -1301,7 +1313,19 @@ export default function ProfilePage() {
                       }),
                       singleValue: (base, state) => ({
                         ...base,
-                        color: state.isDisabled ? "#6b7280" : "#000000",
+                        color: state.isDisabled ? "#6b7280" : "#1f2937",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        color: state.isSelected ? "#ffffff" : "#1f2937",
+                        backgroundColor: state.isSelected
+                          ? "#035a70"
+                          : state.isFocused
+                          ? "#e0f2fe"
+                          : "#ffffff",
+                        cursor: "pointer",
+                        fontSize: "0.875rem",
+                        padding: "8px 12px",
                       }),
                       menu: (base) => ({
                         ...base,
@@ -1637,12 +1661,69 @@ export default function ProfilePage() {
                       studentForm.school_type === "university" ? "perguruan tinggi / kampus" : "sekolah"
                     }`}
                     className="text-sm"
-                    classNames={{
-                      control: ({ isFocused }) =>
-                        `w-full border rounded-md shadow-sm sm:text-sm p-1 transition-colors ${
-                          formErrors.school_id ? "border-red-500" : "border-gray-300"
-                        } ${isFocused ? "ring-2 ring-accent border-accent" : ""}`,
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isDisabled ? "#e5e7eb" : "#ffffff",
+                        borderColor: formErrors.school_id ? "#ef4444" : "#d1d5db",
+                        borderRadius: "0.375rem",
+                        padding: "0.125rem",
+                        minHeight: "42px",
+                        boxShadow: state.isFocused ? "0 0 0 2px rgba(3, 90, 112, 0.5)" : "none",
+                        borderWidth: "1px",
+                        cursor: state.isDisabled ? "not-allowed" : "default",
+                        "&:hover": {
+                          borderColor: formErrors.school_id ? "#ef4444" : "#035a70",
+                        },
+                      }),
+                      valueContainer: (base) => ({
+                        ...base,
+                        padding: "2px 8px",
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        margin: 0,
+                        padding: 0,
+                        color: "#1f2937",
+                      }),
+                      placeholder: (base) => ({
+                        ...base,
+                        color: "#9ca3af",
+                      }),
+                      singleValue: (base, state) => ({
+                        ...base,
+                        color: state.isDisabled ? "#6b7280" : "#1f2937",
+                        fontWeight: "500",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        color: state.isSelected ? "#ffffff" : "#1f2937",
+                        backgroundColor: state.isSelected
+                          ? "#035a70"
+                          : state.isFocused
+                          ? "#e0f2fe"
+                          : "#ffffff",
+                        cursor: "pointer",
+                        fontSize: "0.875rem",
+                        padding: "8px 12px",
+                        "&:active": {
+                          backgroundColor: "#0284c7",
+                          color: "#ffffff",
+                        },
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                        borderRadius: "0.375rem",
+                        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
+                      }),
+                      menuPortal: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                      }),
                     }}
+                    menuPortalTarget={typeof window !== "undefined" ? document.body : null}
+                    menuPosition="fixed"
                   />
                   {formErrors.school_id && (
                     <p className="mt-1 text-sm text-red-500">
