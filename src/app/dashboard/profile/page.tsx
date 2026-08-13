@@ -227,52 +227,53 @@ export default function ProfilePage() {
         },
       });
       console.log("fetch Profile", response.data.data);
-      if (response.status === 200) {
+      const data = response.data?.data;
+      if (response.status === 200 && data) {
         setIsPhotoReset(false);
         setUserForm({
-          photo_profile: response.data.data.photo_profile,
-          username: response.data.data.username,
-          email: response.data.data.email,
+          photo_profile: data.photo_profile ?? null,
+          username: data.username ?? "",
+          email: data.email ?? "",
           password: "",
           password_confirmation: "",
         });
 
-        console.log(response.data.data);
+        console.log(data);
 
-        switch (response.data.data.role) {
+        switch (data.role) {
           case "company":
-            if (response.data.data.company) {
-              setCompanyForm(response.data.data.company);
+            if (data.company) {
+              setCompanyForm((prev) => ({ ...prev, ...data.company }));
               setDescriptionForm({
-                description: response.data.data.company.description || "",
+                description: data.company.description || "",
               });
             }
             break;
           case "school":
-            if (response.data.data.school) {
-              setSchoolForm(response.data.data.school);
+            if (data.school) {
+              setSchoolForm((prev) => ({ ...prev, ...data.school }));
               setDescriptionForm({
-                description: response.data.data.school.description || "",
+                description: data.school.description || "",
               });
             }
             break;
           case "student":
             setStudentForm({
-              name: response.data.data.student?.name || "",
-              phone_number: response.data.data.student?.phone_number || "",
-              date_of_birth: response.data.data.student?.date_of_birth || "",
-              address: response.data.data.student?.address || "",
-              class: response.data.data.student?.class || "",
+              name: data.student?.name || "",
+              phone_number: data.student?.phone_number || "",
+              date_of_birth: data.student?.date_of_birth || "",
+              address: data.student?.address || "",
+              class: data.student?.class || "",
               portofolio_link:
-                response.data.data.student?.portofolio_link || "",
-              skill: response.data.data.student?.skill || "",
+                data.student?.portofolio_link || "",
+              skill: data.student?.skill || "",
               social_media_link:
-                response.data.data.student?.social_media_link || "",
-              gender: response.data.data.student?.gender || "",
-              major_id: response.data.data.student?.major_id || "",
-              school_id: response.data.data.student?.school_id || "",
-              school_name: response.data.data.student?.school_name || "",
-              school_type: response.data.data.student?.school_type || "school",
+                data.student?.social_media_link || "",
+              gender: data.student?.gender || "",
+              major_id: data.student?.major_id || "",
+              school_id: data.student?.school_id || "",
+              school_name: data.student?.school_name || "",
+              school_type: data.student?.school_type || "school",
             });
             break;
         }
@@ -280,16 +281,17 @@ export default function ProfilePage() {
         // Load notification preferences from user object
         setNotifForm({
           email_notifications_enabled:
-            response.data.data.email_notifications_enabled ?? true,
+            data.email_notifications_enabled ?? true,
           whatsapp_notifications_enabled:
-            response.data.data.whatsapp_notifications_enabled ?? false,
-          whatsapp_number: response.data.data.whatsapp_number ?? "",
+            data.whatsapp_notifications_enabled ?? false,
+          whatsapp_number: data.whatsapp_number ?? "",
         });
       }
     } catch (error) {
       console.error("Failed to fetch profile:", error);
     }
   };
+
 
   const fetchWhatsAppPlatformStatus = async () => {
     try {
