@@ -245,7 +245,7 @@ export default function ProfilePage() {
             if (data.company) {
               setCompanyForm((prev) => ({ ...prev, ...data.company }));
               setDescriptionForm({
-                description: data.company.description || "",
+                description: data.company.description || null,
               });
             }
             break;
@@ -253,7 +253,7 @@ export default function ProfilePage() {
             if (data.school) {
               setSchoolForm((prev) => ({ ...prev, ...data.school }));
               setDescriptionForm({
-                description: data.school.description || "",
+                description: data.school.description || null,
               });
             }
             break;
