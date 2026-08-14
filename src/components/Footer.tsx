@@ -41,7 +41,7 @@ export default function FooterPage() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-2">
-              <img src="/logo_prakerin_new_transparent.png" alt="PRAKERIN.ID" className="h-11 w-auto object-contain" />
+              <img src="/Logo Prakerin ID Text (2).svg" alt="PRAKERIN.ID" className="h-11 w-auto object-contain" />
             </div>
             <p className="max-w-xs text-sm leading-relaxed text-gray-400">
               Platform magang terpercaya yang menghubungkan talenta muda dengan

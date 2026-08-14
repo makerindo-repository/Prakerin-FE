@@ -80,7 +80,7 @@ export default function Navigation({}: NavigationProps) {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="PRAKERIN.ID Beranda">
-          <img src="/logo_prakerin_new_transparent.png" alt="PRAKERIN.ID" className="h-10 w-auto object-contain" />
+          <img src="/Logo Prakerin ID Text (2).svg" alt="PRAKERIN.ID" className="h-10 w-auto object-contain" />
         </Link>
 
         {/* Desktop nav */}

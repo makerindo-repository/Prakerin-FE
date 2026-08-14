@@ -782,11 +782,11 @@ function PengaturanContent() {
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Preview Logo Aktif</p>
                       <div className="w-full h-20 flex items-center justify-center bg-gray-50 rounded-lg p-2 border border-dashed border-gray-200">
                         <img
-                          src={form.app_logo || "/logo_prakerin_new_transparent.png"}
+                          src={form.app_logo || "/Logo Prakerin ID Text (2).svg"}
                           alt="Logo Preview"
                           className="max-h-16 w-auto object-contain"
                           onError={(e) => {
-                            e.currentTarget.src = "/logo_prakerin_new_transparent.png";
+                            e.currentTarget.src = "/Logo Prakerin ID Text (2).svg";
                           }}
                         />
                       </div>
@@ -829,7 +829,7 @@ function PengaturanContent() {
                           name="app_logo"
                           value={form.app_logo}
                           onChange={handleInputChange}
-                          placeholder="https://domain.com/logo.png atau /logo_prakerin_new_transparent.png"
+                          placeholder="https://domain.com/logo.png atau /Logo Prakerin ID Text (2).svg"
                           className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-xs"
                         />
                       </div>

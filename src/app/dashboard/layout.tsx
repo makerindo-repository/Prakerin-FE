@@ -566,11 +566,11 @@ export default function DashboardLayout({
           !isDesktopClosed ? "lg:translate-x-0" : "lg:-translate-x-full"
         }`}
       >
-        {/* Logo — logo_prakerin_new_transparent.png */}
+        {/* Logo — Logo Prakerin ID Text (2).svg */}
         <div className="px-5 py-5 flex items-center" data-purpose="sidebar-logo">
           <Link href={"/"} className="flex items-center w-full">
             <img
-              src="/logo_prakerin_new_transparent.png"
+              src="/Logo Prakerin ID Text (2).svg"
               alt="Prakerin.ID Logo"
               className="h-10 w-auto max-w-[200px] object-contain"
             />

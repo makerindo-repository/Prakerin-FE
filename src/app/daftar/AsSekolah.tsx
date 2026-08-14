@@ -201,7 +201,7 @@ const PrakerinRegistrationSekolahForm: React.FC<
         {/* Header */}
         <div className="text-center mb-8">
           <img
-            src="/logo_prakerin_new_transparent.png"
+            src="/Logo Prakerin ID Text (2).svg"
             alt=""
             className="lg:w-50 mb-4 mx-auto"
           />

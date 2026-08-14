@@ -201,7 +201,7 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md space-y-6 bg-white shadow-2xl p-6 md:p-10 rounded-xl transition-all">
           {/* Logo & Header */}
           <div className="flex justify-center">
-            <img src="/logo_prakerin_new_transparent.png" alt="Logo Prakerin.id" className="w-28 md:w-44" />
+            <img src="/Logo Prakerin ID Text (2).svg" alt="Logo Prakerin.id" className="w-28 md:w-44" />
           </div>
 
           {step === 1 && (

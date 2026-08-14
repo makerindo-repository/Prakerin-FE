@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Makerindo Prima Solusi" }],
   creator: "Makerindo Prima Solusi",
   publisher: "PRAKERIN.ID",
-  icons: { icon: "/Logo Prakerin ID.svg" },
+  icons: { icon: "/PrakerinID_ico.png" },
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
