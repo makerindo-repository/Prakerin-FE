@@ -86,7 +86,7 @@ export default function SchoolDashboard({
         headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
       });
 
-      const response = await Promise.all([
+      const response = await Promise.allSettled([
         userpCount,
         jobOpeningCount,
         achievementCount,
@@ -95,14 +95,14 @@ export default function SchoolDashboard({
       ]);
 
       setSummary({
-        student_count: response[0].data.data.student_count,
-        student_internship_count: response[0].data.data.total_student_internship,
-        job_opening_count: response[1].data.data,
-        company_count: response[0].data.data.company_count,
-        achievement_count: response[2].data.data,
+        student_count: response[0].status === 'fulfilled' ? response[0].value.data.data.student_count : 0,
+        student_internship_count: response[0].status === 'fulfilled' ? response[0].value.data.data.total_student_internship : 0,
+        job_opening_count: response[1].status === 'fulfilled' ? response[1].value.data.data : { true: 0, false: 0, total: 0 },
+        company_count: response[0].status === 'fulfilled' ? response[0].value.data.data.company_count : 0,
+        achievement_count: response[2].status === 'fulfilled' ? response[2].value.data.data : 0,
       });
-      setRatingSummary(response[3].data.data);
-      setStudentCount(response[4].data.data);
+      setRatingSummary(response[3].status === 'fulfilled' ? response[3].value.data.data : { rating_count: 0, average_rating: 0, rating_1: 0, rating_2: 0, rating_3: 0, rating_4: 0, rating_5: 0 });
+      setStudentCount(response[4].status === 'fulfilled' ? response[4].value.data.data : { not_started: 0, ongoing: 0, completed: 0 });
     } catch (error) {
       console.error(error);
     } finally {

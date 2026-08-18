@@ -102,7 +102,7 @@ export default function IndustryDashboard({
         headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
       });
 
-      const response = await Promise.all([
+      const response = await Promise.allSettled([
         internshipCount,
         jobOpeningCount,
         achievementCount,
@@ -111,12 +111,12 @@ export default function IndustryDashboard({
       ]);
 
       setSummary({
-        internship_count: response[0].data.data,
-        job_opening_count: response[1].data.data,
-        achievement_count: response[2].data.data,
-        task: response[4].data.data,
+        internship_count: response[0].status === 'fulfilled' ? response[0].value.data.data : { active: 0, completed: 0, pending: 0 },
+        job_opening_count: response[1].status === 'fulfilled' ? response[1].value.data.data : { true: 0, false: 0, total: 0 },
+        achievement_count: response[2].status === 'fulfilled' ? response[2].value.data.data : 0,
+        task: response[4].status === 'fulfilled' ? response[4].value.data.data : { total: 0, active: 0, completed: 0 },
       });
-      setRatingSummary(response[3].data.data);
+      setRatingSummary(response[3].status === 'fulfilled' ? response[3].value.data.data : { rating_count: 0, average_rating: 0, rating_1: 0, rating_2: 0, rating_3: 0, rating_4: 0, rating_5: 0 });
     } catch (error) {
       console.error(error);
     } finally {
