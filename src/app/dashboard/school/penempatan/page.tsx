@@ -14,6 +14,8 @@ import Cookies from "js-cookie";
 import Link from "next/link";
 import useDebounce from "@/hooks/useDebounce";
 import Image from "next/image";
+import NotFoundComponent from "@/components/NotFoundComponent";
+import LoaderData from "@/components/loader";
 
 interface Student {
   id: number;
@@ -91,7 +93,7 @@ const PerusahaanPage: React.FC = () => {
       </div>
 
       <div className="lg:flex lg:justify-between items-end mb-5">
-        <div className="bg-white p-3 rounded-2xl flex items-center justify-between space-x-5 px-5 mb-5 lg:mb-0">
+        <div className="bg-white p-3 rounded-2xl flex items-center justify-between space-x-5 px-5 mb-5 lg:mb-0 w-full lg:w-max">
           <div className="text-black">
             <h1 className="text-2xl font-extrabold">
               {count.total_student_internship}
@@ -100,38 +102,35 @@ const PerusahaanPage: React.FC = () => {
           </div>
           <BriefcaseBusiness className="w-10 h-10 text-accent" />
         </div>
-        <div className="relative flex-1 bg-white rounded-2xl shadow-md">
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5" />
           <input
             type="text"
             onChange={(e) => setSearchTerm(e.target.value)}
             value={searchTerm}
             placeholder="Cari penempatan siswa/mahasiswa..."
-            className="text-gray-600 w-full px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent rounded-2xl transition-all duration-300"
+            className="w-full bg-accent text-white pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-transparent transition-colors placeholder:text-white/70"
           />
-          <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
         </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : data.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-accent/5 text-gray-700 text-sm border-b border-gray-100">
-                  <th className="p-4 font-semibold whitespace-nowrap">Siswa/Mahasiswa</th>
-                  <th className="p-4 font-semibold whitespace-nowrap">Role</th>
-                  <th className="p-4 font-semibold whitespace-nowrap">Perusahaan</th>
-                  <th className="p-4 font-semibold whitespace-nowrap">Lokasi</th>
-                  <th className="p-4 font-semibold whitespace-nowrap text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-sm">
-                {data.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="text-left p-3 font-medium text-gray-600">Siswa/Mahasiswa</th>
+                <th className="text-left p-3 font-medium text-gray-600">Role</th>
+                <th className="text-left p-3 font-medium text-gray-600">Perusahaan</th>
+                <th className="text-left p-3 font-medium text-gray-600">Lokasi</th>
+                <th className="text-center p-3 font-medium text-gray-600">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.length > 0 && isLoading !== true ? (
+                data.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-50">
                     <td className="p-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 relative flex-shrink-0 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50">
@@ -160,7 +159,7 @@ const PerusahaanPage: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 text-gray-800">
                       {item.job ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent">
                           {item.job}
@@ -215,19 +214,25 @@ const PerusahaanPage: React.FC = () => {
                       </Link>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                ))
+              ) : isLoading ? (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    <LoaderData />
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Empty State */}
+        {data.length === 0 && isLoading === false && (
+          <div className="text-center py-12">
+            <NotFoundComponent text="Tidak ada daftar penempatan siswa/mahasiswa yang ditemukan" />
           </div>
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <XCircle className="w-12 h-12 text-red-500/50 mx-auto mb-4" />
-          <p className="text-gray-500">
-            Tidak ada daftar penempatan siswa/mahasiswa yang ditemukan
-          </p>
-        </div>
-      )}
+        )}
+      </div>
     </main>
   );
 };
