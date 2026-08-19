@@ -117,90 +117,108 @@ const PerusahaanPage: React.FC = () => {
           <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       ) : data.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-black">
-          {data.map((item) => (
-            <div
-              className="bg-white space-y-5 p-5 px-10 md:px-5 rounded-2xl"
-              key={item.id}
-            >
-              <div className="flex flex-col md:flex-row justify-between items-end md:items-center">
-                <div className="flex w-full md:w-auto">
-                  {/* Foto profil siswa — dengan fallback */}
-                  <div className="w-10 h-10 relative self-center rounded-full border-white border flex items-center justify-center bg-gray-100">
-                    {item.photo_profile && !imageErrors[`student-${item.id}`] ? (
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.photo_profile}`}
-                        alt="Foto Siswa"
-                        fill
-                        sizes="40px"
-                        className="object-cover rounded-full"
-                        onError={() =>
-                          setImageErrors((prev) => ({
-                            ...prev,
-                            [`student-${item.id}`]: true,
-                          }))
-                        }
-                      />
-                    ) : (
-                      <User className="w-6 h-6 text-accent" />
-                    )}
-                  </div>
-
-                  <div className="ms-3">
-                    <h5 className="text-gray-800 text-2xl font-bold">
-                      {item.student?.name ?? "Nama Tidak Tersedia"}
-                    </h5>
-                    {item.job && (
-                      <span className="flex text-accent">{item.job} Role</span>
-                    )}
-                  </div>
-                </div>
-
-                <Link
-                  href={`/dashboard/school/penempatan/${item.id}`}
-                  className="bg-accent/10 flex justify-between hover:bg-accent/20 items-center p-1 px-2 space-x-2 rounded-full"
-                >
-                  <span>Detail</span>
-                  <CircleArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              <div className="flex w-full md:w-auto items-center bg-accent-light/15 p-3 rounded-2xl border border-accent-light">
-                {/* Foto profil perusahaan — dengan fallback */}
-                <div className="w-10 h-10 relative rounded-full border-white border flex items-center justify-center bg-gray-100 flex-shrink-0">
-                  {item.student?.company?.[0]?.user?.photo_profile &&
-                  !imageErrors[`company-${item.id}`] ? (
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.student.company[0].user.photo_profile}`}
-                      alt="Logo Perusahaan"
-                      fill
-                      sizes="40px"
-                      className="object-cover rounded-full"
-                      onError={() =>
-                        setImageErrors((prev) => ({
-                          ...prev,
-                          [`company-${item.id}`]: true,
-                        }))
-                      }
-                    />
-                  ) : (
-                    <Building className="w-6 h-6 text-accent" />
-                  )}
-                </div>
-
-                <div className="ms-3 flex gap-2 flex-col text-md">
-                  <h5 className="text-accent font-bold">
-                    {item.student?.company?.[0]?.name ?? "Belum ada perusahaan"}
-                  </h5>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    {item.student?.company?.[0]?.city_regency?.name ?? "-"},{" "}
-                    {item.student?.company?.[0]?.province?.name ?? "-"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-accent/5 text-gray-700 text-sm border-b border-gray-100">
+                  <th className="p-4 font-semibold whitespace-nowrap">Siswa/Mahasiswa</th>
+                  <th className="p-4 font-semibold whitespace-nowrap">Role</th>
+                  <th className="p-4 font-semibold whitespace-nowrap">Perusahaan</th>
+                  <th className="p-4 font-semibold whitespace-nowrap">Lokasi</th>
+                  <th className="p-4 font-semibold whitespace-nowrap text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm">
+                {data.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 relative flex-shrink-0 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50">
+                          {item.photo_profile && !imageErrors[`student-${item.id}`] ? (
+                            <Image
+                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.photo_profile}`}
+                              alt="Foto Siswa"
+                              fill
+                              sizes="40px"
+                              className="object-cover rounded-full"
+                              onError={() =>
+                                setImageErrors((prev) => ({
+                                  ...prev,
+                                  [`student-${item.id}`]: true,
+                                }))
+                              }
+                            />
+                          ) : (
+                            <User className="w-5 h-5 text-accent" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-bold text-gray-800">
+                            {item.student?.name ?? "Nama Tidak Tersedia"}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      {item.job ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent">
+                          {item.job}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 relative flex-shrink-0 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50">
+                          {item.student?.company?.[0]?.user?.photo_profile &&
+                          !imageErrors[`company-${item.id}`] ? (
+                            <Image
+                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.student.company[0].user.photo_profile}`}
+                              alt="Logo Perusahaan"
+                              fill
+                              sizes="32px"
+                              className="object-cover rounded-full"
+                              onError={() =>
+                                setImageErrors((prev) => ({
+                                  ...prev,
+                                  [`company-${item.id}`]: true,
+                                }))
+                              }
+                            />
+                          ) : (
+                            <Building className="w-4 h-4 text-accent" />
+                          )}
+                        </div>
+                        <div className="font-medium text-gray-700">
+                          {item.student?.company?.[0]?.name ?? "Belum ada perusahaan"}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 text-gray-600">
+                      <div className="flex items-center space-x-1.5">
+                        <MapPin className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                        <span className="line-clamp-1">
+                          {item.student?.company?.[0]?.city_regency?.name ?? "-"},{" "}
+                          {item.student?.company?.[0]?.province?.name ?? "-"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <Link
+                        href={`/dashboard/school/penempatan/${item.id}`}
+                        className="inline-flex items-center justify-center p-2 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition-colors"
+                        title="Lihat Detail"
+                      >
+                        <CircleArrowRight className="w-5 h-5" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="text-center py-12">
