@@ -76,7 +76,7 @@ export default function ImportInstitutionModal({
         },
         // File bisa ribuan baris — proses di server bisa agak lama, jangan
         // buru-buru timeout di sisi browser.
-        timeout: 5 * 60 * 1000, // 5 menit
+        timeout: 0, // 0 = Infinite (Tunggu sampai server selesai)
       });
 
       setSummary(res.data.summary);
