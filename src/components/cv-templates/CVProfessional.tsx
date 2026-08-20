@@ -21,14 +21,23 @@ const CVProfessional: React.FC<{data: CVResult| null}> = ({ data }) => {
   return (
     <div className="bg-white text-gray-900 p-10 font-serif">
       {/* --- HEADER --- */}
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-800">{fullName}</h1>
-        <p className="text-lg text-accent-dark mt-1">{jobTitle}</p>
-        <div className="flex items-center space-x-6 text-sm text-gray-600 mt-3">
-          <div className="flex items-center gap-2"><Mail size={14} /><span>{email}</span></div>
-          <div className="flex items-center gap-2"><Phone size={14} /><span>{phone}</span></div>
-          <div className="flex items-center gap-2"><Linkedin size={14} /><span>{linkedin}</span></div>
+      <header className="mb-8 flex justify-between items-start gap-6">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-800">{fullName}</h1>
+          <p className="text-lg text-accent-dark mt-1">{jobTitle}</p>
+          <div className="flex items-center space-x-6 text-sm text-gray-600 mt-3 flex-wrap gap-y-2">
+            <div className="flex items-center gap-2"><Mail size={14} /><span>{email}</span></div>
+            <div className="flex items-center gap-2"><Phone size={14} /><span>{phone}</span></div>
+            <div className="flex items-center gap-2"><Linkedin size={14} /><span>{linkedin}</span></div>
+          </div>
         </div>
+        {data?.photo_profile && (
+          <img 
+            src={data.photo_profile} 
+            alt={fullName} 
+            className="w-28 h-28 object-cover rounded-lg border border-gray-200 shadow-sm shrink-0" 
+          />
+        )}
       </header>
       <hr className="mb-8" />
 
