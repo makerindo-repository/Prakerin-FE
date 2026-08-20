@@ -52,6 +52,7 @@ import {
   DollarSign,
   CreditCard,
   Wand2,
+  BrainCircuit,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -158,6 +159,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: ScrollText, label: "Laporan", href: "/dashboard/laporan", permission: "view_laporan" },
         { icon: DollarSign, label: "Revenue Dashboard", href: "/dashboard/admin/revenue", permission: "view_laporan" },
         { icon: Activity, label: "Log Aktivitas", href: "/dashboard/log-aktivitas", permission: "view_log_aktivitas" },
+        { icon: BrainCircuit, label: "Log Aktivitas AI", href: "/dashboard/admin/ai-logs", permission: "view_log_aktivitas" },
       ],
     },
     {

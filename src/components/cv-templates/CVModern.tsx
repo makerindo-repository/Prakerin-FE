@@ -41,9 +41,9 @@ const CVModernPDF: React.FC<{data?: CVResult| null}> = ({ data }) => {
               src={data.photo_profile}
               alt={fullName}
               style={{
-                width: '100px',
-                height: '100px',
-                borderRadius: '50%',
+                width: '90px',
+                height: '120px',
+                borderRadius: '8px',
                 objectFit: 'cover',
                 margin: '0 auto 16px',
                 display: 'block',

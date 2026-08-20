@@ -1,4 +1,5 @@
 "use client";
+import FeatureActivityLog from "@/components/FeatureActivityLog";
 import UnderConstruction from "@/components/UnderConstruction";
 import { FileText, Sparkles, Download, Save, Copy, RefreshCw, Check, FileCheck, Camera, Image as ImageIcon, Clock } from "lucide-react";
 import Link from "next/link";
@@ -12,14 +13,7 @@ import { API, ENDPOINTS } from "@/utils/config";
 import { CVResult } from "@/models/CV";
 import Cookies from "js-cookie";
 import { alertSuccess, alertError } from "@/libs/alert";
-
-interface ActivityLog {
-  id: string;
-  timestamp: string;
-  action: string;
-  status: 'success' | 'error';
-  details?: string;
-}
+import { resizeImageToPasFoto } from "@/utils/cropImage";
 
 interface PromptFieldProps {
   onResult?: (s: string) => void;
@@ -56,18 +50,9 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   // History log states
-  const [logs, setLogs] = useState<ActivityLog[]>([]);
 
-  useEffect(() => {
-    const savedLogs = localStorage.getItem('ai_cv_logs');
-    if (savedLogs) {
-      try { setLogs(JSON.parse(savedLogs)); } catch (e) {}
-    }
-  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('ai_cv_logs', JSON.stringify(logs));
-  }, [logs]);
+
 
   // Progress Bar states
   const [progress, setProgress] = useState(0);
@@ -112,14 +97,19 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
     setPrompt((p) => (p ? p + " \n" + text : text));
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setCustomPhoto(ev.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const resizedFile = await resizeImageToPasFoto(file, 300, 400);
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          setCustomPhoto(ev.target?.result as string);
+        };
+        reader.readAsDataURL(resizedFile);
+      } catch (err) {
+        console.error("Gagal memproses foto", err);
+      }
     }
   };
 
@@ -152,28 +142,39 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      
+      const targetRatio = 3 / 4;
+      const videoRatio = video.videoWidth / video.videoHeight;
+      
+      let cropWidth = video.videoWidth;
+      let cropHeight = video.videoHeight;
+      
+      if (videoRatio > targetRatio) {
+        cropWidth = video.videoHeight * targetRatio;
+      } else {
+        cropHeight = video.videoWidth / targetRatio;
+      }
+      
+      const sx = (video.videoWidth - cropWidth) / 2;
+      const sy = (video.videoHeight - cropHeight) / 2;
+      
+      canvas.width = 300;
+      canvas.height = 400;
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/jpeg");
+        // Mirror the canvas horizontally to match the mirrored video preview
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, sx, sy, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+        
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
         setCustomPhoto(dataUrl);
         stopCamera();
       }
     }
   };
 
-  const addLog = (action: string, status: 'success' | 'error', details?: string) => {
-    const newLog: ActivityLog = {
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleString('id-ID'),
-      action,
-      status,
-      details,
-    };
-    setLogs((prev) => [newLog, ...prev]);
-  };
+
 
   const handleClear = () => {
     setPrompt("");
@@ -273,12 +274,10 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
         if (onResult) {
           onResult(JSON.stringify(resultWithPhoto, null, 2));
         }
-        addLog("Buat CV AI", "success", `Berhasil membuat CV (${selectedTemplate})`);
       }
     } catch (err: any) {
       console.error("Error generating CV:", err);
       setError(err.response?.data?.message || "Terjadi kesalahan saat menghubungi layanan AI.");
-      addLog("Buat CV AI", "error", err.response?.data?.message || "Gagal membuat CV");
     } finally {
       setTimeout(() => {
         setLoading(false);
@@ -324,12 +323,10 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
       window.URL.revokeObjectURL(url);
 
       await alertSuccess("Berhasil mengunduh PDF CV!");
-      addLog("Unduh CV", "success", `File: ${defaultFilename}`);
     } catch (err: any) {
       console.error("Error downloading CV PDF:", err);
       setError("Terjadi kesalahan saat mengunduh file PDF.");
       await alertError("Gagal mengunduh file PDF CV.");
-      addLog("Unduh CV", "error", "Gagal mengunduh PDF");
     } finally {
       setDownloading(false);
     }
@@ -360,12 +357,10 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
       });
 
       await alertSuccess("CV berhasil disimpan ke Dashboard!");
-      addLog("Simpan CV", "success", `Disimpan sebagai: ${saveName.trim()}`);
     } catch (err: any) {
       console.error("Error saving CV to dashboard:", err);
       setError("Terjadi kesalahan saat menyimpan CV ke dashboard.");
       await alertError("Gagal menyimpan CV ke dashboard.");
-      addLog("Simpan CV", "error", "Gagal menyimpan ke dashboard");
     } finally {
       setSaving(false);
     }
@@ -420,7 +415,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
         </label>
         <div className="flex items-center gap-3 flex-wrap">
           {customPhoto && (
-            <div className="relative w-12 h-12 rounded-full overflow-hidden border border-gray-200">
+            <div className="relative w-12 h-16 rounded overflow-hidden border border-gray-200 shrink-0">
               <img src={customPhoto} alt="Profil" className="w-full h-full object-cover" />
             </div>
           )}
@@ -466,8 +461,12 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
                 Tutup
               </button>
             </div>
-            <div className="relative w-full aspect-video bg-black/10 rounded-xl overflow-hidden border border-gray-200">
-              <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
+            <div className="relative w-full aspect-video bg-black/10 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center">
+              <video ref={videoRef} autoPlay playsInline className="absolute w-full h-full object-cover scale-x-[-1]" />
+              {/* HUD / Crop Guide (3:4 Ratio) */}
+              <div className="relative z-10 w-[180px] h-[240px] sm:w-[240px] sm:h-[320px] border-2 border-dashed border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] flex items-center justify-center pointer-events-none">
+                <div className="text-white/80 text-xs font-semibold uppercase tracking-wider absolute bottom-4">Paskan Wajah di Sini</div>
+              </div>
             </div>
             <div className="flex items-center gap-3 w-full mt-2">
               <button
@@ -639,42 +638,7 @@ const PromptField: React.FC<PromptFieldProps> = ({ onResult }) => {
       )}
 
       {/* Activity Logs */}
-      <div className="mt-8 border border-gray-200 bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <h4 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
-            <Clock size={16} className="text-gray-500" /> Riwayat Aktivitas
-          </h4>
-          {logs.length > 0 && (
-            <button onClick={() => setLogs([])} className="text-xs text-red-500 hover:underline">
-              Bersihkan
-            </button>
-          )}
-        </div>
-        <div className="p-0">
-          {logs.length === 0 ? (
-            <div className="p-5 text-center text-sm text-gray-500">
-              Belum ada aktivitas tercatat.
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-100 max-h-60 overflow-y-auto">
-              {logs.map((log) => (
-                <li key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${log.status === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-                      <p className="text-sm font-medium text-gray-800">{log.action}</p>
-                    </div>
-                    <span className="text-xs text-gray-400">{log.timestamp}</span>
-                  </div>
-                  {log.details && (
-                    <p className="text-xs text-gray-500 mt-1 ml-4">{log.details}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      <FeatureActivityLog resourceType="CVGenerator" title="Riwayat Pembuatan CV" />
     </div>
   );
 };

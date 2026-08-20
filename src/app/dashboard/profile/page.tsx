@@ -1,4 +1,5 @@
 "use client";
+import FeatureActivityLog from "@/components/FeatureActivityLog";
 
 import {
   BookOpen,
@@ -103,6 +104,7 @@ interface FormErrors {
 export default function ProfilePage() {
   const studentId = useAuthStore((s) => s.studentId);
   const [authorization, setAuthorization] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
   const [userForm, setUserForm] = useState<UserForm>({
     photo_profile: null,
     username: "",
@@ -230,6 +232,7 @@ export default function ProfilePage() {
       const data = response.data?.data;
       if (response.status === 200 && data) {
         setIsPhotoReset(false);
+        setUserId(data.id);
         setUserForm({
           photo_profile: data.photo_profile ?? null,
           username: data.username ?? "",
@@ -2190,6 +2193,11 @@ export default function ProfilePage() {
           </button>
         </div>
       </form>
+
+      {/* Log Aktivitas Spesifik Fitur */}
+      {userId && (
+        <FeatureActivityLog userId={userId} />
+      )}
     </main>
   );
 }

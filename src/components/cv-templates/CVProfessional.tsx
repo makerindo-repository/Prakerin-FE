@@ -35,7 +35,7 @@ const CVProfessional: React.FC<{data: CVResult| null}> = ({ data }) => {
           <img 
             src={data.photo_profile} 
             alt={fullName} 
-            className="w-28 h-28 object-cover rounded-lg border border-gray-200 shadow-sm shrink-0" 
+            className="w-24 h-32 object-cover rounded-lg border border-gray-200 shadow-sm shrink-0" 
           />
         )}
       </header>
