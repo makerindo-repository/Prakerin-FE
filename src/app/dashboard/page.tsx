@@ -34,12 +34,12 @@ interface Profile {
   student?: {
     photo_profile?: string | null;
     school?: {
-      type?: string | null;
+      type?: "school" | "university" | null;
     };
   };
   school?: {
     photo_profile?: string | null;
-    type?: string | null;
+    type?: "school" | "university" | null;
   };
   company?: {
     photo_profile?: string | null;

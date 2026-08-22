@@ -48,9 +48,9 @@ export default function SchoolDashboard({
 }: {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  schoolType?: "school" | "university";
+  schoolType?: "school" | "university" | string | null;
 }) {
-  const currentSchoolType = schoolType || (Cookies.get("school_type") as "school" | "university") || "school";
+  const currentSchoolType = (schoolType || Cookies.get("school_type") || "school") as string;
   const isUniversity = currentSchoolType === "university";
 
   const [summary, setSummary] = useState<Summary>({
