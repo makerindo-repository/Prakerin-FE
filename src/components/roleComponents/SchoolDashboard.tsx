@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Activity,
   Star,
+  Handshake,
 } from "lucide-react";
 import RatingSummaryCompenent from "../RatingSummaryCompenent";
 import PieChartCompenent from "../Charts/PieChartCompenent";
@@ -30,6 +31,7 @@ interface Summary {
     total: number;
   };
   company_count: number;
+  mou_count: number;
   achievement_count: number;
 }
 
@@ -42,15 +44,21 @@ interface StudentCount {
 export default function SchoolDashboard({
   isLoading,
   setIsLoading,
+  schoolType,
 }: {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  schoolType?: "school" | "university";
 }) {
+  const currentSchoolType = schoolType || (Cookies.get("school_type") as "school" | "university") || "school";
+  const isUniversity = currentSchoolType === "university";
+
   const [summary, setSummary] = useState<Summary>({
     student_count: 0,
     student_internship_count: 0,
     job_opening_count: { true: 0, false: 0, total: 0 },
     company_count: 0,
+    mou_count: 0,
     achievement_count: 0,
   });
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>({
@@ -99,6 +107,7 @@ export default function SchoolDashboard({
         student_internship_count: response[0].status === 'fulfilled' ? response[0].value.data.data.total_student_internship : 0,
         job_opening_count: response[1].status === 'fulfilled' ? response[1].value.data.data : { true: 0, false: 0, total: 0 },
         company_count: response[0].status === 'fulfilled' ? response[0].value.data.data.company_count : 0,
+        mou_count: response[0].status === 'fulfilled' ? response[0].value.data.data.mou_count : 0,
         achievement_count: response[2].status === 'fulfilled' ? response[2].value.data.data : 0,
       });
       setRatingSummary(response[3].status === 'fulfilled' ? response[3].value.data.data : { rating_count: 0, average_rating: 0, rating_1: 0, rating_2: 0, rating_3: 0, rating_4: 0, rating_5: 0 });
@@ -133,12 +142,16 @@ export default function SchoolDashboard({
       {/* === KPI Cards === */}
       <section>
         <SectionHeader
-          title="Ringkasan Sekolah"
-          subtitle="Statistik siswa, lowongan, dan penempatan magang"
+          title={isUniversity ? "Ringkasan Perguruan Tinggi" : "Ringkasan Sekolah"}
+          subtitle={
+            isUniversity
+              ? "Statistik mahasiswa, lowongan, dan penempatan magang"
+              : "Statistik siswa, lowongan, dan penempatan magang"
+          }
         />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           <KPICard
-            title="Total Siswa/Mahasiswa"
+            title={isUniversity ? "Total Mahasiswa" : "Total Siswa"}
             value={summary.student_count}
             icon={<Users className="w-5 h-5" />}
             iconBg="bg-teal-100"
@@ -146,7 +159,7 @@ export default function SchoolDashboard({
             description="Terdaftar di institusi ini"
           />
           <KPICard
-            title="Siswa Magang"
+            title={isUniversity ? "Mahasiswa Magang" : "Siswa Magang"}
             value={summary.student_internship_count}
             icon={<Activity className="w-5 h-5" />}
             iconBg="bg-blue-100"
@@ -165,9 +178,17 @@ export default function SchoolDashboard({
             title="Total Perusahaan"
             value={summary.company_count}
             icon={<Building className="w-5 h-5" />}
+            iconBg="bg-cyan-100"
+            iconColor="text-cyan-600"
+            description="Perusahaan terdaftar"
+          />
+          <KPICard
+            title="Telah Kerja Sama"
+            value={summary.mou_count}
+            icon={<Handshake className="w-5 h-5" />}
             iconBg="bg-amber-100"
             iconColor="text-amber-600"
-            description="Perusahaan partner aktif"
+            description="Mitra MOU aktif"
           />
           <KPICard
             title="Total Penghargaan"
@@ -175,7 +196,7 @@ export default function SchoolDashboard({
             icon={<BadgeCheck className="w-5 h-5" />}
             iconBg="bg-green-100"
             iconColor="text-green-600"
-            description="Diraih siswa/mahasiswa"
+            description={isUniversity ? "Diraih mahasiswa" : "Diraih siswa"}
           />
         </div>
       </section>
@@ -184,26 +205,38 @@ export default function SchoolDashboard({
       <section>
         <SectionHeader
           title="Insights Penempatan"
-          subtitle="Analisis cepat status penempatan siswa"
+          subtitle={
+            isUniversity
+              ? "Analisis cepat status penempatan mahasiswa"
+              : "Analisis cepat status penempatan siswa"
+          }
         />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <InsightCard
             icon={<Activity className="w-5 h-5" />}
-            title="Siswa Sedang Magang"
+            title={isUniversity ? "Mahasiswa Sedang Magang" : "Siswa Sedang Magang"}
             metric={studentCount.ongoing}
-            description="Siswa yang saat ini sedang menjalani program magang."
+            description={
+              isUniversity
+                ? "Mahasiswa yang saat ini sedang menjalani program magang."
+                : "Siswa yang saat ini sedang menjalani program magang."
+            }
             status="positive"
           />
           <InsightCard
             icon={<TrendingUp className="w-5 h-5" />}
             title="Tingkat Penempatan"
             metric={`${placementRate}%`}
-            description="Persentase siswa yang sudah atau sedang magang dari total siswa."
+            description={
+              isUniversity
+                ? "Persentase mahasiswa yang sudah atau sedang magang dari total mahasiswa."
+                : "Persentase siswa yang sudah atau sedang magang dari total siswa."
+            }
             status={placementRate >= 60 ? "positive" : placementRate >= 30 ? "warning" : "negative"}
           />
           <InsightCard
             icon={<Star className="w-5 h-5" />}
-            title="Rating Sekolah"
+            title={isUniversity ? "Rating Perguruan Tinggi" : "Rating Sekolah"}
             metric={ratingSummary.average_rating?.toFixed(1) || "—"}
             metricUnit=" / 5"
             description={`Dari ${ratingSummary.rating_count || 0} ulasan pengguna Prakerin.`}
@@ -221,13 +254,19 @@ export default function SchoolDashboard({
       {/* === Charts === */}
       <section>
         <SectionHeader
-          title="Statistik Siswa"
-          subtitle="Visualisasi distribusi dan status magang siswa"
+          title={isUniversity ? "Statistik Mahasiswa" : "Statistik Siswa"}
+          subtitle={
+            isUniversity
+              ? "Visualisasi distribusi dan status magang mahasiswa"
+              : "Visualisasi distribusi dan status magang siswa"
+          }
         />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Student distribution */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <h4 className="font-semibold text-sm text-gray-700 mb-4">Status Magang Siswa</h4>
+            <h4 className="font-semibold text-sm text-gray-700 mb-4">
+              {isUniversity ? "Status Magang Mahasiswa" : "Status Magang Siswa"}
+            </h4>
             <PieChartCompenent
               legend=""
               tooltip="Distribusi Status Magang"
@@ -242,13 +281,15 @@ export default function SchoolDashboard({
 
           {/* Grid vs Lowongan */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <h4 className="font-semibold text-sm text-gray-700 mb-4">Siswa vs Lowongan</h4>
+            <h4 className="font-semibold text-sm text-gray-700 mb-4">
+              {isUniversity ? "Mahasiswa vs Lowongan" : "Siswa vs Lowongan"}
+            </h4>
             <PieChartCompenent
               legend=""
-              tooltip="Persentase Siswa dan Lowongan"
+              tooltip={isUniversity ? "Persentase Mahasiswa dan Lowongan" : "Persentase Siswa dan Lowongan"}
               hideCardStyle={true}
               dataList={[
-                { name: "Total Siswa", value: summary.student_count, color: "#4f46e5" },
+                { name: isUniversity ? "Total Mahasiswa" : "Total Siswa", value: summary.student_count, color: "#4f46e5" },
                 { name: "Lowongan", value: summary.job_opening_count.total, color: "#22c55e" },
               ]}
             />
@@ -290,14 +331,18 @@ export default function SchoolDashboard({
         </div>
       </section>
 
-      {/* === School Rating Section === */}
+      {/* === School/University Rating Section === */}
       <section>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-start justify-between mb-4 gap-2">
             <div>
-              <h3 className="font-bold text-sm text-accent-dark">Penilaian Sekolah</h3>
+              <h3 className="font-bold text-sm text-accent-dark">
+                {isUniversity ? "Penilaian Perguruan Tinggi" : "Penilaian Sekolah"}
+              </h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                Penilaian dari siswa/mahasiswa dan perusahaan pengguna Prakerin
+                {isUniversity
+                  ? "Penilaian dari mahasiswa dan perusahaan pengguna Prakerin"
+                  : "Penilaian dari siswa dan perusahaan pengguna Prakerin"}
               </p>
             </div>
             <Link href="/dashboard/feedback" className="flex-shrink-0">
@@ -317,9 +362,15 @@ export default function SchoolDashboard({
           ) : (
             <div className="bg-gray-50 rounded-xl p-6 text-center">
               <Star className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Belum ada penilaian untuk sekolah ini.</p>
+              <p className="text-sm text-gray-500">
+                {isUniversity
+                  ? "Belum ada penilaian untuk perguruan tinggi ini."
+                  : "Belum ada penilaian untuk sekolah ini."}
+              </p>
               <p className="text-xs text-gray-400 mt-1">
-                Penilaian akan muncul setelah siswa/mahasiswa memberikan ulasan.
+                {isUniversity
+                  ? "Penilaian akan muncul setelah mahasiswa memberikan ulasan."
+                  : "Penilaian akan muncul setelah siswa memberikan ulasan."}
               </p>
             </div>
           )}

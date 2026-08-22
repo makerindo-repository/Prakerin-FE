@@ -116,6 +116,10 @@ const DetailPenempatanPage = ({ params }: { params: Promise<{ id: string }> }) =
   const status = statusMeta(student?.status);
   const hasInternship = !!internship;
 
+  const isUniversity = (Cookies.get("school_type") as string) === "university" || (data as any)?.student?.school?.type === "university";
+  const labelType = isUniversity ? "Mahasiswa" : "Siswa";
+  const majorLabel = isUniversity ? "Prodi belum diatur" : "Jurusan belum diatur";
+
   return (
     <main className="p-4 sm:p-6 md:p-8">
       <h1 className="text-accent-dark text-xs sm:text-sm mb-5">
@@ -123,14 +127,14 @@ const DetailPenempatanPage = ({ params }: { params: Promise<{ id: string }> }) =
           className="hover:underline hover:text-accent"
           href="/dashboard/school/penempatan"
         >
-          Daftar Penempatan Siswa
+          Daftar Penempatan {labelType}
         </Link>{" "}
-        -&gt; Detail Penempatan Siswa
+        -&gt; Detail Penempatan {labelType}
       </h1>
 
       <div className="mb-8 flex items-center gap-2 font-extrabold text-accent">
         <MapPin className="w-5 h-5" />
-        <h2 className="text-xl sm:text-2xl mt-1">Detail Penempatan Siswa</h2>
+        <h2 className="text-xl sm:text-2xl mt-1">Detail Penempatan {labelType}</h2>
       </div>
 
       {isLoading ? (
@@ -139,14 +143,14 @@ const DetailPenempatanPage = ({ params }: { params: Promise<{ id: string }> }) =
         </div>
       ) : !data ? (
         <div className="max-w-xl mx-auto bg-white rounded-2xl border border-gray-200 p-10 text-center text-gray-500">
-          Data siswa tidak ditemukan.
+          Data {labelType.toLowerCase()} tidak ditemukan.
         </div>
       ) : (
         <div className="max-w-xl mx-auto space-y-6">
-          {/* Kartu info siswa - selalu tampil */}
+          {/* Kartu info siswa/mahasiswa - selalu tampil */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-accent text-lg font-semibold">Informasi Siswa</h2>
+              <h2 className="text-accent text-lg font-semibold">Informasi {labelType}</h2>
             </div>
             <div className="p-6 flex items-center gap-4">
               {data.photo_profile ? (
@@ -171,7 +175,7 @@ const DetailPenempatanPage = ({ params }: { params: Promise<{ id: string }> }) =
                 <div className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
                   <GraduationCap className="w-4 h-4 text-gray-400 flex-shrink-0" />
                   <span className="truncate">
-                    Kelas {student?.class ?? "-"} · {student?.major?.name ?? "Jurusan belum diatur"}
+                    {isUniversity ? "Semester / Kelas" : "Kelas"} {student?.class ?? "-"} · {student?.major?.name ?? majorLabel}
                   </span>
                 </div>
               </div>

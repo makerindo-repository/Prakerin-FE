@@ -191,6 +191,12 @@ export default function ProfilePage() {
   const [studentSchoolOptions, setStudentSchoolOptions] = useState<{ value: string; label: string; type?: string }[]>([]);
   const [isLoadingStudentSchools, setIsLoadingStudentSchools] = useState(false);
 
+  // State for school profile's own name lookup (prevent duplicate names)
+  const [schoolNameSearch, setSchoolNameSearch] = useState("");
+  const debouncedSchoolNameSearch = useDebounce(schoolNameSearch, 500);
+  const [schoolNameOptions, setSchoolNameOptions] = useState<{ value: string; label: string }[]>([]);
+  const [isLoadingSchoolNames, setIsLoadingSchoolNames] = useState(false);
+
   useEffect(() => {
     const fetchStudentSchools = async () => {
       const currentRole = authorization || Cookies.get("authorization");
@@ -220,6 +226,35 @@ export default function ProfilePage() {
 
     fetchStudentSchools();
   }, [debouncedStudentSchoolSearch, authorization]);
+
+  // Fetch school name suggestions for school-role profile (to prevent duplicate data)
+  useEffect(() => {
+    const fetchSchoolNames = async () => {
+      const currentRole = authorization || Cookies.get("authorization");
+      if (currentRole !== "school") return;
+      setIsLoadingSchoolNames(true);
+      try {
+        const res = await API.get(ENDPOINTS.USERS, {
+          params: {
+            role: "school",
+            search: debouncedSchoolNameSearch,
+            limit: 30,
+          },
+        });
+        setSchoolNameOptions(
+          (res.data.data || []).map((u: any) => ({
+            value: u.school?.name || u.name || "",
+            label: u.school?.name || u.name || "",
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to fetch school names:", err);
+      } finally {
+        setIsLoadingSchoolNames(false);
+      }
+    };
+    fetchSchoolNames();
+  }, [debouncedSchoolNameSearch, authorization]);
 
   const fetchProfile = async () => {
     try {
@@ -1204,7 +1239,7 @@ export default function ProfilePage() {
                   </label>
                   <input
                     id="company-website"
-                    type="url"
+                    type="text"
                     placeholder="https://makerindo.co.id"
                     value={companyForm?.website || ""}
                     onChange={(e) =>
@@ -1230,37 +1265,103 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* --- Kartu Informasi Sekolah --- */}
-        {authorization === "school" && (
+        {/* --- Kartu Informasi Sekolah / Perguruan Tinggi --- */}
+        {authorization === "school" && (() => {
+          const isUni = (schoolForm as any).type === "university" || Cookies.get("school_type") === "university";
+          const entityLabel = isUni ? "Perguruan Tinggi" : "Sekolah";
+
+          return (
           <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-3">
             <div className="flex items-center gap-3 mb-6">
               <BookOpen size={20} className="text-cyan-600" />
               <h3 className="text-lg font-semibold text-gray-800">
-                Informasi Sekolah/Universitas
+                Informasi {entityLabel}
               </h3>
             </div>
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Nama Sekolah */}
+                {/* Nama Sekolah / PT — searchable to prevent duplicate/inconsistent names */}
                 <div>
                   <label
                     htmlFor="school-name"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Nama Sekolah/Universitas
+                    Nama {entityLabel}
                   </label>
-                  <input
-                    id="school-name"
-                    type="text"
-                    placeholder="SMKN 2 SUKABUMI"
-                    value={schoolForm.name}
-                    onChange={(e) =>
-                      setSchoolForm({ ...schoolForm, name: e.target.value })
+                  <Select
+                    isClearable
+                    isSearchable
+                    isDisabled={isSubmitting}
+                    isLoading={isLoadingSchoolNames}
+                    value={
+                      schoolForm.name
+                        ? { value: schoolForm.name, label: schoolForm.name }
+                        : null
                     }
-                    className={`w-full border  rounded-md shadow-sm sm:text-sm p-2 focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none transition-colors ${
-                      formErrors.name ? "border-red-500" : "border-gray-300"
-                    }`}
+                    options={schoolNameOptions}
+                    onChange={(selected: any) => {
+                      setSchoolForm({ ...schoolForm, name: selected?.value || "" });
+                    }}
+                    onInputChange={(val: string) => {
+                      setSchoolNameSearch(val);
+                      // Allow freeform: if user is typing, update form name live
+                      if (val) setSchoolForm((prev) => ({ ...prev, name: val }));
+                    }}
+                    placeholder={`Cari atau ketik nama ${entityLabel.toLowerCase()}...`}
+                    noOptionsMessage={() =>
+                      isLoadingSchoolNames ? "Memuat..." : "Tidak ditemukan — ketik untuk mengisi manual"
+                    }
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isDisabled ? "#e5e7eb" : "#ffffff",
+                        borderColor: formErrors.name ? "#ef4444" : "#d1d5db",
+                        borderRadius: "0.375rem",
+                        padding: "0.125rem",
+                        minHeight: "42px",
+                        boxShadow: state.isFocused
+                          ? "0 0 0 2px rgba(3, 90, 112, 0.5)"
+                          : "none",
+                        borderWidth: "1px",
+                        cursor: state.isDisabled ? "not-allowed" : "default",
+                        "&:hover": {
+                          borderColor: formErrors.name ? "#ef4444" : "#035a70",
+                        },
+                      }),
+                      valueContainer: (base) => ({ ...base, padding: "2px 8px" }),
+                      input: (base) => ({ ...base, margin: 0, padding: 0, color: "#1f2937" }),
+                      placeholder: (base) => ({ ...base, color: "#9ca3af" }),
+                      singleValue: (base, state) => ({
+                        ...base,
+                        color: state.isDisabled ? "#6b7280" : "#1f2937",
+                        fontWeight: "500",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        color: state.isSelected ? "#ffffff" : "#1f2937",
+                        backgroundColor: state.isSelected
+                          ? "#035a70"
+                          : state.isFocused
+                          ? "#e0f2fe"
+                          : "#ffffff",
+                        cursor: "pointer",
+                        fontSize: "0.875rem",
+                        padding: "8px 12px",
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                        borderRadius: "0.375rem",
+                        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                      }),
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    }}
+                    menuPortalTarget={typeof window !== "undefined" ? document.body : null}
+                    menuPosition="fixed"
                   />
+                  <p className="mt-1 text-xs text-gray-400">
+                    Pilih dari daftar untuk konsistensi data. Jika tidak ada, ketik nama lengkap institusi Anda.
+                  </p>
                   {formErrors.name && (
                     <p className="mt-1 text-sm text-red-500">
                       {formErrors.name}
@@ -1445,7 +1546,7 @@ export default function ProfilePage() {
                     htmlFor="school-address"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Alamat Sekolah/Universitas
+                    Alamat {entityLabel}
                   </label>
                   <input
                     id="school-address"
@@ -1519,9 +1620,11 @@ export default function ProfilePage() {
                     }`}
                   >
                     <option value="">Pilih akreditasi</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
+                    <option value="Unggul">Unggul</option>
+                    <option value="Baik Sekali">Baik Sekali</option>
+                    <option value="Baik">Baik</option>
+                    <option value="Terakreditasi">Terakreditasi</option>
+                    <option value="Tidak Terakreditasi">Tidak Terakreditasi</option>
                   </select>
                   {formErrors.accreditation && (
                     <p className="mt-1 text-sm text-red-500">
@@ -1571,7 +1674,7 @@ export default function ProfilePage() {
                     htmlFor="school-website"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Website Resmi
+                    Website Resmi {entityLabel}
                   </label>
                   <input
                     id="school-website"
@@ -1595,11 +1698,10 @@ export default function ProfilePage() {
                   )}
                 </div>
               </div>
-
-              
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* --- Kartu Informasi Siswa --- */}
         {authorization === "student" && (

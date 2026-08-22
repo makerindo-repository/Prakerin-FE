@@ -13,9 +13,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpRight,
+  Trash2,
 } from "lucide-react";
 import { createApiCall, ENDPOINTS } from "@/utils/config";
-import { alertError, alertSuccess } from "@/libs/alert";
+import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
+import Swal from "sweetalert2";
 
 interface RevenueMetrics {
   total_revenue: number;
@@ -56,6 +58,8 @@ export default function RevenueDashboardPage() {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [syncingId, setSyncingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -118,6 +122,191 @@ export default function RevenueDashboardPage() {
     }
   };
 
+  const handleDelete = async (id: number, userName: string) => {
+    const isConfirm = await alertConfirm(
+      `Apakah Anda yakin ingin menghapus catatan log transaksi untuk "${userName}"? Data yang dihapus tidak dapat dikembalikan.`
+    );
+    if (!isConfirm) return;
+
+    try {
+      setDeletingId(id);
+      const res = await createApiCall<{ message: string }>(
+        `${ENDPOINTS.ADMIN_REVENUE}/${id}`,
+        { method: "DELETE" }
+      );
+      alertSuccess(res?.message || "Catatan log transaksi berhasil dihapus.");
+      fetchData();
+    } catch (error: any) {
+      const msg = error?.response?.data?.errors || error?.message || "Gagal menghapus catatan transaksi.";
+      alertError(msg);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleExport = async (format: "csv" | "excel") => {
+    setIsExporting(true);
+    try {
+      // Fetch all matching records without pagination limit
+      const params = new URLSearchParams({
+        page: "1",
+        limit: "2000",
+        ...(statusFilter !== "all" && { status: statusFilter }),
+        ...(userTypeFilter !== "all" && { user_type: userTypeFilter }),
+        ...(startDate && { start_date: startDate }),
+        ...(endDate && { end_date: endDate }),
+      });
+
+      const res = await createApiCall<{
+        data: RevenueRecord[];
+      }>(`${ENDPOINTS.ADMIN_REVENUE}/accounts?${params.toString()}`, {
+        method: "GET",
+      });
+
+      const exportList = res?.data || records;
+
+      if (!exportList || exportList.length === 0) {
+        await alertError("Tidak ada data transaksi revenue untuk diunduh.");
+        return;
+      }
+
+      const headers = [
+        "No",
+        "Nama Akun",
+        "Tipe User",
+        "Nominal (Rp)",
+        "Periode Mulai",
+        "Periode Selesai",
+        "Status Pembayaran",
+        "Tanggal Bayar",
+        "Invoice ID / Reference",
+      ];
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const filename = `Laporan_Revenue_${todayStr}`;
+
+      if (format === "csv") {
+        const rows = exportList.map((item, index) => [
+          index + 1,
+          item.user_name || "-",
+          item.user_type === "siswa" ? "Siswa (SMK)" : "Mahasiswa (PT)",
+          item.amount || 0,
+          item.period_start ? new Date(item.period_start).toLocaleDateString("id-ID") : "-",
+          item.period_end ? new Date(item.period_end).toLocaleDateString("id-ID") : "-",
+          (item.payment_status || "-").toUpperCase(),
+          item.payment_date ? new Date(item.payment_date).toLocaleDateString("id-ID") : "-",
+          item.payment_reference_id || "-",
+        ]);
+
+        const csvContent =
+          "\uFEFF" +
+          [
+            headers.join(","),
+            ...rows.map((row) =>
+              row.map((val) => `"${String(val).replace(/"/g, '""')}"`).join(",")
+            ),
+          ].join("\r\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${filename}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        // Excel (.xls) format
+        const rowsHtml = exportList
+          .map(
+            (item, index) => `
+            <tr>
+              <td style="text-align: center; border: 1px solid #cccccc; padding: 8px;">${index + 1}</td>
+              <td style="border: 1px solid #cccccc; padding: 8px;">${item.user_name || "-"}</td>
+              <td style="border: 1px solid #cccccc; padding: 8px;">${item.user_type === "siswa" ? "Siswa (SMK)" : "Mahasiswa (PT)"}</td>
+              <td style="border: 1px solid #cccccc; padding: 8px; text-align: right;">${(item.amount || 0).toLocaleString("id-ID")}</td>
+              <td style="border: 1px solid #cccccc; padding: 8px;">${item.period_start ? new Date(item.period_start).toLocaleDateString("id-ID") : "-"}</td>
+              <td style="border: 1px solid #cccccc; padding: 8px;">${item.period_end ? new Date(item.period_end).toLocaleDateString("id-ID") : "-"}</td>
+              <td style="border: 1px solid #cccccc; padding: 8px; font-weight: bold;">${(item.payment_status || "-").toUpperCase()}</td>
+              <td style="border: 1px solid #cccccc; padding: 8px;">${item.payment_date ? new Date(item.payment_date).toLocaleDateString("id-ID") : "-"}</td>
+              <td style="border: 1px solid #cccccc; padding: 8px;">${item.payment_reference_id || "-"}</td>
+            </tr>
+          `
+          )
+          .join("");
+
+        const excelTemplate = `
+          <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+          <head>
+            <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
+            <style>
+              table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
+              th { background-color: #0D9488; color: white; border: 1px solid #cccccc; padding: 10px; text-align: left; }
+              td { border: 1px solid #cccccc; padding: 8px; }
+            </style>
+          </head>
+          <body>
+            <h2 style="font-family: Arial, sans-serif; color: #0D9488;">Laporan Transaksi Revenue Prakerin</h2>
+            <p style="font-family: Arial, sans-serif; color: #666666; font-size: 12px;">Tanggal Unduh: ${new Date().toLocaleString("id-ID")}</p>
+            <table>
+              <thead>
+                <tr>
+                  ${headers.map((h) => `<th style="background-color: #0D9488; color: white; border: 1px solid #cccccc; padding: 10px;">${h}</th>`).join("")}
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </body>
+          </html>
+        `;
+
+        const blob = new Blob([excelTemplate], {
+          type: "application/vnd.ms-excel;charset=utf-8;",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${filename}.xls`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      await alertSuccess(`Berhasil mengunduh laporan revenue (${format.toUpperCase()})`);
+    } catch (error: any) {
+      console.error(error);
+      await alertError(error?.message || "Gagal mengunduh laporan revenue.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDownloadModal = async () => {
+    const result = await Swal.fire({
+      title: "Unduh Laporan Revenue",
+      text: "Pilih format file laporan transaksi yang ingin Anda unduh:",
+      icon: "question",
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: "📊 Unduh Excel (.xls)",
+      denyButtonText: "📄 Unduh CSV (.csv)",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#0D9488",
+      denyButtonColor: "#3B82F6",
+      cancelButtonColor: "#9CA3AF",
+    });
+
+    if (result.isConfirmed) {
+      await handleExport("excel");
+    } else if (result.isDenied) {
+      await handleExport("csv");
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -149,8 +338,18 @@ export default function RevenueDashboardPage() {
 
         <div className="flex items-center gap-3">
           <button
+            type="button"
+            onClick={handleDownloadModal}
+            disabled={isExporting}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white transition-colors text-sm font-medium shadow-sm disabled:opacity-50 cursor-pointer"
+          >
+            <Download className={`w-4 h-4 ${isExporting ? "animate-bounce" : ""}`} />
+            <span>{isExporting ? "Mengunduh..." : "Unduh Laporan"}</span>
+          </button>
+
+          <button
             onClick={() => fetchData()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium shadow-sm cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             <span>Refresh</span>
@@ -396,20 +595,30 @@ export default function RevenueDashboardPage() {
                       {r.payment_reference_id || "—"}
                     </td>
                     <td className="px-6 py-4">
-                      {r.payment_status === "pending" ? (
+                      <div className="flex items-center gap-2">
+                        {r.payment_status === "pending" && (
+                          <button
+                            onClick={() => handleSync(r.id)}
+                            disabled={syncingId === r.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900 transition-colors disabled:opacity-50 cursor-pointer"
+                            title="Sync status dari Midtrans"
+                          >
+                            <RefreshCw
+                              className={`w-3.5 h-3.5 ${syncingId === r.id ? "animate-spin" : ""}`}
+                            />
+                            <span>{syncingId === r.id ? "Cek..." : "Sync"}</span>
+                          </button>
+                        )}
+
                         <button
-                          onClick={() => handleSync(r.id)}
-                          disabled={syncingId === r.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900 transition-colors disabled:opacity-50"
+                          onClick={() => handleDelete(r.id, r.user_name)}
+                          disabled={deletingId === r.id}
+                          className="inline-flex items-center justify-center p-1.5 rounded-lg text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-300 border border-red-200 dark:border-red-900 transition-colors disabled:opacity-50 cursor-pointer"
+                          title="Hapus Log Transaksi"
                         >
-                          <RefreshCw
-                            className={`w-3.5 h-3.5 ${syncingId === r.id ? "animate-spin" : ""}`}
-                          />
-                          {syncingId === r.id ? "Cek..." : "Sync dari Midtrans"}
+                          <Trash2 className={`w-4 h-4 ${deletingId === r.id ? "animate-spin" : ""}`} />
                         </button>
-                      ) : (
-                        <span className="text-gray-300 text-xs">—</span>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))

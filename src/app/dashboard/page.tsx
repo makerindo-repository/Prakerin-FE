@@ -70,10 +70,12 @@ const Dashboard: React.FC = () => {
         const data = response.data;
         
         // Optimize role mapping
+        const isUniSchool = data.school?.type === "university";
+        const isUniStudent = data.student?.school?.type === "university";
         const roleMap: Record<string, string> = {
-          student: "Siswa",
+          student: isUniStudent ? "Mahasiswa" : "Siswa",
           company: "Perusahaan",
-          school: "Sekolah",
+          school: isUniSchool ? "Perguruan Tinggi" : "Sekolah",
           super_admin: "Super Admin",
         };
         
@@ -88,6 +90,11 @@ const Dashboard: React.FC = () => {
           photoProfile = data.photo_profile;
         }
         
+        const detectedSchoolType = data.school?.type ?? data.student?.school?.type ?? null;
+        if (detectedSchoolType) {
+          Cookies.set("school_type", detectedSchoolType, { expires: 30, path: "/" });
+        }
+
         setProfile({
           ...data,
           photo_profile: photoProfile,
@@ -170,6 +177,8 @@ const Dashboard: React.FC = () => {
                   <p className="text-sm text-amber-800 mt-1">
                     {profile.role === "Perusahaan"
                       ? "Akun Anda belum melengkapi profil perusahaan (alamat, kota/kabupaten). Beberapa fungsi mungkin tidak berjalan dengan baik hingga profil Anda dilengkapi."
+                      : profile.role === "Perguruan Tinggi" || profile.role === "Mahasiswa"
+                      ? "Akun Anda belum melengkapi data diri (perguruan tinggi/kampus, program studi, nomor telepon, alamat). Beberapa fungsi mungkin tidak berjalan dengan baik hingga data Anda dilengkapi."
                       : "Akun Anda belum melengkapi data diri (sekolah/kampus, jurusan, nomor telepon, alamat). Fungsi-fungsi semestinya seperti pembuatan CV dan pendaftaran magang tidak akan dapat berfungsi hingga data diri Anda dilengkapi."}
                   </p>
                 </div>
@@ -193,7 +202,11 @@ const Dashboard: React.FC = () => {
           <IndustryDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
         )}
         {role === "school" && (
-          <SchoolDashboard isLoading={isLoading} setIsLoading={setIsLoading} />
+          <SchoolDashboard
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            schoolType={profile.school?.type || (Cookies.get("school_type") as "school" | "university") || "school"}
+          />
         )}
         {role === "super_admin" && (
           <AdminDashboard isLoading={isLoading} setIsLoading={setIsLoading} />

@@ -95,6 +95,10 @@ export default function TemplateLaporanPage() {
     setTemplateText(content);
   };
 
+  const isUniversity = (Cookies.get("school_type") as string) === "university";
+  const labelType = isUniversity ? "Mahasiswa" : "Siswa";
+  const institutionLabel = isUniversity ? "Perguruan Tinggi" : "Sekolah";
+
   return (
     <main className="p-4 sm:p-6 max-w-5xl mx-auto min-h-screen">
       {/* Breadcrumb */}
@@ -102,7 +106,7 @@ export default function TemplateLaporanPage() {
         <Link className="hover:underline hover:text-accent" href={"/dashboard"}>
           Dashboard
         </Link>{" "}
-        -&gt; Template Laporan Sekolah
+        -&gt; Template Laporan {institutionLabel}
       </h1>
 
       {/* Header Banner */}
@@ -112,8 +116,8 @@ export default function TemplateLaporanPage() {
           <h2 className="text-xl sm:text-2xl">Template & Format Laporan Magang</h2>
         </div>
         <p className="text-sm text-gray-600 max-w-3xl leading-relaxed">
-          Atur panduan, struktur, atau poin khusus laporan magang untuk siswa/mahasiswa dari instansi Anda. 
-          Ketika siswa membuat <strong className="text-accent">AI Report</strong>, generator AI akan otomatis menyesuaikan struktur laporan berdasarkan format yang Anda tentukan di sini.
+          Atur panduan, struktur, atau poin khusus laporan magang untuk {labelType.toLowerCase()} dari instansi Anda. 
+          Ketika {labelType.toLowerCase()} membuat <strong className="text-accent">AI Report</strong>, generator AI akan otomatis menyesuaikan struktur laporan berdasarkan format yang Anda tentukan di sini.
         </p>
       </div>
 
@@ -125,7 +129,7 @@ export default function TemplateLaporanPage() {
             <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-500" />
-                Format / Panduan Laporan Sekolah
+                Format / Panduan Laporan {institutionLabel}
               </label>
               {fetching && (
                 <span className="text-xs text-gray-400 flex items-center gap-1">
@@ -135,7 +139,7 @@ export default function TemplateLaporanPage() {
             </div>
 
             <p className="text-xs text-gray-500 mb-3">
-              Tuliskan instruksi bab, poin-poin evaluasi, atau format standar yang Anda wajibkan bagi siswa.
+              Tuliskan instruksi bab, poin-poin evaluasi, atau format standar yang Anda wajibkan bagi {labelType.toLowerCase()}.
             </p>
 
             <textarea

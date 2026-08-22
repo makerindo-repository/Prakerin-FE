@@ -263,7 +263,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou", permission: "view_kelas" },
         { icon: Award, label: "Penghargaan", href: "/dashboard/awards", permission: "view_laporan" },
         { icon: MessageSquareText, label: "Ulasan", href: "/dashboard/feedback", permission: "view_feedback" },
-        { icon: UserRound, label: "Guru Pembimbing", href: "/dashboard/guru-pembimbing", permission: "view_pembimbing" },
+        { icon: UserRound, label: "Pembimbing", href: "/dashboard/guru-pembimbing", permission: "view_pembimbing" },
         { icon: HelpCircle, label: "Panduan", href: "/dashboard/panduan/school", permission: "view_panduan" },
         { icon: Bell, label: "Notifikasi", href: "/dashboard/inbox", permission: "view_profil" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
@@ -398,20 +398,28 @@ export default function DashboardLayout({
         sameSite: "strict",
       });
 
+      const detectedSchoolType = data.school?.type ?? data.student?.school?.type ?? null;
+      if (detectedSchoolType) {
+        Cookies.set("school_type", detectedSchoolType, {
+          expires: 30,
+          path: "/",
+        });
+      }
+
       setProfile({
         ...data,
         photo_profile: photoProfile,
         role: roleLabel,
         rawRole: data.role,
-        schoolType: data.school?.type ?? null,
+        schoolType: detectedSchoolType,
         timezone: data.timezone ?? "Asia/Jakarta",
         timezoneLabel: data.timezone_label ?? "WIB",
       });
       setNavGroups(NAV_GROUPS[data.role] ?? []);
 
-      // Simpan ID row `students` di Zustand (dipakai komponen langganan:
-      // SubscriptionStatus, LockedFeature, dst — semuanya butuh studentId).
+      // Simpan ID row `students` dan schoolType di Zustand
       useAuthStore.getState().setStudentId(data.role === "student" ? data.student?.id ?? null : null);
+      useAuthStore.getState().setSchoolType(detectedSchoolType);
 
       // Fetch and restore permissions in Zustand on reload
       const token = Cookies.get("userToken");
