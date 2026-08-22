@@ -6,7 +6,8 @@ import {
   Search,
   User,
   CircleArrowRight,
-  XCircle,
+  GraduationCap,
+  School,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API, ENDPOINTS } from "@/utils/config";
@@ -20,23 +21,25 @@ import LoaderData from "@/components/loader";
 interface Student {
   id: number;
   job?: string;
-  photo_profile: string | null;
-  student: {
-    name: string;
-    company: {
-      name: string;
-      user: {
-        photo_profile: string | null;
+  photo_profile?: string | null;
+  student?: {
+    name?: string;
+    company?: {
+      name?: string;
+      user?: {
+        photo_profile?: string | null;
       };
-      province: {
-        name: string;
+      province?: {
+        name?: string;
       };
-      city_regency: {
-        name: string;
+      city_regency?: {
+        name?: string;
       };
     }[];
   };
 }
+
+type SchoolType = "school" | "university";
 
 const PerusahaanPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,6 +47,7 @@ const PerusahaanPage: React.FC = () => {
   const [data, setData] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [count, setCount] = useState({ total_student_internship: "" });
+  const [activeTab, setActiveTab] = useState<SchoolType>("school");
 
   // Track image errors per item
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
@@ -60,15 +64,17 @@ const PerusahaanPage: React.FC = () => {
             role: "student",
             status: "ongoing",
             search: debouncedQuery,
+            school_type: activeTab,
           },
           headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
         }),
         API.get(`${ENDPOINTS.USERS}/count`, {
+          params: { school_type: activeTab },
           headers: { Authorization: `Bearer ${Cookies.get("userToken")}` },
         }),
       ]);
-      setData(userRes.data.data ?? []);
-      setCount(countRes.data.data);
+      setData(Array.isArray(userRes.data.data) ? userRes.data.data : []);
+      setCount(countRes.data.data ?? { total_student_internship: "-" });
     } catch (error) {
       console.error(error);
     } finally {
@@ -78,17 +84,22 @@ const PerusahaanPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [debouncedQuery]);
+  }, [debouncedQuery, activeTab]);
+
+  const handleTabChange = (tab: SchoolType) => {
+    setActiveTab(tab);
+    setSearchTerm("");
+  };
 
   return (
     <main className="p-6">
       <h1 className="text-accent-dark text-sm mb-5">
-        Daftar Penempatan Siswa/Mahasiswa
+        Daftar Penempatan {activeTab === "school" ? "Siswa" : "Mahasiswa"}
       </h1>
       <div className="mb-8">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <MapPin className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Daftar Penempatan Siswa/Mahasiswa</h2>
+          <h2 className="text-2xl mt-2">Daftar Penempatan {activeTab === "school" ? "Siswa" : "Mahasiswa"}</h2>
         </div>
       </div>
 
@@ -96,12 +107,38 @@ const PerusahaanPage: React.FC = () => {
         <div className="bg-white p-3 rounded-2xl flex items-center justify-between space-x-5 px-5 mb-5 lg:mb-0 w-full lg:w-max">
           <div className="text-black">
             <h1 className="text-2xl font-extrabold">
-              {count.total_student_internship}
+              {count.total_student_internship || "-"}
             </h1>
-            <span className="text-sm">Total Siswa/Mahasiswa Magang</span>
+            <span className="text-sm">Total {activeTab === "school" ? "Siswa" : "Mahasiswa"} Magang</span>
           </div>
           <BriefcaseBusiness className="w-10 h-10 text-accent" />
         </div>
+      </div>
+
+      {/* Tab Toggle */}
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={() => handleTabChange("school")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
+            activeTab === "school"
+              ? "bg-accent text-white shadow-md"
+              : "bg-white text-gray-500 border border-gray-200 hover:border-accent hover:text-accent"
+          }`}
+        >
+          <School className="w-4 h-4" />
+          Siswa (SMA/SMK)
+        </button>
+        <button
+          onClick={() => handleTabChange("university")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
+            activeTab === "university"
+              ? "bg-accent text-white shadow-md"
+              : "bg-white text-gray-500 border border-gray-200 hover:border-accent hover:text-accent"
+          }`}
+        >
+          <GraduationCap className="w-4 h-4" />
+          Mahasiswa (Perguruan Tinggi)
+        </button>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm">
@@ -112,7 +149,7 @@ const PerusahaanPage: React.FC = () => {
             type="text"
             onChange={(e) => setSearchTerm(e.target.value)}
             value={searchTerm}
-            placeholder="Cari penempatan siswa/mahasiswa..."
+            placeholder={`Cari penempatan ${activeTab === "school" ? "siswa" : "mahasiswa"}...`}
             className="w-full bg-accent text-white pl-10 pr-4 py-3 rounded-t-2xl focus:outline-none focus:ring-2 focus:ring-accent-light focus:border-transparent transition-colors placeholder:text-white/70"
           />
         </div>
@@ -120,8 +157,8 @@ const PerusahaanPage: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-3 font-medium text-gray-600">Siswa/Mahasiswa</th>
-                <th className="text-left p-3 font-medium text-gray-600">Role</th>
+                <th className="text-left p-3 font-medium text-gray-600">{activeTab === "school" ? "Siswa" : "Mahasiswa"}</th>
+                <th className="text-left p-3 font-medium text-gray-600">Posisi</th>
                 <th className="text-left p-3 font-medium text-gray-600">Perusahaan</th>
                 <th className="text-left p-3 font-medium text-gray-600">Lokasi</th>
                 <th className="text-center p-3 font-medium text-gray-600">Aksi</th>
@@ -174,7 +211,7 @@ const PerusahaanPage: React.FC = () => {
                           {item.student?.company?.[0]?.user?.photo_profile &&
                           !imageErrors[`company-${item.id}`] ? (
                             <Image
-                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.student.company[0].user.photo_profile}`}
+                              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${item.student?.company?.[0]?.user?.photo_profile}`}
                               alt="Logo Perusahaan"
                               fill
                               sizes="32px"
@@ -229,7 +266,7 @@ const PerusahaanPage: React.FC = () => {
         {/* Empty State */}
         {data.length === 0 && isLoading === false && (
           <div className="text-center py-12">
-            <NotFoundComponent text="Tidak ada daftar penempatan siswa/mahasiswa yang ditemukan" />
+            <NotFoundComponent text={`Tidak ada daftar penempatan ${activeTab === "school" ? "siswa" : "mahasiswa"} yang ditemukan`} />
           </div>
         )}
       </div>

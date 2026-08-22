@@ -212,49 +212,27 @@ const PrakerinRegistrationSekolahForm: React.FC<
 
         <div className="space-y-6">
           <div className="space-y-4">
-            {/* Username and Full Name */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Username<span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  placeholder="Masukan username anda disini"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                    errors.username ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.username && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.username}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nama {label()}
-                  <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  placeholder={`Masukan nama ${label().toLowerCase()} anda`}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                    errors.name ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                )}
-              </div>
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Username<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder="Masukan username anda disini"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                  errors.username ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.username}
+                </p>
+              )}
             </div>
 
             {/* Email */}
