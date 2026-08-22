@@ -215,7 +215,7 @@ const ManageMentorsPage: React.FC = () => {
       <div className="mb-8 flex justify-between items-center">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <ShieldCheck className="w-5 h-5" />
-          <h2 className="text-2xl mt-2">Manajemen Profil Guru Pembimbing</h2>
+          <h2 className="text-2xl mt-2">Manajemen Profil Pembimbing</h2>
         </div>
         <button
           onClick={handleOpenCreate}
@@ -236,7 +236,7 @@ const ManageMentorsPage: React.FC = () => {
                   No
                 </th>
                 <th className="text-left p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">
-                  Nama Guru Pembimbing
+                  Nama Pembimbing
                 </th>
                 <th className="text-left p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">
                   Bidang Keahlian

@@ -84,7 +84,7 @@ const availabilityConfig = {
 interface PembimbingManagerProps {
   /** Filter mentor berdasarkan role akun pemiliknya. Kosong = semua (admin). */
   roleFilter?: "school" | "company";
-  /** Judul halaman, mis. "Pembimbing", "Guru Pembimbing", "Pembimbing Perusahaan" */
+  /** Judul halaman, mis. "Pembimbing", "Pembimbing Perusahaan" */
   title: string;
   /** Sub-judul kecil di atas judul */
   eyebrow?: string;

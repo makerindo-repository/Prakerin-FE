@@ -10,9 +10,11 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
-  BrainCircuit
+  BrainCircuit,
+  Trash2,
 } from "lucide-react";
 import useDebounce from "@/hooks/useDebounce";
+import { alertConfirm, alertSuccess, alertError } from "@/libs/alert";
 
 interface ActivityLogData {
   id: string;
@@ -89,6 +91,30 @@ export default function AILogsPage() {
     fetchLogs();
   }, [page, debouncedSearch, resourceTypeFilter, startDate, endDate]);
 
+  const handleClearAiLogs = async () => {
+    const confirm = await alertConfirm(
+      "Apakah Anda yakin ingin menghapus seluruh log aktivitas AI?",
+      "Tindakan ini akan membersihkan data riwayat aktivitas AI dan tidak dapat dibatalkan."
+    );
+    if (!confirm) return;
+
+    try {
+      const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
+      const res = await createApiCall({
+        url: "/activity-logs/clear?type=ai",
+        method: "DELETE",
+        headers,
+      });
+
+      await alertSuccess(res?.message || "Log aktivitas AI berhasil dibersihkan!");
+      setPage(1);
+      fetchLogs();
+    } catch (err: any) {
+      console.error(err);
+      await alertError(err?.response?.data?.message || "Gagal membersihkan log aktivitas AI.");
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 w-full max-w-7xl mx-auto space-y-6">
       {/* Header section */}
@@ -102,13 +128,22 @@ export default function AILogsPage() {
             Pantau seluruh aktivitas penggunaan fitur Kecerdasan Buatan (AI) oleh pengguna.
           </p>
         </div>
-        <button
-          onClick={fetchLogs}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors font-medium text-sm border border-indigo-200"
-        >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          Segarkan Data
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchLogs}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors font-medium text-sm border border-indigo-200 cursor-pointer"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            Segarkan Data
+          </button>
+          <button
+            onClick={handleClearAiLogs}
+            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors font-medium text-sm border border-red-200 cursor-pointer"
+          >
+            <Trash2 size={16} className="text-red-600" />
+            Bersihkan Log AI
+          </button>
+        </div>
       </div>
 
       {/* Filters section */}

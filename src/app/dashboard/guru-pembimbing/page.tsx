@@ -5,8 +5,8 @@ const GuruPembimbingPage = () => {
   return (
     <PembimbingManager
       roleFilter="school"
-      title="Guru Pembimbing"
-      eyebrow="Manajemen Guru Pembimbing"
+      title="Pembimbing"
+      eyebrow="Manajemen Pembimbing"
     />
   );
 };

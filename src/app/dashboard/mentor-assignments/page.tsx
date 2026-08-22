@@ -157,7 +157,7 @@ const MentorAssignmentsPage: React.FC = () => {
   };
 
   const handleEndAssignment = async (assignment: MentorAssignment) => {
-    const confirm = await alertConfirm(`Apakah Anda yakin ingin mengakhiri penugasan guru pembimbing untuk siswa "${assignment.student.username}"?`);
+    const confirm = await alertConfirm(`Apakah Anda yakin ingin mengakhiri penugasan pembimbing untuk siswa "${assignment.student.username}"?`);
     if (!confirm) return;
 
     try {
@@ -185,7 +185,7 @@ const MentorAssignmentsPage: React.FC = () => {
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-2 font-extrabold text-accent">
           <UserCheck className="w-6 h-6" />
-          <h2 className="text-2xl mt-2 font-extrabold">Penugasan Guru Pembimbing</h2>
+          <h2 className="text-2xl mt-2 font-extrabold">Penugasan Pembimbing</h2>
         </div>
 
         <div className="flex items-center gap-3">
@@ -222,7 +222,7 @@ const MentorAssignmentsPage: React.FC = () => {
                   Nama Siswa
                 </th>
                 <th className="text-left p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">
-                  Guru Pembimbing
+                  Pembimbing
                 </th>
                 <th className="text-left p-4 font-semibold text-gray-600 text-xs uppercase tracking-wider">
                   Ditugaskan Oleh
@@ -249,7 +249,7 @@ const MentorAssignmentsPage: React.FC = () => {
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-gray-500">
                     <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                    <p>Belum ada penugasan guru pembimbing yang tercatat.</p>
+                    <p>Belum ada penugasan pembimbing yang tercatat.</p>
                   </td>
                 </tr>
               ) : (
@@ -330,7 +330,7 @@ const MentorAssignmentsPage: React.FC = () => {
             </button>
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
               <UserCheck className="text-accent w-5 h-5" />
-              <span>Tugaskan Guru Pembimbing</span>
+              <span>Tugaskan Pembimbing</span>
             </h3>
 
             <div className="space-y-4">
@@ -362,7 +362,7 @@ const MentorAssignmentsPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pilih Guru Pembimbing<span className="text-red-500">*</span>
+                  Pilih Pembimbing<span className="text-red-500">*</span>
                 </label>
                 {mentors.length === 0 ? (
                   <p className="text-xs text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-200">

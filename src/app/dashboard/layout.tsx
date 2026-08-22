@@ -53,12 +53,13 @@ import {
   CreditCard,
   Wand2,
   BrainCircuit,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import { API, createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import { usePathname } from "next/navigation";
-import { alertConfirm } from "@/libs/alert";
+import { alertConfirm, alertWarningModal, alertInfoModal } from "@/libs/alert";
 import { getUserPermissions } from "@/libs/permissionApi";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -300,6 +301,10 @@ export default function DashboardLayout({
   });
   const pathName = usePathname();
 
+  // ── Student subscription & task completion for AI Report access ───────────
+  const [studentIsPremium, setStudentIsPremium] = useState<boolean | null>(null);
+  const [studentCompletedTasksCount, setStudentCompletedTasksCount] = useState<number | null>(null);
+
   // ── Link "Kelas Pra-Magang" (dari Pengaturan, fallback ke URL lama) ────────
   const [lmsUrl, setLmsUrl] = useState<string>("https://makerindo.myr.id/");
   useEffect(() => {
@@ -343,12 +348,13 @@ export default function DashboardLayout({
   // ── Fetch profile ─────────────────────────────────────────────────────────
   const fetchProfile = useCallback(async (signal?: AbortSignal) => {
     try {
+      const token = Cookies.get("userToken");
       // FIX: signal sekarang jadi bagian dari config object (bukan argumen ke-2
       // terpisah), supaya createApiCall benar-benar meneruskannya ke axios.
       const response = await createApiCall({
         url: `${ENDPOINTS.USERS}/profile`,
         headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
+          Authorization: `Bearer ${token}`,
         },
         signal,
       });
@@ -421,8 +427,30 @@ export default function DashboardLayout({
       useAuthStore.getState().setStudentId(data.role === "student" ? data.student?.id ?? null : null);
       useAuthStore.getState().setSchoolType(detectedSchoolType);
 
+      // Check student subscription & completed tasks
+      if (data.role === "student") {
+        const isPrem = data.student?.status_subscription === "premium";
+        setStudentIsPremium(isPrem);
+        if (data.student?.id) {
+          createApiCall({
+            url: "/tasks?status=completed&limit=1",
+            headers: { Authorization: `Bearer ${token}` },
+            signal,
+          })
+            .then((tasksRes) => {
+              const total = typeof tasksRes?.total === "number"
+                ? tasksRes.total
+                : (Array.isArray(tasksRes?.data) ? tasksRes.data.length : 0);
+              setStudentCompletedTasksCount(total);
+            })
+            .catch((err) => {
+              console.warn("Could not fetch completed tasks count:", err);
+              setStudentCompletedTasksCount(0);
+            });
+        }
+      }
+
       // Fetch and restore permissions in Zustand on reload
-      const token = Cookies.get("userToken");
       if (token) {
         try {
           const permsData = await getUserPermissions(token);
@@ -632,10 +660,40 @@ export default function DashboardLayout({
                 {group.items.map((item) => {
                   const active = isActiveLink(item.href);
                   const isLms = item.isLms;
+
+                  const isStudentRole = profile.rawRole === "student" || userRole === "student";
+                  const isAiReportItem = item.href === "/dashboard/ai-report" && isStudentRole;
+                  const isAiReportLocked = isAiReportItem && studentIsPremium === false;
+                  const isAiReportNoTasks = isAiReportItem && studentIsPremium === true && studentCompletedTasksCount === 0;
+                  const isAiReportDisabled = isAiReportLocked || isAiReportNoTasks;
+
+                  const handleItemClick = (e: React.MouseEvent) => {
+                    if (isAiReportDisabled) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (isAiReportLocked) {
+                        alertWarningModal(
+                          "Fitur AI Report Terkunci",
+                          "Fitur ini hanya dapat diakses oleh akun Premium. Silakan upgrade akun Anda ke paket Premium untuk membuka fitur AI Report."
+                        );
+                      } else if (isAiReportNoTasks) {
+                        alertInfoModal(
+                          "Fitur AI Report Dinonaktifkan",
+                          "Anda belum memiliki tugas magang yang selesai. Selesaikan minimal 1 tugas magang di menu Daftar Tugas untuk mengaktifkan AI Report."
+                        );
+                      }
+                      return;
+                    }
+                    closeSidebar();
+                  };
+
                   const el = (
                     <div
+                      onClick={isAiReportDisabled ? handleItemClick : undefined}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                        active
+                        isAiReportDisabled
+                          ? "text-gray-400 bg-gray-50/50 hover:bg-gray-100/70 cursor-pointer border border-dashed border-gray-200"
+                          : active
                           ? "bg-[#035a70] text-white shadow-sm"
                           : isLms
                           ? "text-[#157af6] bg-[#157af6]/5 hover:bg-[#157af6]/15 hover:text-[#157af6] border-l-2 border-[#157af6] rounded-l-none pl-2.5"
@@ -646,6 +704,18 @@ export default function DashboardLayout({
                     >
                       <item.icon className="w-4 h-4 flex-shrink-0" />
                       <span className="flex-1 truncate">{item.label}</span>
+                      {isAiReportLocked && (
+                        <span className="flex items-center gap-1 text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 shrink-0">
+                          <Lock className="w-2.5 h-2.5" />
+                          Premium
+                        </span>
+                      )}
+                      {isAiReportNoTasks && (
+                        <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 shrink-0">
+                          <Lock className="w-2.5 h-2.5" />
+                          Tugas
+                        </span>
+                      )}
                       {item.isDev && (
                         <span className="text-[9px] font-semibold uppercase tracking-wider bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">
                           Dev
@@ -661,7 +731,9 @@ export default function DashboardLayout({
 
                   return (
                     <li key={item.label}>
-                      {item.href ? (
+                      {isAiReportDisabled ? (
+                        el
+                      ) : item.href ? (
                         item.href.startsWith("http") ? (
                           <a href={item.href} target="_blank" rel="noopener noreferrer" onClick={closeSidebar}>
                             {el}

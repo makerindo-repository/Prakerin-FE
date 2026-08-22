@@ -71,11 +71,11 @@ const StudentMentorPage: React.FC = () => {
 
   return (
     <main className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-accent-dark text-sm mb-5">Dashboard -&gt; Guru Pembimbing</h1>
+      <h1 className="text-accent-dark text-sm mb-5">Dashboard -&gt; Pembimbing</h1>
 
       <div className="mb-8 flex items-center space-x-2 font-extrabold text-accent">
         <ShieldCheck className="w-6 h-6" />
-        <h2 className="text-2xl mt-2">Guru Pembimbing Saya</h2>
+        <h2 className="text-2xl mt-2">Pembimbing Saya</h2>
       </div>
 
       {!assignment ? (
@@ -83,7 +83,7 @@ const StudentMentorPage: React.FC = () => {
           <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
           <p className="font-semibold text-gray-700">Belum Ada Pembimbing yang Ditugaskan</p>
           <p className="text-xs text-gray-400 mt-1">
-            Sekolah atau Admin belum menugaskan guru pembimbing untuk Anda saat ini. Silahkan hubungi administrator sekolah Anda.
+            Sekolah atau Admin belum menugaskan pembimbing untuk Anda saat ini. Silahkan hubungi administrator sekolah Anda.
           </p>
         </div>
       ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FileText,
   Sparkles,
@@ -9,11 +9,15 @@ import {
   AlertCircle,
   Lightbulb,
   CheckCircle,
-  Copy
+  Copy,
+  Lock,
+  ClipboardList,
+  ClipboardCheck,
 } from "lucide-react";
 import Cookies from "js-cookie";
+import Link from "next/link";
 import { createApiCall } from "@/utils/config";
-import { alertError, alertSuccess } from "@/libs/alert";
+import { alertError, alertSuccess, alertInfo } from "@/libs/alert";
 import { useAuthStore } from "@/stores/authStore";
 import { LockedFeature } from "@/components/LockedFeature";
 
@@ -26,8 +30,38 @@ interface AiReportData {
 function AiReportPageInner() {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<AiReportData | null>(null);
+  const role = useAuthStore((s) => s.role);
+  const [checkingTasks, setCheckingTasks] = useState(true);
+  const [completedTasksCount, setCompletedTasksCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchTaskStatus = async () => {
+      try {
+        const token = Cookies.get("userToken");
+        if (!token) return;
+        const res = await createApiCall({
+          url: "/tasks?status=completed&limit=1",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const total = typeof res?.total === "number" ? res.total : (Array.isArray(res?.data) ? res.data.length : 0);
+        setCompletedTasksCount(total);
+      } catch (err) {
+        console.error("Failed to check completed tasks:", err);
+        setCompletedTasksCount(0);
+      } finally {
+        setCheckingTasks(false);
+      }
+    };
+
+    fetchTaskStatus();
+  }, []);
 
   const generateReport = async () => {
+    if (completedTasksCount === 0) {
+      alertInfo("Fitur AI Report Dinonaktifkan: Anda harus menyelesaikan minimal 1 tugas magang terlebih dahulu.");
+      return;
+    }
+
     setLoading(true);
     setReport(null);
 
@@ -170,8 +204,44 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
         </div>
       </div>
 
+      {/* ─── TASK CHECK LOADING STATE ─── */}
+      {checkingTasks && (
+        <div className="bg-white border border-gray-100 rounded-3xl p-12 text-center max-w-2xl mx-auto shadow-sm space-y-4">
+          <Loader2 className="w-10 h-10 animate-spin text-[#035a70] mx-auto" />
+          <p className="text-sm text-gray-500">Memeriksa kelayakan data magang...</p>
+        </div>
+      )}
+
+      {/* ─── DISABLED STATE: 0 COMPLETED TASKS ─── */}
+      {!checkingTasks && completedTasksCount === 0 && (
+        <div className="bg-white border border-amber-200 rounded-3xl p-10 sm:p-12 text-center max-w-2xl mx-auto shadow-sm space-y-6">
+          <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto border border-amber-200 shadow-inner">
+            <ClipboardList className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Fitur Dinonaktifkan Sementara</span>
+            </div>
+            <h3 className="text-xl font-black text-gray-800">Belum Ada Tugas yang Selesai</h3>
+            <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+              Fitur AI Report memerlukan data dari tugas magang yang telah Anda selesaikan untuk menghasilkan analisis evaluasi performa. Saat ini Anda memiliki <strong className="text-gray-900">0 tugas yang selesai</strong>.
+            </p>
+          </div>
+          <div className="pt-2 flex justify-center">
+            <Link
+              href="/dashboard/tasklist"
+              className="px-6 py-3 bg-[#035a70] hover:bg-[#035a70]/90 text-white rounded-xl text-sm font-extrabold transition-all shadow-sm flex items-center gap-2"
+            >
+              <ClipboardCheck className="w-4 h-4" />
+              Buka Daftar Tugas
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* ─── GENERATE TRIGGER PANEL ─── */}
-      {!report && !loading && (
+      {!checkingTasks && completedTasksCount !== 0 && !report && !loading && (
         <div className="bg-white border border-gray-150 rounded-3xl p-12 text-center max-w-2xl mx-auto shadow-sm space-y-6">
           <div className="w-16 h-16 bg-gradient-to-tr from-[#035a70]/10 to-[#04829e]/10 text-[#035a70] rounded-2xl flex items-center justify-center mx-auto shadow-inner">
             <Sparkles className="w-8 h-8 animate-pulse" />

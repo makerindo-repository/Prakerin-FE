@@ -15,8 +15,10 @@ import {
   ChevronRight,
   RefreshCw,
   FileSpreadsheet,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import { alertConfirm, alertSuccess, alertError } from "@/libs/alert";
 
 interface ActivityLogData {
   id: string;
@@ -133,6 +135,30 @@ export default function LogAktivitasPage() {
     document.body.removeChild(link);
   };
 
+  const handleClearLogs = async () => {
+    const confirm = await alertConfirm(
+      "Apakah Anda yakin ingin menghapus seluruh log aktivitas?",
+      "Tindakan ini akan membersihkan data riwayat aktivitas dan tidak dapat dibatalkan."
+    );
+    if (!confirm) return;
+
+    try {
+      const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
+      const res = await createApiCall({
+        url: "/activity-logs/clear?type=general",
+        method: "DELETE",
+        headers,
+      });
+
+      await alertSuccess(res?.message || "Log aktivitas berhasil dibersihkan!");
+      setPage(1);
+      fetchLogs();
+    } catch (err: any) {
+      console.error(err);
+      await alertError(err?.response?.data?.message || "Gagal membersihkan log aktivitas.");
+    }
+  };
+
   const getActionBadgeColor = (act: string) => {
     switch (act) {
       case "login":
@@ -163,13 +189,22 @@ export default function LogAktivitasPage() {
             Riwayat log sistem untuk melacak login dan manipulasi data.
           </p>
         </div>
-        <button
-          onClick={handleExportCSV}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-semibold transition-colors"
-        >
-          <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-          Ekspor CSV
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            Ekspor CSV
+          </button>
+          <button
+            onClick={handleClearLogs}
+            className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4 text-red-600" />
+            Bersihkan Log
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}

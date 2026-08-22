@@ -25,6 +25,46 @@ export const alertError = async (message?: string | null) => {
   });
 };
 
+export const alertWarning = async (message: string, title: string = "Peringatan", timer?: number) => {
+  const calculatedTimer = timer !== undefined ? timer : Math.min(10000, Math.max(3000, message.length * 50));
+  return toast.fire({
+    icon: "warning",
+    title: title,
+    text: message,
+    timer: calculatedTimer,
+  });
+};
+
+export const alertInfo = async (message: string, title: string = "Informasi", timer?: number) => {
+  const calculatedTimer = timer !== undefined ? timer : Math.min(10000, Math.max(3000, message.length * 50));
+  return toast.fire({
+    icon: "info",
+    title: title,
+    text: message,
+    timer: calculatedTimer,
+  });
+};
+
+export const alertInfoModal = async (title: string, text: string) => {
+  return Swal.fire({
+    icon: "info",
+    title: title,
+    text: text,
+    confirmButtonColor: "#035a70",
+    confirmButtonText: "Mengerti",
+  });
+};
+
+export const alertWarningModal = async (title: string, text: string) => {
+  return Swal.fire({
+    icon: "warning",
+    title: title,
+    text: text,
+    confirmButtonColor: "#f59e0b",
+    confirmButtonText: "Mengerti",
+  });
+};
+
 export const alertConfirm = async (message: string, text?: string) => {
   const result = await Swal.fire({
     icon: "question",

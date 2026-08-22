@@ -53,7 +53,7 @@ function DaftarContent() {
               <option value="university">Perguruan Tinggi</option>
               <option value="company">Perusahaan</option>
               <option value="teacher" disabled>
-                Guru Pembimbing
+                Pembimbing
               </option>
               <option value="company_mentor" disabled>
                 Pembimbing Perusahaan
