@@ -180,23 +180,31 @@ export default function BuatCvPintarPage() {
             .filter(Boolean);
         }
 
-        setFormData((prev) => ({
-          ...prev,
-          fullName: sData.name || uData.username || prev.fullName || "Aditya Pratama",
-          email: uData.email || prev.email || "",
-          phone: sData.phone_number || prev.phone || "",
-          address: sData.address || prev.address || "Bandung, Jawa Barat, Indonesia",
-          schoolName: sData.school_name || prev.schoolName || "SMK Negeri 4 Bandung",
-          major: sData.major?.name || prev.major || "Rekayasa Perangkat Lunak",
-          degreeYear: sData.class ? `Kelas ${sData.class} (Aktif)` : prev.degreeYear || "2022 - 2025",
-          github: prev.github || (sData.portofolio_link?.includes("github") ? sData.portofolio_link : "github.com/adityapratama"),
-          linkedin: prev.linkedin || (sData.social_media_link?.includes("linkedin") ? sData.social_media_link : "linkedin.com/in/adityapratama"),
-          skills: profileSkills.length > 0 ? profileSkills : prev.skills,
-          photoUrl: prev.photoUrl || userPfpUrl,
-          competencyDescription:
-            prev.competencyDescription ||
-            `Siswa ${sData.school_name || "SMK"} jurusan ${sData.major?.name || "Rekayasa Perangkat Lunak"} yang fokus pada ${prev.competencyArea || "Frontend Development"}. Terbiasa bekerja dengan teknologi web modern, menerapkan best practices, dan berkolaborasi secara produktif dalam tim.`,
-        }));
+        setFormData((prev) => {
+          const userGithub = sData.portofolio_link || (prev.github === "github.com/adityapratama" ? "" : prev.github) || "";
+          const userLinkedin = sData.social_media_link || (prev.linkedin === "linkedin.com/in/adityapratama" ? "" : prev.linkedin) || "";
+
+          return {
+            ...prev,
+            fullName: sData.name || uData.username || (prev.fullName === "Aditya Pratama" ? "" : prev.fullName) || "",
+            email: uData.email || prev.email || "",
+            phone: sData.phone_number || prev.phone || "",
+            address: sData.address || (prev.address === "Bandung, Jawa Barat, Indonesia" ? "" : prev.address) || "",
+            schoolName: sData.school_name || (prev.schoolName === "SMK Negeri 4 Bandung" ? "" : prev.schoolName) || "",
+            major: sData.major?.name || (prev.major === "Rekayasa Perangkat Lunak" ? "" : prev.major) || "",
+            degreeYear: sData.class ? `Kelas ${sData.class} (Aktif)` : prev.degreeYear || "2022 - 2025",
+            github: userGithub,
+            linkedin: userLinkedin,
+            skills: profileSkills.length > 0 ? profileSkills : prev.skills,
+            photoUrl: userPfpUrl || prev.photoUrl,
+            competencyDescription:
+              prev.competencyDescription && !prev.competencyDescription.includes("Aditya")
+                ? prev.competencyDescription
+                : sData.name
+                ? `Siswa ${sData.school_name || "SMK"} jurusan ${sData.major?.name || "Rekayasa Perangkat Lunak"} yang fokus pada ${prev.competencyArea || "Frontend Development"}. Terbiasa bekerja dengan teknologi web modern, menerapkan best practices, dan berkolaborasi secara produktif dalam tim.`
+                : "",
+          };
+        });
       }
     } catch (err) {
       console.error("Gagal memuat profil otomatis:", err);
@@ -412,7 +420,6 @@ export default function BuatCvPintarPage() {
     }
   };
 
-  // Reset / Refresh from Profile
   const handleResetToProfile = async () => {
     const isConfirmed = await alertConfirm(
       "Muat Ulang Data?",
@@ -420,6 +427,31 @@ export default function BuatCvPintarPage() {
     );
     if (isConfirmed) {
       localStorage.removeItem("prakerin_cv_draft");
+      setFormData({
+        fullName: "",
+        schoolName: "",
+        major: "",
+        degreeYear: "2022 - 2025",
+        competencyArea: "Frontend Development",
+        email: "",
+        phone: "",
+        address: "",
+        github: "",
+        linkedin: "",
+        competencyDescription: "",
+        skills: ["HTML5", "CSS3", "JavaScript", "React.js", "Tailwind CSS", "REST API", "Git"],
+        projects: [
+          {
+            id: "proj-1",
+            name: "Dashboard Monitoring IoT",
+            role: "Frontend Developer",
+            technologies: "React, Tailwind CSS, REST API",
+            year: "2024",
+            description: "Membangun dashboard real-time dan meningkatkan kecepatan pemantauan data sistem.",
+          },
+        ],
+        photoUrl: null,
+      });
       await fetchUserProfile();
       alertSuccess("Data profil berhasil dimuat ulang!");
     }
