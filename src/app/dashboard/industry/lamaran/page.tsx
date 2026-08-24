@@ -1,11 +1,14 @@
 "use client";
 import {
   BriefcaseBusiness,
+  CheckCheck,
   CircleAlert,
   Download,
   Edit,
   Eye,
   FileText,
+  Loader2,
+  MessageCircle,
   Search,
   Trash2,
 } from "lucide-react";
@@ -20,6 +23,7 @@ import TabsComponent from "@/components/TabsCompenent";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
 import Loader from "@/components/loader";
+import { alertError, alertSuccess } from "@/libs/alert";
 
 interface Lamaran {
   id: number;
@@ -35,11 +39,18 @@ interface InternshipApplication {
   id: string;
   student: {
     name: string;
+    phone_number?: string | null;
+  };
+  user?: {
+    email?: string;
+    whatsapp_number?: string | null;
   };
   school: {
     name: string;
   };
   status: string;
+  read_at?: string | null;
+  is_read?: boolean;
   major: string | null;
   curriculum_vitae: {
     id: string;
@@ -57,6 +68,9 @@ const lamaranPage: React.FC = () => {
     InternshipApplication[]
   >([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [markingReadId, setMarkingReadId] = useState<string | null>(null);
+  const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const tabs: ActiveTab[] = ["Semua", "Diterima", "Pengajuan", "Ditolak"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
   const [isReload, setIsReload] = useState<boolean>(false);
@@ -154,8 +168,55 @@ const lamaranPage: React.FC = () => {
     fetchInternshipAplication();
   }, [pages.activePages, isReload]);
 
+  const handleMarkAsRead = async (applicationId: string) => {
+    if (markingReadId) return;
+    setMarkingReadId(applicationId);
+    try {
+      await API.patch(
+        `${ENDPOINTS.INTERNSHIP_APPLICATIONS}/${applicationId}/mark-as-read`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      setInternshipApplications((prev) =>
+        prev.map((app) =>
+          app.id === applicationId
+            ? { ...app, is_read: true, read_at: new Date().toISOString() }
+            : app
+        )
+      );
+
+      await alertSuccess("Lamaran berhasil ditandai sudah dibaca dan pelamar telah diberi tahu!");
+    } catch (error: any) {
+      console.error("Error marking application as read:", error);
+      await alertError(error.response?.data?.errors || "Gagal menandai lamaran sudah dibaca.");
+    } finally {
+      setMarkingReadId(null);
+    }
+  };
+
+  const getWhatsAppLink = (phone: string | null | undefined, name: string) => {
+    if (!phone) return null;
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "62" + cleaned.slice(1);
+    } else if (cleaned.startsWith("8")) {
+      cleaned = "62" + cleaned;
+    }
+    const msg = encodeURIComponent(
+      `Halo ${name}, kami telah meninjau lamaran magang Anda di PRAKERIN.ID dan ingin mendiskusikan tahapan seleksi selanjutnya.`
+    );
+    return `https://wa.me/${cleaned}?text=${msg}`;
+  };
+
   const handleDownload = async (cvId: string) => {
-    console.log("Downloading CV with ID:", cvId);
+    if (downloadingCvId) return;
+    setDownloadingCvId(cvId);
+    setDownloadProgress(0);
     try {
       const response = await API.get(
         `${ENDPOINTS.CURRICULUM_VITAE}/${cvId}/download`,
@@ -164,8 +225,19 @@ const lamaranPage: React.FC = () => {
             Authorization: `Bearer ${Cookies.get("userToken")}`,
           },
           responseType: "blob",
+          onDownloadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setDownloadProgress(percent);
+            } else {
+              setDownloadProgress((prev) => Math.min(prev + 25, 90));
+            }
+          },
         }
       );
+      setDownloadProgress(100);
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -174,14 +246,21 @@ const lamaranPage: React.FC = () => {
         return application.curriculum_vitae.id === cvId;
       });
 
-      link.setAttribute("download", `${nameCv?.curriculum_vitae.name}.pdf`);
+      link.setAttribute("download", `${nameCv?.curriculum_vitae.name || "CV"}.pdf`);
 
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      await alertSuccess("CV berhasil diunduh!");
     } catch (error: any) {
       console.error("Error downloading CV:", error.response?.data?.errors || error.message);
+      await alertError("Gagal mengunduh CV.");
+    } finally {
+      setTimeout(() => {
+        setDownloadingCvId(null);
+        setDownloadProgress(0);
+      }, 600);
     }
   };
 
@@ -227,7 +306,7 @@ const lamaranPage: React.FC = () => {
       <div className="bg-white rounded-b-2xl shadow-md overflow-hidden">
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full min-w-[800px]">
+          <table className="w-full min-w-[850px]">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -255,48 +334,118 @@ const lamaranPage: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {internshipApplications && !isLoading ? (
-                internshipApplications.map((application, index) => (
-                  <tr key={application.id} className="hover:bg-gray-50">
-                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {index + 1 + (pages.activePages - 1) * 10}
-                    </td>
-                    <td className="px-4 lg:px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
-                      {application.student.name}
-                    </td>
-                    <td className="px-4 lg:px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
-                      {application.school.name}
-                    </td>
-                    <td className="px-4 lg:px-6 py-4 text-sm text-gray-900">
-                      {application.major ?? "-"}
-                    </td>
-                    <td
-                      className={`px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium ${changeStatusColor(
-                        application.status
-                      )}`}
-                    >
-                      {changeStatus(application.status)}
-                    </td>
-                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleDownload(application.curriculum_vitae.id)
-                        }
-                        className="bg-green-500 text-white rounded-full py-1.5 px-3 text-xs cursor-pointer hover:bg-green-600 transition-colors"
+                internshipApplications.map((application, index) => {
+                  const phone =
+                    application.student?.phone_number ||
+                    application.user?.whatsapp_number;
+                  const waLink = getWhatsAppLink(phone, application.student.name);
+
+                  return (
+                    <tr key={application.id} className="hover:bg-gray-50">
+                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {index + 1 + (pages.activePages - 1) * 10}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
+                        {application.student.name}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
+                        {application.school.name}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 text-sm text-gray-900">
+                        {application.major ?? "-"}
+                      </td>
+                      <td
+                        className={`px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium ${changeStatusColor(
+                          application.status
+                        )}`}
                       >
-                        Unduh
-                      </button>
-                    </td>
-                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <Link
-                        href={`/dashboard/industry/lamaran/${application.id}`}
-                        className="text-blue-600 hover:text-blue-800 cursor-pointer inline-block p-1"
-                      >
-                        <CircleAlert size={18} />
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                        {changeStatus(application.status)}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm">
+                        {downloadingCvId === application.curriculum_vitae.id ? (
+                          <div className="relative overflow-hidden bg-gray-200 text-gray-800 rounded-full py-1.5 px-3 text-xs font-semibold flex items-center justify-center min-w-[90px] border border-gray-300">
+                            <div
+                              className="absolute left-0 top-0 bottom-0 bg-green-500 transition-all duration-150"
+                              style={{ width: `${downloadProgress}%` }}
+                            />
+                            <span className="relative z-10 text-white font-medium flex items-center gap-1">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              {downloadProgress}%
+                            </span>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDownload(application.curriculum_vitae.id)
+                            }
+                            className="bg-green-500 text-white rounded-full py-1.5 px-3 text-xs cursor-pointer hover:bg-green-600 transition-colors shadow-xs flex items-center gap-1"
+                          >
+                            <Download className="w-3 h-3" />
+                            Unduh
+                          </button>
+                        )}
+                      </td>
+                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          {application.is_read || application.read_at ? (
+                            <>
+                              <span
+                                title={`Sudah dibaca${
+                                  application.read_at
+                                    ? ` pada ${new Date(
+                                        application.read_at
+                                      ).toLocaleDateString("id-ID")}`
+                                    : ""
+                                }`}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              >
+                                <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Sudah Dibaca</span>
+                              </span>
+
+                              {waLink && (
+                                <a
+                                  href={waLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors shadow-xs"
+                                  title="Chat pelamar via WhatsApp"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+                                  <span>WhatsApp</span>
+                                </a>
+                              )}
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleMarkAsRead(application.id)}
+                              disabled={markingReadId === application.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                              title="Tandai telah dibaca dan beri tahu pelamar"
+                            >
+                              {markingReadId === application.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Eye className="w-3.5 h-3.5 text-amber-600" />
+                              )}
+                              <span>Tandai Dibaca</span>
+                            </button>
+                          )}
+
+                          <Link
+                            href={`/dashboard/industry/lamaran/${application.id}`}
+                            className="text-blue-600 hover:text-blue-800 cursor-pointer inline-flex items-center p-1.5 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Detail Lamaran"
+                          >
+                            <CircleAlert size={18} />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={7} className="p-4 text-center text-gray-500">
@@ -311,67 +460,123 @@ const lamaranPage: React.FC = () => {
         {/* Mobile Cards */}
         <div className="md:hidden">
           {internshipApplications && !isLoading ? (
-            internshipApplications.map((application, index) => (
-              <div
-                key={application.id}
-                className="p-4 border-b border-gray-200 last:border-b-0"
-              >
-                {/* Header */}
-                <div className="flex items-start justify-between mb-3 gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 text-sm break-words">
-                      {application.student.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1 break-words">
-                      {application.school.name}
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-500 font-medium flex-shrink-0">
-                    #{index + 1 + (pages.activePages - 1) * 10}
-                  </span>
-                </div>
+            internshipApplications.map((application, index) => {
+              const phone =
+                application.student?.phone_number ||
+                application.user?.whatsapp_number;
+              const waLink = getWhatsAppLink(phone, application.student.name);
 
-                {/* Info */}
-                <div className="space-y-2 mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Jurusan:</span>
-                    <span className="text-xs text-gray-900">
-                      {application.major ?? "-"}
+              return (
+                <div
+                  key={application.id}
+                  className="p-4 border-b border-gray-200 last:border-b-0"
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-3 gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 text-sm break-words">
+                        {application.student.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1 break-words">
+                        {application.school.name}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium flex-shrink-0">
+                      #{index + 1 + (pages.activePages - 1) * 10}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Status:</span>
-                    <span
-                      className={`text-xs font-medium ${changeStatusColor(
-                        application.status
-                      )}`}
+
+                  {/* Info */}
+                  <div className="space-y-2 mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Jurusan:</span>
+                      <span className="text-xs text-gray-900">
+                        {application.major ?? "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Status:</span>
+                      <span
+                        className={`text-xs font-medium ${changeStatusColor(
+                          application.status
+                        )}`}
+                      >
+                        {changeStatus(application.status)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {downloadingCvId === application.curriculum_vitae.id ? (
+                      <div className="relative overflow-hidden bg-gray-200 text-gray-800 rounded-lg py-1.5 px-3 text-xs font-semibold flex items-center justify-center min-w-[90px] border border-gray-300">
+                        <div
+                          className="absolute left-0 top-0 bottom-0 bg-green-500 transition-all duration-150"
+                          style={{ width: `${downloadProgress}%` }}
+                        />
+                        <span className="relative z-10 text-white font-medium flex items-center gap-1">
+                          <Loader2 size={12} className="animate-spin" />
+                          {downloadProgress}%
+                        </span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          handleDownload(application.curriculum_vitae.id)
+                        }
+                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+                      >
+                        <Download size={12} />
+                        <span>Unduh CV</span>
+                      </button>
+                    )}
+
+                    {application.is_read || application.read_at ? (
+                      <>
+                        <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+                          <CheckCheck size={12} className="text-emerald-600" />
+                          <span>Sudah Dibaca</span>
+                        </span>
+
+                        {waLink && (
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                          >
+                            <MessageCircle size={12} className="text-green-600" />
+                            <span>WhatsApp</span>
+                          </a>
+                        )}
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleMarkAsRead(application.id)}
+                        disabled={markingReadId === application.id}
+                        className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                      >
+                        {markingReadId === application.id ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Eye size={12} />
+                        )}
+                        <span>Tandai Dibaca</span>
+                      </button>
+                    )}
+
+                    <Link
+                      href={`/dashboard/industry/lamaran/${application.id}`}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors"
                     >
-                      {changeStatus(application.status)}
-                    </span>
+                      <CircleAlert size={12} />
+                      <span>Detail</span>
+                    </Link>
                   </div>
                 </div>
-
-                {/* Actions */}
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() =>
-                      handleDownload(application.curriculum_vitae.id)
-                    }
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1 transition-colors"
-                  >
-                    <Download size={12} />
-                    <span>Unduh CV</span>
-                  </button>
-                  <Link
-                    href={`/dashboard/industry/lamaran/${application.id}`}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1 transition-colors"
-                  >
-                    <CircleAlert size={12} />
-                    <span>Detail</span>
-                  </Link>
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="p-4 text-center">
               <Loader />

@@ -4,6 +4,7 @@ import {
   MapPin,
   CheckCircle2,
   Clock,
+  Eye,
   XCircle,
   FileText,
   BarChart3,
@@ -41,6 +42,8 @@ interface InternshipApplication {
     name: string;
   };
   status: string;
+  read_at?: string | null;
+  is_read?: boolean;
   test: Test[];
 }
 
@@ -427,7 +430,15 @@ export default function SiswaDashboard({
                     <h3 className="font-semibold text-gray-800 text-sm leading-snug">
                       {application?.job_opening?.title ?? "Lowongan Magang"}
                     </h3>
-                    <ApplicationStatusBadge status={application.status} />
+                    <div className="flex flex-wrap items-center gap-1.5 justify-end">
+                      {(application.read_at || application.is_read) && (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
+                          <Eye className="w-3 h-3 text-sky-600" />
+                          Dilihat HR
+                        </span>
+                      )}
+                      <ApplicationStatusBadge status={application.status} />
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
                     <Building className="w-3.5 h-3.5 flex-shrink-0" />

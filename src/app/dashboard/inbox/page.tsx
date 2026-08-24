@@ -8,6 +8,7 @@ import {
   BellOff,
   CheckCheck,
   ClipboardList,
+  Eye,
   FileText,
   Loader2,
   Mail,
@@ -74,6 +75,11 @@ const typeConfig: Record<string, { icon: React.ReactNode; color: string; label: 
     icon: <ClipboardList className="w-5 h-5" />,
     color: "from-blue-500 to-cyan-500",
     label: "Status Lamaran",
+  },
+  application_read: {
+    icon: <Eye className="w-5 h-5" />,
+    color: "from-sky-500 to-teal-500",
+    label: "Lamaran Dilihat",
   },
   new_task: {
     icon: <FileText className="w-5 h-5" />,
