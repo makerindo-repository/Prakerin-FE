@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { createApiCall, ENDPOINTS } from "@/utils/config";
 import Loader from "@/components/loader";
+import ErrorComponent from "@/app/error";
 
 // Lazy load components
 const Navigation = dynamic(() => import("@/components/Navigation"), {
@@ -128,21 +129,14 @@ export default function HomePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button
-            onClick={() => {
-              setLoading(true);
-              setError(null);
-              fetchData();
-            }}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Coba Lagi
-          </button>
-        </div>
-      </div>
+      <ErrorComponent
+        error={new Error(error)}
+        reset={() => {
+          setLoading(true);
+          setError(null);
+          fetchData();
+        }}
+      />
     );
   }
 
