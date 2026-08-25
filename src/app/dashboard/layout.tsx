@@ -437,8 +437,9 @@ export default function DashboardLayout({
       });
       setNavGroups(NAV_GROUPS[data.role] ?? []);
 
-      // Simpan ID row `students`, schoolType, dan statusSubscription di Zustand
+      // Simpan ID row `students`/`companies`, schoolType, dan statusSubscription di Zustand
       useAuthStore.getState().setStudentId(data.role === "student" ? data.student?.id ?? null : null);
+      useAuthStore.getState().setCompanyId(data.role === "company" ? data.company?.id ?? null : null);
       useAuthStore.getState().setSchoolType(detectedSchoolType);
 
       const resolvedStatusSubscription = (

@@ -7,7 +7,9 @@ import { SubscriptionQRISModal } from "./SubscriptionQRISModal";
 import { useSubscription } from "@/hooks/useSubscription";
 
 interface UpgradePremiumSectionProps {
-  studentId: string | null;
+  studentId?: string | null;
+  companyId?: string | null;
+  isCompany?: boolean;
 }
 
 export interface PackageItem {
@@ -19,10 +21,15 @@ export interface PackageItem {
 
 /**
  * Menggabungkan SubscriptionStatus + pemilihan paket + SubscriptionQRISModal
- * jadi satu alur upgrade yang utuh untuk siswa/mahasiswa.
+ * jadi satu alur upgrade yang utuh untuk siswa/mahasiswa maupun perusahaan.
  */
-export default function UpgradePremiumSection({ studentId }: UpgradePremiumSectionProps) {
-  const { data: subscriptionData, refreshSubscription } = useSubscription(studentId);
+export default function UpgradePremiumSection({
+  studentId,
+  companyId,
+  isCompany = false,
+}: UpgradePremiumSectionProps) {
+  const activeId = studentId || companyId || null;
+  const { data: subscriptionData, refreshSubscription } = useSubscription(activeId);
   const [showPicker, setShowPicker] = useState(false);
   const [creating, setCreating] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -63,12 +70,11 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
   } | null>(null);
 
   // Disimpan lepas dari `invoice` supaya masih ada walau invoice sudah null
-  // (dipakai tombol "Buat Invoice Baru" saat invoice lama sudah expired).
   const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(null);
 
   const handleSelectPackage = async (pkg: PackageItem) => {
-    if (!studentId) {
-      await alertError("Data siswa belum termuat. Silakan muat ulang halaman.");
+    if (!activeId) {
+      await alertError("Data akun belum termuat. Silakan muat ulang halaman.");
       return;
     }
 
@@ -76,6 +82,10 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
 
     try {
       setCreating(pkg.key);
+      const payload = companyId
+        ? { company_id: companyId, package: pkg.key }
+        : { student_id: studentId || activeId, package: pkg.key };
+
       const res = await createApiCall<{
         invoice_id: string;
         invoice_url: string;
@@ -85,7 +95,7 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
         expiry_date: string | null;
       }>(`${ENDPOINTS.SUBSCRIPTIONS}/create-payment`, {
         method: "POST",
-        data: { student_id: studentId, package: pkg.key },
+        data: payload,
       });
 
       if (res?.invoice_id) {
@@ -111,9 +121,6 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
   const handleUpgradeClick = () => {
     const pending = subscriptionData?.pending_payment;
 
-    // Cek qr_code_url ATAU invoice_url ATAU invoice_id — JANGAN cuma invoice_url,
-    // karena Midtrans (QRIS Core API) selalu invoice_url=null (gak ada
-    // hosted page kayak Xendit dulu), cuma qr_code_url yang keisi.
     if (pending && (pending.qr_code_url || pending.invoice_url || pending.invoice_id)) {
       const matchedPkg = packages.find((p) => p.key === pending.package);
       setSelectedPackage(matchedPkg ?? null);
@@ -132,23 +139,28 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
   };
 
   const handleCancelSubscription = async () => {
-    if (!studentId) {
-      await alertError("Data siswa belum termuat. Silakan muat ulang halaman.");
+    if (!activeId) {
+      await alertError("Data akun belum termuat. Silakan muat ulang halaman.");
       return;
     }
 
+    const targetName = isCompany ? "Perusahaan" : "Anda";
     const confirmed = await alertConfirm(
       "Batalkan Paket Premium",
-      "Apakah Anda yakin ingin membatalkan paket langganan Premium Anda? Akses fitur Premium akan dinonaktifkan."
+      `Apakah Anda yakin ingin membatalkan paket langganan Premium untuk akun ${targetName}? Akses fitur Premium akan dinonaktifkan.`
     );
 
     if (!confirmed) return;
 
     try {
       setIsCancelling(true);
+      const payload = companyId
+        ? { company_id: companyId }
+        : { student_id: studentId || activeId };
+
       await createApiCall(`${ENDPOINTS.SUBSCRIPTIONS}/cancel`, {
         method: "POST",
-        data: { student_id: studentId },
+        data: payload,
       });
       await alertSuccess("Paket langganan Premium berhasil dibatalkan.");
       setStatusKey((k) => k + 1);
@@ -165,7 +177,7 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
     <>
       <SubscriptionStatus
         key={statusKey}
-        studentId={studentId}
+        studentId={activeId}
         onRenewClick={handleUpgradeClick}
         onCancelClick={handleCancelSubscription}
         isCancelling={isCancelling}
@@ -176,7 +188,9 @@ export default function UpgradePremiumSection({ studentId }: UpgradePremiumSecti
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-900">Pilih Paket Premium</h3>
+              <h3 className="text-base font-bold text-gray-900">
+                Pilih Paket Premium {isCompany ? "Perusahaan" : ""}
+              </h3>
               <button
                 onClick={() => setShowPicker(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"

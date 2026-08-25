@@ -64,6 +64,7 @@ export const ENDPOINTS = {
 
   // Company AI Features
   COMPANY_AI_PROFILE: '/api/v1/company-ai/profile/generate',
+  COMPANY_AI_PROFILE_HISTORIES: '/api/v1/company-ai/profile/histories',
   COMPANY_AI_COMPRO_ANALYZE: '/api/v1/company-ai/compro/analyze',
   COMPANY_AI_COMPRO_TALENTS: '/api/v1/company-ai/compro/talents',
 
@@ -148,6 +149,9 @@ export const getPhotoProfileUrl = (photo: string | null | undefined): string | n
     return photo;
   }
   const cleanPhoto = photo.startsWith("/") ? photo.slice(1) : photo;
+  if (cleanPhoto.startsWith("pfpupload/")) {
+    return `${BASE_URL}/storage/${cleanPhoto}`;
+  }
   return `${BASE_URL}/storage/photo-profile/${cleanPhoto}`;
 };
 

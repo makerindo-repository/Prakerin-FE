@@ -103,6 +103,7 @@ interface FormErrors {
 
 export default function ProfilePage() {
   const studentId = useAuthStore((s) => s.studentId);
+  const companyId = useAuthStore((s) => s.companyId);
   const [authorization, setAuthorization] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [userForm, setUserForm] = useState<UserForm>({
@@ -696,8 +697,9 @@ export default function ProfilePage() {
         Profile
       </h1>
 
-      {/* Status & Upgrade Langganan Premium — hanya untuk siswa/mahasiswa */}
+      {/* Status & Upgrade Langganan Premium — untuk siswa/mahasiswa dan perusahaan */}
       {studentId && <UpgradePremiumSection studentId={studentId} />}
+      {companyId && <UpgradePremiumSection companyId={companyId} isCompany={true} />}
 
       {/* Grid Utama Halaman */}
       <form className="grid grid-cols-1 lg:grid-cols-3 gap-8" onSubmit={handleGlobalSubmit}>

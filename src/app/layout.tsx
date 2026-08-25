@@ -48,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id-ID" className={poppins.variable}>
+    <html lang="id-ID" data-scroll-behavior="smooth" className={poppins.variable}>
       <head>
         <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL} />
       </head>
