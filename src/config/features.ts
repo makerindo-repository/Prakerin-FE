@@ -7,6 +7,7 @@
 
 export const PREMIUM_FEATURES = [
   'view_ai_analytics',
+  'company_compro_talent',
 ] as const;
 
 export const FREE_FEATURES = [
@@ -18,6 +19,7 @@ export const FREE_FEATURES = [
   'view_profile',
   'view_feedback',
   'ai_cv_generator',
+  'company_ai_profile',
   'export_data',
 ] as const;
 

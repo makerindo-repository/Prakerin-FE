@@ -62,6 +62,11 @@ export const ENDPOINTS = {
   ADMIN_REVENUE: '/api/v1/admin/revenue',
   ADMIN_SCHOOLS: '/api/v1/admin/schools',
 
+  // Company AI Features
+  COMPANY_AI_PROFILE: '/api/v1/company-ai/profile/generate',
+  COMPANY_AI_COMPRO_ANALYZE: '/api/v1/company-ai/compro/analyze',
+  COMPANY_AI_COMPRO_TALENTS: '/api/v1/company-ai/compro/talents',
+
   // AI Logo Fetcher (temporary admin tool — delete when done)
   AI_FETCH_LOGOS: '/api/v1/users/ai-fetch-logos',
   AI_FETCH_LOGOS_STATUS: '/api/v1/users/ai-fetch-logos/status',
@@ -102,10 +107,10 @@ export const createApiCall = async <T = any>(arg1: any, arg2: any = {}): Promise
 
     // 1. Satukan format argumen (Object atau String) ke dalam satu objek config
     if (typeof arg1 === 'object' && arg1 !== null) {
-      const { url, endpoint, method = 'get', data, ...rest } = arg1;
-      config = { url: endpoint || url || '', method, data, ...rest, ...arg2 };
+      const { url, endpoint, method = 'get', data, body, ...rest } = arg1;
+      config = { url: endpoint || url || '', method, data: data || body, ...rest, ...arg2 };
     } else {
-      config = { url: arg1, method: arg2.method || 'get', ...arg2 };
+      config = { url: arg1, method: arg2.method || 'get', data: arg2.data || arg2.body, ...arg2 };
     }
 
     let targetUrl = config.url;

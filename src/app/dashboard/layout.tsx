@@ -120,6 +120,8 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: Sparkles, label: "Generator CV Pintar AI", href: "/dashboard/cv/cv-pintar", permission: "view_ai_analytics" },
         { icon: Brain, label: "Analisis CV AI", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
         { icon: FileText, label: "Laporan AI", href: "/dashboard/ai-report", permission: "view_ai_analytics" },
+        { icon: Sparkles, label: "Profil Perusahaan AI", href: "/dashboard/industry/ai-profile", permission: "view_ai_analytics" },
+        { icon: BrainCircuit, label: "Analisis Compro AI", href: "/dashboard/industry/ai-compro-talent", permission: "view_ai_analytics" },
       ],
     },
     {
@@ -215,6 +217,13 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "UTAMA",
       items: [
         { icon: Home, label: "Dashboard", href: "/dashboard", permission: "view_dashboard" },
+      ],
+    },
+    {
+      label: "FITUR AI",
+      items: [
+        { icon: Sparkles, label: "Profil Perusahaan AI", href: "/dashboard/industry/ai-profile", permission: "view_profil" },
+        { icon: BrainCircuit, label: "Analisis Compro AI", href: "/dashboard/industry/ai-compro-talent", permission: "view_kelas" },
       ],
     },
     {
