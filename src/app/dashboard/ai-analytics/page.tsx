@@ -433,14 +433,14 @@ function AiAnalyticsPageInner() {
       {/* ─── HEADER ─── */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
-          <h1 className="text-xs sm:text-sm text-gray-400 font-medium tracking-wider uppercase">AI Core</h1>
+          <h1 className="text-xs sm:text-sm text-gray-400 font-medium tracking-wider uppercase">Fitur AI</h1>
           <div className="flex items-center gap-3 mt-1">
             <div className="p-2.5 bg-gradient-to-tr from-[#035a70] to-[#04829e] rounded-xl text-white shadow-md shadow-[#035a70]/10">
               <Brain className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-gray-800 flex items-center gap-2">
-                AI CV Analyzer
+                Analisis CV AI
                 <Sparkles className="w-5 h-5 text-amber-500 animate-pulse shrink-0" />
               </h2>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">

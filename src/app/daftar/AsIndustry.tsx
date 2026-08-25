@@ -117,16 +117,20 @@ const PrakerinRegistrationIndustryForm: React.FC<
 
       await alertSuccess("Daftar Berhasil, Silahkan Cek Email Anda!");
 
-            Cookies.set("userToken", response.data.token, {
-      expires: 1,
-      path: "/",
-        sameSite: "strict",
-      });
-      Cookies.set("authorization", response.data.role, {
-        expires:  1,
-        path: "/",
-        sameSite: "strict",
-      });
+      if (response.data?.token) {
+        Cookies.set("userToken", response.data.token, {
+          expires: 1,
+          path: "/",
+          sameSite: "strict",
+        });
+      }
+      if (response.data?.role) {
+        Cookies.set("authorization", response.data.role, {
+          expires: 1,
+          path: "/",
+          sameSite: "strict",
+        });
+      }
 
       localStorage.setItem("login-success", "OK");
 

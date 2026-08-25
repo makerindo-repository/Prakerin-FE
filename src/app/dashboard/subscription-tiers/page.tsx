@@ -117,7 +117,7 @@ export default function SubscriptionTiersPage() {
             <span>Manajemen Akses Tier</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Subscription Tier Management
+            Manajemen Paket Langganan
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Kelola dan ubah tingkat langganan akun (Free / Premium) secara manual.
@@ -129,7 +129,7 @@ export default function SubscriptionTiersPage() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium shadow-sm"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh Data</span>
+          <span>Muat Ulang Data</span>
         </button>
       </div>
 
@@ -152,7 +152,7 @@ export default function SubscriptionTiersPage() {
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <Filter className="w-3.5 h-3.5" />
-            <span>Tier:</span>
+            <span>Paket:</span>
           </div>
           <select
             value={tierFilter}
@@ -162,9 +162,9 @@ export default function SubscriptionTiersPage() {
             }}
             className="px-3 py-2 text-sm bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-gray-900 dark:text-white"
           >
-            <option value="">Semua Tier</option>
-            <option value="free">Free Only</option>
-            <option value="premium">Premium Only</option>
+            <option value="">Semua Paket</option>
+            <option value="free">Hanya Free</option>
+            <option value="premium">Hanya Premium</option>
           </select>
         </div>
       </div>

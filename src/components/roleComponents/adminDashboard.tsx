@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import {
   Sparkles,
   Users,
@@ -113,6 +113,20 @@ interface RecentActivity {
   time_ago: string;
 }
 
+interface RecentRegistration {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  role: string;
+  role_label: string;
+  role_color?: string;
+  institution?: string | null;
+  photo_profile?: string | null;
+  created_at?: string;
+  time_ago: string;
+}
+
 interface PlacementStatus {
   label: string;
   value: number;
@@ -142,6 +156,7 @@ interface DashboardResponse {
   insights: Insight[];
   recommendations: Recommendation[];
   recent_activities: RecentActivity[];
+  recent_registrations?: RecentRegistration[];
   pre_internship_summary: PreInternshipSummary;
   matching_scores?: {
     smk: MatchingScoreItem[];
@@ -230,6 +245,7 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
   const [insights,            setInsights]            = useState<Insight[]>([]);
   const [recommendations,     setRecommendations]     = useState<Recommendation[]>([]);
   const [recentActivities,    setRecentActivities]    = useState<RecentActivity[]>([]);
+  const [recentRegistrations, setRecentRegistrations] = useState<RecentRegistration[]>([]);
   const [placementStatus,     setPlacementStatus]     = useState<PlacementStatus[]>([]);
   const [regionalData,        setRegionalData]        = useState<{ province: string; company_count: number; student_count: number }[]>([]);
   const [preInternship,       setPreInternship]       = useState<PreInternshipSummary>({ total: 0, ongoing: 0, needs_review: 0 });
@@ -247,22 +263,25 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
           signal: controller.signal,
         });
 
-        const { summary, system_metrics, insights: ins, recommendations: rec, recent_activities, placement_status, regional_data, pre_internship_summary, matching_scores } = response.data;
+        const data = response?.data || ({} as DashboardResponse);
+        const summary = data.summary || ({} as DashboardSummary);
+        const system_metrics = data.system_metrics || ({} as SystemMetrics);
 
-        setTotalSiswa(summary.total_students);
-        setTotalMahasiswa(summary.total_mahasiswa);
-        setTotalIndustri(summary.total_companies);
-        setTotalSekolah(summary.total_schools);
-        setTotalPerguruanTinggi(summary.total_perguruan_tinggi);
-        setPenempatanAktif(summary.active_internships);
-        setSuccessRate(system_metrics.success_rate);
-        setInsights(ins ?? []);
-        setRecommendations(rec ?? []);
-        setRecentActivities(recent_activities ?? []);
-        setPlacementStatus(placement_status ?? []);
-        setRegionalData(regional_data ?? []);
-        setPreInternship(pre_internship_summary ?? { total: 0, ongoing: 0, needs_review: 0 });
-        setMatchingScores(matching_scores ?? null);
+        setTotalSiswa(summary.total_students ?? 0);
+        setTotalMahasiswa(summary.total_mahasiswa ?? 0);
+        setTotalIndustri(summary.total_companies ?? 0);
+        setTotalSekolah(summary.total_schools ?? 0);
+        setTotalPerguruanTinggi(summary.total_perguruan_tinggi ?? 0);
+        setPenempatanAktif(summary.active_internships ?? 0);
+        setSuccessRate(system_metrics.success_rate ?? 0);
+        setInsights(data.insights ?? []);
+        setRecommendations(data.recommendations ?? []);
+        setRecentActivities(data.recent_activities ?? []);
+        setRecentRegistrations(data.recent_registrations ?? []);
+        setPlacementStatus(data.placement_status ?? []);
+        setRegionalData(data.regional_data ?? []);
+        setPreInternship(data.pre_internship_summary ?? { total: 0, ongoing: 0, needs_review: 0 });
+        setMatchingScores(data.matching_scores ?? null);
       } catch (error: any) {
         if (error.name !== "CanceledError" && error.name !== "AbortError") {
           console.error("Gagal memuat data dashboard:", error);
@@ -545,206 +564,269 @@ export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-gray-900">Distribusi Pengguna</h2>
-                <Link href="/dashboard/master-data/users" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
-                  Lihat detail <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-36 h-36 shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={USER_DISTRIBUTION}
-                        dataKey="value"
-                        nameKey="label"
-                        innerRadius={40}
-                        outerRadius={65}
-                        paddingAngle={2}
-                      >
-                        {USER_DISTRIBUTION.map((entry) => (
-                          <Cell key={entry.label} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex-1 space-y-2">
-                  {USER_DISTRIBUTION.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="text-gray-600">{item.label}</span>
-                      </div>
-                      <span className="text-gray-500">
-                        {item.percent}% <span className="text-gray-400">({item.value})</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {/* ─── BARIS 1: Distribusi Pengguna, Distribusi Regional, Rekomendasi AI ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-900">Distribusi Pengguna</h2>
+              <Link href="/dashboard/master-data/users" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
+                Lihat detail <ChevronRight className="w-3 h-3" />
+              </Link>
             </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-gray-900">Distribusi Regional</h2>
-                <Link href="/dashboard/master-data/provinsi" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
-                  Lihat detail <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="h-56">
+            <div className="flex items-center gap-4">
+              <div className="w-36 h-36 shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ReBarChart data={regionalData.map(r => ({ region: r.province, value: r.student_count }))}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis
-                      dataKey="region"
-                      tick={{ fontSize: 10 }}
-                      interval={0}
-                      angle={-15}
-                      textAnchor="end"
-                      height={50}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 10 }}
-                      label={{ value: "Jumlah Siswa", angle: -90, position: "insideLeft", fontSize: 10 }}
-                    />
+                  <PieChart>
+                    <Pie
+                      data={USER_DISTRIBUTION}
+                      dataKey="value"
+                      nameKey="label"
+                      innerRadius={40}
+                      outerRadius={65}
+                      paddingAngle={2}
+                    >
+                      {USER_DISTRIBUTION.map((entry) => (
+                        <Cell key={entry.label} fill={entry.color} />
+                      ))}
+                    </Pie>
                     <Tooltip />
-                    <Bar dataKey="value" fill="#035a70" radius={[4, 4, 0, 0]} />
-                  </ReBarChart>
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-gray-900">Aktivitas Terbaru</h2>
-                <Link href="/dashboard/log-aktivitas" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
-                  Lihat semua <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="space-y-4">
-                {recentActivities.length === 0 && !isFetching ? (
-                  <p className="text-xs text-gray-400 text-center py-4">Belum ada aktivitas tercatat.</p>
-                ) : (
-                  recentActivities.map((item, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-blue-50">
-                        <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-800">
-                          {item.action} — {item.resource_type}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">
-                          {item.description ?? item.resource_name ?? `oleh ${item.user_name}`}
-                        </p>
-                      </div>
-                      <span className="text-[10px] text-gray-400 shrink-0">{item.time_ago}</span>
+              <div className="flex-1 space-y-2">
+                {USER_DISTRIBUTION.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-gray-600">{item.label}</span>
                     </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-gray-900">Status Penempatan</h2>
-                <Link href="/dashboard/school/penempatan" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
-                  Lihat detail <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="relative w-32 h-32 shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={placementStatus}
-                        dataKey="value"
-                        nameKey="label"
-                        innerRadius={38}
-                        outerRadius={60}
-                        paddingAngle={2}
-                      >
-                        {placementStatus.map((entry) => (
-                          <Cell key={entry.label} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[10px] text-gray-500">Total</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      {placementStatus.reduce((sum, s) => sum + s.value, 0)}
+                    <span className="text-gray-500">
+                      {item.percent}% <span className="text-gray-400">({item.value})</span>
                     </span>
                   </div>
-                </div>
-                <div className="flex-1 space-y-2">
-                  {placementStatus.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="text-gray-600">{item.label}</span>
-                      </div>
-                      <span className="text-gray-500">
-                        {item.value} <span className="text-gray-400">({item.percent}%)</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-fit">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="flex items-center gap-2 font-semibold text-gray-900">
-              <Sparkles className="w-4 h-4 text-accent" />
-              Rekomendasi AI
-            </h2>
-            <Link href="/dashboard/ai-analytics" className="text-xs text-accent font-medium hover:underline">Lihat semua</Link>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-900">Distribusi Regional</h2>
+              <Link href="/dashboard/master-data/provinsi" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
+                Lihat detail <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <ReBarChart data={regionalData.map(r => ({ region: r.province, value: r.student_count }))}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="region"
+                    tick={{ fontSize: 10 }}
+                    interval={0}
+                    angle={-15}
+                    textAnchor="end"
+                    height={45}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10 }}
+                    label={{ value: "Jumlah Siswa", angle: -90, position: "insideLeft", fontSize: 10 }}
+                  />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#035a70" radius={[4, 4, 0, 0]} />
+                </ReBarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="space-y-4">
-            {recommendations.length === 0 && !isFetching ? (
-              <p className="text-xs text-gray-400 text-center py-4">Tidak ada rekomendasi saat ini.</p>
-            ) : (
-              recommendations.map((item, idx) => {
-                const c  = COLOR_MAP[item.color]       ?? COLOR_MAP["blue"];
-                const pc = COLOR_MAP[item.priorityColor] ?? COLOR_MAP["blue"];
-                const IconComp = ICON_MAP[item.icon] ?? Building2;
-                const href = RECOMMENDATION_LINKS[item.key] ?? "#";
-                return (
-                  <Link
-                    key={item.key ?? idx}
-                    href={href}
-                    className="flex items-start gap-3 pb-4 border-b border-gray-50 last:border-0 last:pb-0 group rounded-lg -mx-2 px-2 py-2 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.bg}`}>
-                      <IconComp className={`w-4 h-4 ${c.text}`} />
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="flex items-center gap-2 font-semibold text-gray-900">
+                <Sparkles className="w-4 h-4 text-accent" />
+                Rekomendasi AI
+              </h2>
+              <Link href="/dashboard/ai-analytics" className="text-xs text-accent font-medium hover:underline">Lihat semua</Link>
+            </div>
+            <div className="space-y-3">
+              {recommendations.length === 0 && !isFetching ? (
+                <p className="text-xs text-gray-400 text-center py-4">Tidak ada rekomendasi saat ini.</p>
+              ) : (
+                recommendations.slice(0, 3).map((item, idx) => {
+                  const c  = COLOR_MAP[item.color]       ?? COLOR_MAP["blue"];
+                  const pc = COLOR_MAP[item.priorityColor] ?? COLOR_MAP["blue"];
+                  const IconComp = ICON_MAP[item.icon] ?? Building2;
+                  const href = RECOMMENDATION_LINKS[item.key] ?? "#";
+                  return (
+                    <Link
+                      key={item.key ?? idx}
+                      href={href}
+                      className="flex items-start gap-2.5 pb-2.5 border-b border-gray-50 last:border-0 last:pb-0 group rounded-lg px-1.5 py-1 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${c.bg}`}>
+                        <IconComp className={`w-3.5 h-3.5 ${c.text}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800 truncate group-hover:text-accent transition-colors">{item.title}</p>
+                        <p className="text-[10px] text-gray-500 line-clamp-1 mb-1">{item.desc}</p>
+                        <span
+                          className={`inline-block text-[9px] font-medium px-1.5 py-0.2 rounded ${pc.badgeBg} ${pc.badgeText}`}
+                        >
+                          {item.priority}
+                        </span>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0 mt-1 group-hover:text-accent transition-colors" />
+                    </Link>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── BARIS 2: Aktivitas Terbaru, Status Penempatan, Log Pendaftaran Akun ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-900">Aktivitas Terbaru</h2>
+              <Link href="/dashboard/log-aktivitas" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
+                Lihat semua <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="space-y-3.5">
+              {recentActivities.length === 0 && !isFetching ? (
+                <p className="text-xs text-gray-400 text-center py-4">Belum ada aktivitas tercatat.</p>
+              ) : (
+                recentActivities.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-blue-50">
+                      <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-800 mb-1 group-hover:text-accent transition-colors">{item.title}</p>
-                      <p className="text-[11px] text-gray-500 mb-2">{item.desc}</p>
-                      <span
-                        className={`inline-block text-[10px] font-medium px-2 py-0.5 rounded-md ${pc.badgeBg} ${pc.badgeText}`}
-                      >
-                        {item.priority}
-                      </span>
+                      <p className="text-xs font-semibold text-gray-800 truncate">
+                        {item.action} — {item.resource_type}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {item.description ?? item.resource_name ?? `oleh ${item.user_name}`}
+                      </p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-1 group-hover:text-accent transition-colors" />
-                  </Link>
-                );
-              })
-            )}
+                    <span className="text-[10px] text-gray-400 shrink-0">{item.time_ago}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-900">Status Penempatan</h2>
+              <Link href="/dashboard/school/penempatan" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
+                Lihat detail <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="relative w-32 h-32 shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={placementStatus}
+                      dataKey="value"
+                      nameKey="label"
+                      innerRadius={38}
+                      outerRadius={60}
+                      paddingAngle={2}
+                    >
+                      {placementStatus.map((entry) => (
+                        <Cell key={entry.label} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[10px] text-gray-500">Total</span>
+                  <span className="text-lg font-bold text-gray-900">
+                    {placementStatus.reduce((sum, s) => sum + s.value, 0)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex-1 space-y-2">
+                {placementStatus.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-gray-600">{item.label}</span>
+                    </div>
+                    <span className="text-gray-500">
+                      {item.value} <span className="text-gray-400">({item.percent}%)</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+                <UserPlus className="w-4 h-4 text-accent" />
+                Log Pendaftaran Akun
+              </h2>
+              <Link href="/dashboard/master-data/users" className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
+                Lihat semua <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {recentRegistrations.length === 0 && !isFetching ? (
+                <p className="text-xs text-gray-400 text-center py-4">Belum ada pendaftaran akun baru.</p>
+              ) : (
+                recentRegistrations.map((user, idx) => {
+                  const roleColor = user.role_color || (user.role === 'student' ? 'blue' : user.role === 'company' ? 'green' : user.role === 'school' ? 'purple' : 'orange');
+                  const c = COLOR_MAP[roleColor] || COLOR_MAP['blue'];
+                  return (
+                    <div key={user.id || idx} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {user.photo_profile ? (
+                          <img
+                            src={getPhotoProfileUrl(user.photo_profile) || ''}
+                            alt={user.name}
+                            className="w-7 h-7 rounded-full object-cover shrink-0 border border-gray-100"
+                          />
+                        ) : (
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${c.bg} ${c.text} text-[11px] font-bold`}>
+                            {(user.name || user.username || 'U').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-800 truncate" title={user.name}>
+                            {user.name}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className={`text-[9px] font-medium px-1.5 py-0.2 rounded ${c.badgeBg} ${c.badgeText}`}>
+                              {user.role_label || user.role}
+                            </span>
+                            <span className="text-[10px] text-gray-400 truncate max-w-[90px] sm:max-w-[120px]">
+                              {user.institution || user.email || user.username}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-gray-400 shrink-0">{user.time_ago}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       </div>

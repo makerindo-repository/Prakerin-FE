@@ -115,11 +115,11 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       ],
     },
     {
-      label: "AI Features",
+      label: "FITUR AI",
       items: [
-        { icon: Sparkles, label: "AI Smart CV Generator", href: "/dashboard/cv/cv-pintar", permission: "view_ai_analytics" },
-        { icon: Brain, label: "AI CV Analyzer", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
-        { icon: FileText, label: "AI Report", href: "/dashboard/ai-report", permission: "view_ai_analytics" },
+        { icon: Sparkles, label: "Generator CV Pintar AI", href: "/dashboard/cv/cv-pintar", permission: "view_ai_analytics" },
+        { icon: Brain, label: "Analisis CV AI", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+        { icon: FileText, label: "Laporan AI", href: "/dashboard/ai-report", permission: "view_ai_analytics" },
       ],
     },
     {
@@ -144,7 +144,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
         { icon: BookOpen, label: "Kelas Pra-Magang", href: "https://makerindo.myr.id/", isLms: true, permission: "view_kelas" },
         { icon: UserRound, label: "Pembimbing", href: "/dashboard/pembimbing", permission: "view_pembimbing" },
-        { icon: UsersRound, label: "Manajemen User", href: "/dashboard/master-data/users", permission: "view_manajemen_user" },
+        { icon: UsersRound, label: "Manajemen Pengguna", href: "/dashboard/master-data/users", permission: "view_manajemen_user" },
       ],
     },
     {
@@ -158,7 +158,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       label: "MONITORING & LAPORAN",
       items: [
         { icon: ScrollText, label: "Laporan", href: "/dashboard/laporan", permission: "view_laporan" },
-        { icon: DollarSign, label: "Revenue Dashboard", href: "/dashboard/admin/revenue", permission: "view_laporan" },
+        { icon: DollarSign, label: "Dashboard Pendapatan", href: "/dashboard/admin/revenue", permission: "view_laporan" },
         { icon: Activity, label: "Log Aktivitas", href: "/dashboard/log-aktivitas", permission: "view_log_aktivitas" },
         { icon: BrainCircuit, label: "Log Aktivitas AI", href: "/dashboard/admin/ai-logs", permission: "view_log_aktivitas" },
       ],
@@ -166,7 +166,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "SISTEM",
       items: [
-        { icon: CreditCard, label: "Subscription Tiers", href: "/dashboard/subscription-tiers", permission: "manage_permissions" },
+        { icon: CreditCard, label: "Paket Langganan", href: "/dashboard/subscription-tiers", permission: "manage_permissions" },
         { icon: Settings, label: "Pengaturan", href: "/dashboard/pengaturan", permission: "view_pengaturan" },
         { icon: Bell, label: "Notifikasi", href: "/dashboard/inbox", permission: "view_profil" },
         { icon: User, label: "Profil", href: "/dashboard/profile", permission: "view_profil" },
@@ -183,11 +183,11 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       ],
     },
     {
-      label: "AI Features",
+      label: "FITUR AI",
       items: [
-        { icon: Sparkles, label: "AI Smart CV Generator", href: "/dashboard/cv/cv-pintar", permission: "view_profil" },
-        { icon: Brain, label: "AI CV Analyzer", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
-        { icon: FileText, label: "AI Report", href: "/dashboard/ai-report", permission: "view_dashboard" },
+        { icon: Sparkles, label: "Generator CV Pintar AI", href: "/dashboard/cv/cv-pintar", permission: "view_profil" },
+        { icon: Brain, label: "Analisis CV AI", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+        { icon: FileText, label: "Laporan AI", href: "/dashboard/ai-report", permission: "view_dashboard" },
       ],
     },
     {
@@ -248,7 +248,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
       ],
     },
     {
-      label: "AI Features",
+      label: "FITUR AI",
       items: [
         { icon: ScrollText, label: "Template Laporan", href: "/dashboard/school/template-laporan", permission: "view_dashboard" },
       ],
@@ -847,7 +847,7 @@ export default function DashboardLayout({
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      Profile
+                      Profil Saya
                     </Link>
                     <Link
                       href="/hubungi-kami?category=bug"
@@ -868,10 +868,10 @@ export default function DashboardLayout({
                     <div className="border-t border-gray-100 my-1"></div>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50 cursor-pointer"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
-                      Logout
+                      Keluar
                     </button>
                   </div>
                 )}

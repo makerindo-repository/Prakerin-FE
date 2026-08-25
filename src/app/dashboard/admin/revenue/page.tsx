@@ -329,7 +329,7 @@ export default function RevenueDashboardPage() {
             <span>Laporan Keuangan</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Revenue Dashboard
+            Dashboard Pendapatan
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Pantau total pendapatan, transaksi langganan, dan status pembayaran.

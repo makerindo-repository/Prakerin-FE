@@ -36,11 +36,11 @@ const AI_RESOURCE_TYPES = [
 
 const getResourceName = (type: string) => {
   switch (type) {
-    case "CVGenerator": return "AI Smart CV Generator";
-    case "AiAnalytic": return "AI CV Analyzer";
-    case "JobOpening": return "AI Job Search";
-    case "TestScenarioAI": return "AI Test Scenario";
-    case "ReportAI": return "AI Report Generator";
+    case "CVGenerator": return "Generator CV Pintar AI";
+    case "AiAnalytic": return "Analisis CV AI";
+    case "JobOpening": return "Pencarian Lowongan AI";
+    case "TestScenarioAI": return "Skenario Tes AI";
+    case "ReportAI": return "Laporan AI";
     default: return type;
   }
 };
