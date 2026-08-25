@@ -91,6 +91,10 @@ interface Profile {
   timezone?: string; // mis. "Asia/Jakarta" — dipakai buat jam dashboard
   timezoneLabel?: string; // mis. "WIB"
   username: string;
+  status_subscription?: "free" | "premium";
+  student?: any;
+  company?: any;
+  school?: any;
 }
 
 type Role =
@@ -310,9 +314,10 @@ export default function DashboardLayout({
   });
   const pathName = usePathname();
 
-  // ── Student subscription & task completion for AI Report access ───────────
+  // ── Student & Company subscription & task completion for AI Report access ───
   const [studentIsPremium, setStudentIsPremium] = useState<boolean | null>(null);
   const [studentCompletedTasksCount, setStudentCompletedTasksCount] = useState<number | null>(null);
+  const [companyIsPremium, setCompanyIsPremium] = useState<boolean | null>(null);
 
   // ── Link "Kelas Pra-Magang" (dari Pengaturan, fallback ke URL lama) ────────
   const [lmsUrl, setLmsUrl] = useState<string>("https://makerindo.myr.id/");
@@ -432,13 +437,21 @@ export default function DashboardLayout({
       });
       setNavGroups(NAV_GROUPS[data.role] ?? []);
 
-      // Simpan ID row `students` dan schoolType di Zustand
+      // Simpan ID row `students`, schoolType, dan statusSubscription di Zustand
       useAuthStore.getState().setStudentId(data.role === "student" ? data.student?.id ?? null : null);
       useAuthStore.getState().setSchoolType(detectedSchoolType);
 
-      // Check student subscription & completed tasks
+      const resolvedStatusSubscription = (
+        data.status_subscription ||
+        data.student?.status_subscription ||
+        data.company?.status_subscription ||
+        (data.role === "super_admin" ? "premium" : "free")
+      ) as "free" | "premium";
+      useAuthStore.getState().setStatusSubscription(resolvedStatusSubscription);
+
+      // Check student & company subscription & completed tasks
       if (data.role === "student") {
-        const isPrem = data.student?.status_subscription === "premium";
+        const isPrem = resolvedStatusSubscription === "premium";
         setStudentIsPremium(isPrem);
         if (data.student?.id) {
           createApiCall({
@@ -457,6 +470,10 @@ export default function DashboardLayout({
               setStudentCompletedTasksCount(0);
             });
         }
+      } else if (data.role === "company") {
+        setCompanyIsPremium(resolvedStatusSubscription === "premium");
+      } else if (data.role === "super_admin") {
+        setCompanyIsPremium(true);
       }
 
       // Fetch and restore permissions in Zustand on reload
@@ -676,6 +693,12 @@ export default function DashboardLayout({
                   const isAiReportNoTasks = isAiReportItem && studentIsPremium === true && studentCompletedTasksCount === 0;
                   const isAiReportDisabled = isAiReportLocked || isAiReportNoTasks;
 
+                  const isCompanyRole = profile.rawRole === "company" || userRole === "company";
+                  const isSuperAdminUser = profile.rawRole === "super_admin" || userRole === "super_admin";
+                  const isCompanyPrem = isSuperAdminUser || companyIsPremium === true || profile.status_subscription === "premium";
+                  const isCompanyComproItem = item.href === "/dashboard/industry/ai-compro-talent" && isCompanyRole;
+                  const isCompanyComproLocked = isCompanyComproItem && !isCompanyPrem;
+
                   const handleItemClick = (e: React.MouseEvent) => {
                     if (isAiReportDisabled) {
                       e.preventDefault();
@@ -713,7 +736,7 @@ export default function DashboardLayout({
                     >
                       <item.icon className="w-4 h-4 flex-shrink-0" />
                       <span className="flex-1 truncate">{item.label}</span>
-                      {isAiReportLocked && (
+                      {(isAiReportLocked || isCompanyComproLocked) && (
                         <span className="flex items-center gap-1 text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 shrink-0">
                           <Lock className="w-2.5 h-2.5" />
                           Premium
