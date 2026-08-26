@@ -44,6 +44,9 @@ interface SectorOption {
   name: string;
 }
 
+const isUuid = (val: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val?.trim() || "");
+
 export interface ProfileHistoryItem {
   id: string;
   company_name: string;
@@ -144,7 +147,33 @@ export default function AiCompanyProfilePage() {
         // Fetch Histories in parallel
         fetchHistories();
 
-        // Fetch User Profile
+        // 1. Fetch Master Sectors first
+        let fetchedSectors: SectorOption[] = [
+          { id: "1", name: "Teknologi Informasi & Komunikasi" },
+          { id: "2", name: "Manufaktur & Rekayasa Mesin" },
+          { id: "3", name: "Otomotif & Transportasi" },
+          { id: "4", name: "Keuangan & Perbankan" },
+          { id: "5", name: "Kreatif, Desain & Multimedia" },
+          { id: "6", name: "Kesehatan & Farmasi" },
+          { id: "7", name: "Pendidikan & Pelatihan" },
+          { id: "8", name: "Konstruksi & Properti" },
+        ];
+
+        try {
+          const sectorRes: any = await createApiCall("/sectors");
+          const secData = sectorRes?.data || sectorRes;
+          if (Array.isArray(secData) && secData.length > 0) {
+            fetchedSectors = secData;
+          }
+        } catch {
+          // fallback to default
+        }
+
+        if (isMounted) {
+          setSectorsList(fetchedSectors);
+        }
+
+        // 2. Fetch User Profile
         const userRes: any = await createApiCall("/users/profile");
         const user = userRes?.data || userRes;
         const comp = user?.company;
@@ -155,8 +184,18 @@ export default function AiCompanyProfilePage() {
           }
           if (comp?.sector?.name) {
             setSector(comp.sector.name);
-          } else if (comp?.sector_id) {
-            setSector(comp.sector_id);
+          } else if (comp?.sector_id || comp?.sector) {
+            const rawSector = comp.sector_id || (typeof comp.sector === "string" ? comp.sector : "");
+            if (rawSector) {
+              const matched = fetchedSectors.find(
+                (s) => s.id === rawSector || s.name.toLowerCase() === rawSector.toLowerCase()
+              );
+              if (matched) {
+                setSector(matched.name);
+              } else if (!isUuid(rawSector)) {
+                setSector(rawSector);
+              }
+            }
           }
           if (user.email || comp?.email) {
             setEmail(user.email || comp?.email || "");
@@ -192,28 +231,6 @@ export default function AiCompanyProfilePage() {
                 setPortfolios(comp.description.portfolios);
               }
             }
-          }
-        }
-
-        // Fetch Master Sectors
-        try {
-          const sectorRes: any = await createApiCall("/sectors");
-          const secData = sectorRes?.data || sectorRes;
-          if (isMounted && Array.isArray(secData)) {
-            setSectorsList(secData);
-          }
-        } catch {
-          if (isMounted) {
-            setSectorsList([
-              { id: "1", name: "Teknologi Informasi & Komunikasi" },
-              { id: "2", name: "Manufaktur & Rekayasa Mesin" },
-              { id: "3", name: "Otomotif & Transportasi" },
-              { id: "4", name: "Keuangan & Perbankan" },
-              { id: "5", name: "Kreatif, Desain & Multimedia" },
-              { id: "6", name: "Kesehatan & Farmasi" },
-              { id: "7", name: "Pendidikan & Pelatihan" },
-              { id: "8", name: "Konstruksi & Properti" },
-            ]);
           }
         }
       } catch (err) {
@@ -408,7 +425,16 @@ export default function AiCompanyProfilePage() {
       setAiAboutCompany(item.about_company);
       setShortDescription(item.about_company);
     }
-    if (item.sector) setSector(item.sector);
+    if (item.sector) {
+      const matched = sectorsList.find(
+        (s) => s.id === item.sector || s.name.toLowerCase() === item.sector?.toLowerCase()
+      );
+      if (matched) {
+        setSector(matched.name);
+      } else if (!isUuid(item.sector)) {
+        setSector(item.sector);
+      }
+    }
     if (item.established_year) setEstablishedYear(item.established_year);
     if (item.employee_count) setEmployeeCount(item.employee_count);
     if (item.website) setWebsite(item.website);
@@ -947,17 +973,21 @@ export default function AiCompanyProfilePage() {
       {activeTab === "editor" && (
         <>
           {/* ─── INTERACTIVE PROGRESS STEPPER BAR ───────────────────────────── */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-900">Kelengkapan Profil:</span>
-                <span className="text-xs font-black text-[#035a70]">{completenessScore}%</span>
+          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-gray-700">Kelengkapan Profil:</span>
+                <div className="w-36 sm:w-52 bg-gray-100 h-2.5 rounded-full overflow-hidden border border-gray-200/80">
+                  <div
+                    className="bg-gradient-to-r from-teal-500 to-[#035a70] h-full rounded-full transition-all duration-500"
+                    style={{ width: `${completenessScore}%` }}
+                  />
+                </div>
+                <span className="text-xs font-extrabold text-[#035a70]">{completenessScore}%</span>
               </div>
-              <div className="w-full sm:w-64 bg-gray-100 h-2.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-teal-500 to-[#035a70] h-full rounded-full transition-all duration-500"
-                  style={{ width: `${completenessScore}%` }}
-                />
+
+              <div className="text-[11px] text-gray-400 font-medium">
+                Langkah {currentStep} dari 5: <span className="font-semibold text-gray-700">{stepItems[currentStep - 1]?.label}</span>
               </div>
             </div>
 
@@ -1189,7 +1219,7 @@ export default function AiCompanyProfilePage() {
                       {s.name}
                     </option>
                   ))}
-                  {sector && !sectorsList.some((s) => s.name === sector) && (
+                  {sector && !sectorsList.some((s) => s.name === sector) && !isUuid(sector) && (
                     <option value={sector}>{sector}</option>
                   )}
                 </select>
@@ -1527,7 +1557,7 @@ export default function AiCompanyProfilePage() {
                   rows={5}
                   value={aiAboutCompany}
                   onChange={(e) => setAiAboutCompany(e.target.value)}
-                  placeholder="Klik 'Buat dengan AI' di atas untuk menyusun narasi profil secara otomatis..."
+                  placeholder="Klik 'Buat dengan AI' di bawah untuk menyusun narasi profil secara otomatis..."
                   className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 resize-none"
                 />
               </div>
@@ -1558,7 +1588,7 @@ export default function AiCompanyProfilePage() {
                     ) : (
                       <>
                         <Sparkles className="w-3.5 h-3.5" />
-                        Proses AI Lagi
+                        Buat dengan AI
                       </>
                     )}
                   </button>
