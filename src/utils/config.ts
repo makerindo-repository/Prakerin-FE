@@ -68,6 +68,12 @@ export const ENDPOINTS = {
   COMPANY_AI_COMPRO_ANALYZE: '/api/v1/company-ai/compro/analyze',
   COMPANY_AI_COMPRO_TALENTS: '/api/v1/company-ai/compro/talents',
 
+  // School AI Features
+  SCHOOL_AI_PROFILE: '/api/v1/school-ai/profile/generate',
+  SCHOOL_AI_PROFILE_HISTORIES: '/api/v1/school-ai/profile/histories',
+  SCHOOL_AI_CURRICULUM_ANALYZE: '/api/v1/school-ai/curriculum/analyze',
+  SCHOOL_AI_MATCH_COMPANIES: '/api/v1/school-ai/match-companies',
+
   // AI Logo Fetcher (temporary admin tool — delete when done)
   AI_FETCH_LOGOS: '/api/v1/users/ai-fetch-logos',
   AI_FETCH_LOGOS_STATUS: '/api/v1/users/ai-fetch-logos/status',
