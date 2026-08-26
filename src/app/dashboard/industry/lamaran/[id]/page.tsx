@@ -63,6 +63,7 @@ interface Application {
 interface FormData {
   status: "accepted" | "rejected";
   file: File | null;
+  message_rejected?: string;
 }
 
 type Status = "in_progress" | "accepted" | "rejected" | "";
@@ -158,6 +159,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   const [formData, setFormData] = useState<FormData>({
     status: "accepted",
     file: null,
+    message_rejected: "",
   });
 
   const [isMarkingRead, setIsMarkingRead] = useState(false);
@@ -204,7 +206,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     );
 
     if (confirmed) {
-      setFormData({ ...formData, status: decisionStatus, file: null });
+      setFormData({ status: decisionStatus, file: null, message_rejected: "" });
       setPreviewFormPdf(null);
       setIsShowModal(true);
     }
@@ -272,8 +274,8 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.file) {
-      await alertError(`Silakan pilih file surat ${formData.status === "accepted" ? "penerimaan" : "penolakan"} (format PDF).`);
+    if (formData.status === "accepted" && !formData.file) {
+      await alertError("Silakan pilih file surat penerimaan (format PDF).");
       return;
     }
 
@@ -281,7 +283,12 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
     try {
       const dataToSend = new FormData();
       dataToSend.append("status", formData.status);
-      dataToSend.append("file", formData.file);
+      if (formData.file) {
+        dataToSend.append("file", formData.file);
+      }
+      if (formData.status === "rejected" && formData.message_rejected?.trim()) {
+        dataToSend.append("message_rejected", formData.message_rejected.trim());
+      }
 
       const response = await suppressErrorForSuperAdmin(
         () =>
@@ -305,7 +312,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
       await alertSuccess("Berhasil memperbarui status lamaran dan memberi tahu pelamar!");
       setIsShowModal(false);
       setErrors({});
-      setFormData({ ...formData, file: null });
+      setFormData({ status: "accepted", file: null, message_rejected: "" });
       setPreviewFormPdf(null);
       console.log(response);
     } catch (error: AxiosError | unknown) {
@@ -704,7 +711,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                 onClick={() => {
                   setIsShowModal(false);
                   setErrors({});
-                  setFormData({ ...formData, file: null });
+                  setFormData({ status: "accepted", file: null, message_rejected: "" });
                   setPreviewFormPdf(null);
                 }}
                 className="w-6 h-6 cursor-pointer text-gray-400 hover:text-red-500 flex-shrink-0 transition-colors"
@@ -712,13 +719,32 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
             </div>
             
             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+              {formData.status === "rejected" && (
+                <div className="p-3.5 bg-red-50/80 border border-red-200 rounded-xl flex flex-col gap-1 text-xs text-red-800">
+                  <span className="font-semibold">Informasi Penolakan:</span>
+                  <span>
+                    Anda akan menolak lamaran dari <strong>{application?.student?.name}</strong>. Pelampiran surat penolakan bersifat opsional (tidak wajib).
+                  </span>
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
-                <label htmlFor="letter" className="text-sm font-semibold text-gray-700">
-                  Unggah Surat{" "}
-                  {formData.status === "accepted" ? "Penerimaan (Acceptance Letter)" : "Penolakan (Rejection Letter)"}
-                </label>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="letter" className="text-sm font-semibold text-gray-700">
+                    Unggah Surat{" "}
+                    {formData.status === "accepted" ? "Penerimaan (Acceptance Letter)" : "Penolakan (Rejection Letter)"}
+                    {formData.status === "accepted" && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  {formData.status === "rejected" && (
+                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                      Opsional
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500">
-                  Surat ini akan dikirimkan langsung ke email pelamar dan tersimpan di riwayat lamaran.
+                  {formData.status === "accepted"
+                    ? "Surat ini akan dikirimkan langsung ke email pelamar dan tersimpan di riwayat lamaran."
+                    : "Jika diunggah, surat resmi ini akan dikirimkan sebagai lampiran email ke pelamar."}
                 </p>
 
                 <input
@@ -734,7 +760,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                   onClick={() => {
                     if (!previewFormPdf) openFilePicker();
                   }}
-                  className={`w-full min-h-[150px] border-2 border-dashed rounded-xl flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
+                  className={`w-full min-h-[140px] border-2 border-dashed rounded-xl flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors ${
                     previewFormPdf ? "cursor-default" : "cursor-pointer"
                   } ${errors.file ? "border-red-500" : "border-gray-300"}`}
                 >
@@ -798,6 +824,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                         {formData.status === "accepted"
                           ? "penerimaan"
                           : "penolakan"}
+                        {formData.status === "rejected" && " (opsional)"}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">Maksimal 2 MB (PDF)</p>
                     </div>
@@ -808,11 +835,37 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                 )}
               </div>
 
+              {formData.status === "rejected" && (
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="message_rejected" className="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                    <span>Catatan / Alasan Penolakan</span>
+                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                      Opsional
+                    </span>
+                  </label>
+                  <textarea
+                    id="message_rejected"
+                    rows={3}
+                    placeholder="Tuliskan catatan atau alasan penolakan untuk pelamar (opsional)..."
+                    value={formData.message_rejected || ""}
+                    onChange={(e) => setFormData({ ...formData, message_rejected: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                  />
+                  {errors.message_rejected && (
+                    <p className="text-xs text-red-500">{errors.message_rejected}</p>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsShowModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                  onClick={() => {
+                    setIsShowModal(false);
+                    setFormData({ status: "accepted", file: null, message_rejected: "" });
+                    setPreviewFormPdf(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition cursor-pointer"
                 >
                   Batal
                 </button>
