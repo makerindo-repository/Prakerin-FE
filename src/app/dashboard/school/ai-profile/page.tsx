@@ -689,10 +689,6 @@ export default function AiSchoolProfilePage() {
             <h1 className="text-2xl font-bold text-gray-900">
               Buat Profil Sekolah & Kampus AI
             </h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-[#035a70] border border-teal-200">
-              <Sparkles className="w-3.5 h-3.5" />
-              Fitur Gratis
-            </span>
           </div>
           <p className="text-sm text-gray-500 mt-1">
             Data otomatis terisi dari akun sekolah Anda. Susun profil institusi yang profesional dengan bantuan AI untuk proposal kemitraan DUDI dan cetak dokumen resmi A4.

@@ -8,6 +8,7 @@ import {
   Users,
   Building2,
   GraduationCap,
+  School,
   ChevronLeft,
   ChevronRight,
   Filter,
@@ -34,8 +35,9 @@ export default function SubscriptionTiersPage() {
   const role = useAuthStore((s) => s.role);
   const studentId = useAuthStore((s) => s.studentId);
   const companyId = useAuthStore((s) => s.companyId);
+  const schoolId = useAuthStore((s) => s.schoolId);
 
-  const [activeTab, setActiveTab] = useState<"student" | "company">("student");
+  const [activeTab, setActiveTab] = useState<"student" | "company" | "school">("student");
   const [accounts, setAccounts] = useState<AccountItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
@@ -142,6 +144,27 @@ export default function SubscriptionTiersPage() {
     );
   }
 
+  if (role === "school") {
+    return (
+      <div className="p-6 max-w-5xl mx-auto space-y-6">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-semibold mb-1">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Paket Sekolah & Kampus</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Upgrade Paket Langganan Sekolah / Perguruan Tinggi
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Dapatkan akses penuh ke fitur eksklusif termasuk Pencocokan Silabus Kurikulum & Rekomendasi Mitra Industri AI.
+          </p>
+        </div>
+
+        <UpgradePremiumSection schoolId={schoolId} isSchool={true} />
+      </div>
+    );
+  }
+
   if (role === "student") {
     return (
       <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -219,6 +242,21 @@ export default function SubscriptionTiersPage() {
         >
           <Building2 className="w-4 h-4" />
           <span>Perusahaan (Industri)</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab("school");
+            setPage(1);
+          }}
+          className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-colors cursor-pointer ${
+            activeTab === "school"
+              ? "border-amber-500 text-amber-600 dark:text-amber-400"
+              : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          }`}
+        >
+          <School className="w-4 h-4" />
+          <span>Sekolah / Kampus</span>
         </button>
       </div>
 

@@ -9,7 +9,9 @@ import { useSubscription } from "@/hooks/useSubscription";
 interface UpgradePremiumSectionProps {
   studentId?: string | null;
   companyId?: string | null;
+  schoolId?: string | null;
   isCompany?: boolean;
+  isSchool?: boolean;
 }
 
 export interface PackageItem {
@@ -21,14 +23,16 @@ export interface PackageItem {
 
 /**
  * Menggabungkan SubscriptionStatus + pemilihan paket + SubscriptionQRISModal
- * jadi satu alur upgrade yang utuh untuk siswa/mahasiswa maupun perusahaan.
+ * jadi satu alur upgrade yang utuh untuk siswa/mahasiswa, perusahaan, maupun sekolah/kampus.
  */
 export default function UpgradePremiumSection({
   studentId,
   companyId,
+  schoolId,
   isCompany = false,
+  isSchool = false,
 }: UpgradePremiumSectionProps) {
-  const activeId = studentId || companyId || null;
+  const activeId = studentId || companyId || schoolId || null;
   const { data: subscriptionData, refreshSubscription } = useSubscription(activeId);
   const [showPicker, setShowPicker] = useState(false);
   const [creating, setCreating] = useState<string | null>(null);
@@ -82,7 +86,9 @@ export default function UpgradePremiumSection({
 
     try {
       setCreating(pkg.key);
-      const payload = companyId
+      const payload = schoolId
+        ? { school_id: schoolId, package: pkg.key }
+        : companyId
         ? { company_id: companyId, package: pkg.key }
         : { student_id: studentId || activeId, package: pkg.key };
 
@@ -144,7 +150,7 @@ export default function UpgradePremiumSection({
       return;
     }
 
-    const targetName = isCompany ? "Perusahaan" : "Anda";
+    const targetName = isCompany ? "Perusahaan" : isSchool ? "Sekolah / Kampus" : "Anda";
     const confirmed = await alertConfirm(
       "Batalkan Paket Premium",
       `Apakah Anda yakin ingin membatalkan paket langganan Premium untuk akun ${targetName}? Akses fitur Premium akan dinonaktifkan.`
@@ -154,7 +160,9 @@ export default function UpgradePremiumSection({
 
     try {
       setIsCancelling(true);
-      const payload = companyId
+      const payload = schoolId
+        ? { school_id: schoolId }
+        : companyId
         ? { company_id: companyId }
         : { student_id: studentId || activeId };
 
@@ -189,7 +197,7 @@ export default function UpgradePremiumSection({
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h3 className="text-base font-bold text-gray-900">
-                Pilih Paket Premium {isCompany ? "Perusahaan" : ""}
+                Pilih Paket Premium {isCompany ? "Perusahaan" : isSchool ? "Sekolah / Kampus" : ""}
               </h3>
               <button
                 onClick={() => setShowPicker(false)}

@@ -8,6 +8,7 @@
 export const PREMIUM_FEATURES = [
   'view_ai_analytics',
   'company_compro_talent',
+  'school_ai_match_industry',
 ] as const;
 
 export const FREE_FEATURES = [

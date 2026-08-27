@@ -35,10 +35,13 @@ import {
   BookOpen,
   Award,
   Globe,
+  Crown,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
-import { alertSuccess, alertError, alertConfirm } from "@/libs/alert";
+import { alertSuccess, alertError, alertConfirm, alertInfoModal } from "@/libs/alert";
+import { useAuthStore } from "@/stores/authStore";
 
 interface JobOpeningBrief {
   title: string;
@@ -75,7 +78,12 @@ interface CurriculumExtraction {
 }
 
 export default function AiSchoolMatchIndustryPage() {
+  const { role } = useAuthStore();
   const fileInputId = useId();
+
+  // Premium & Auth State
+  const isSuperAdmin = role === "super_admin";
+  const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
 
   // Profile & School State
   const [loadingInitial, setLoadingInitial] = useState<boolean>(true);
@@ -148,6 +156,16 @@ export default function AiSchoolMatchIndustryPage() {
         if (isMounted) {
           setSchoolProfileData(sch || user);
 
+          const resolvedSub = (
+            user?.status_subscription ||
+            sch?.status_subscription ||
+            (user?.role === "super_admin" ? "premium" : "free")
+          ) as "free" | "premium";
+
+          const isPrem = user?.role === "super_admin" || resolvedSub === "premium";
+          setIsPremiumUser(isPrem);
+          useAuthStore.getState().setStatusSubscription(resolvedSub);
+
           const defaultDomain = sch?.type === "university" ? "Teknik Informatika & Ilmu Komputer" : "Teknik Komputer & Informatika (RPL / TKJ / Multimedia)";
           let subjects = [
             "Pemrograman Web & Mobile",
@@ -188,7 +206,9 @@ export default function AiSchoolMatchIndustryPage() {
           };
 
           setAnalysisResult(defaultExtraction);
-          fetchMatchingCompanies(subjects, defaultExtraction.target_industries);
+          if (isPrem) {
+            fetchMatchingCompanies(subjects, defaultExtraction.target_industries);
+          }
         }
       } catch (err) {
         console.warn("Could not load initial school data:", err);
@@ -208,6 +228,14 @@ export default function AiSchoolMatchIndustryPage() {
 
   // ── 2. Handle File Selection ───────────────────────────────────────────────
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isPremiumUser) {
+      alertInfoModal(
+        "Fitur Khusus Premium Sekolah",
+        "Unggah dan analisis silabus kurikulum untuk pencocokan mitra industri hanya tersedia untuk akun Sekolah / Perguruan Tinggi Premium. Silakan upgrade paket langganan Anda."
+      );
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 20 * 1024 * 1024) {
@@ -223,6 +251,14 @@ export default function AiSchoolMatchIndustryPage() {
 
   // ── 3. AI Analysis Execution ───────────────────────────────────────────────
   const handleRunAiAnalysis = async () => {
+    if (!isPremiumUser) {
+      alertInfoModal(
+        "Fitur Khusus Premium Sekolah",
+        "Fitur ini memerlukan paket langganan Premium. Silakan upgrade paket langganan sekolah Anda."
+      );
+      return;
+    }
+
     try {
       setIsAnalyzing(true);
       const formData = new FormData();
@@ -277,6 +313,14 @@ export default function AiSchoolMatchIndustryPage() {
 
   // ── 4. Use Existing School Account Profile directly ────────────────────────
   const handleUseAccountProfile = () => {
+    if (!isPremiumUser) {
+      alertInfoModal(
+        "Fitur Khusus Premium Sekolah",
+        "Fitur ini memerlukan paket langganan Premium. Silakan upgrade paket langganan sekolah Anda."
+      );
+      return;
+    }
+
     const defaultDomain = schoolProfileData?.type === "university" ? "Teknik Informatika & Sains Terapan" : "Teknologi Informasi & Komunikasi (SMK)";
     let subjects = [
       "Pemrograman Web & Mobile",
@@ -431,9 +475,9 @@ export default function AiSchoolMatchIndustryPage() {
             <h1 className="text-2xl font-bold text-gray-900">
               Pencocokan Kurikulum & Industri AI
             </h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-[#035a70] border border-teal-200 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5" />
-              Fitur Gratis Sekolah
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs">
+              <Crown className="w-3.5 h-3.5 text-amber-600" />
+              Fitur Khusus Premium Sekolah
             </span>
           </div>
           <p className="text-sm text-gray-500 mt-1">
@@ -442,8 +486,83 @@ export default function AiSchoolMatchIndustryPage() {
         </div>
       </div>
 
-      {/* ─── SECTION 1: ONE-CLICK ACTION & UPLOAD HUB ────────────────────── */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      {/* ─── HERO UPGRADE CARD (Shown if Not Premium) ──────────────────── */}
+      {!isPremiumUser && (
+        <div className="relative overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/50 p-6 md:p-8 shadow-sm">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">
+                <Crown className="w-3.5 h-3.5 text-amber-600" />
+                <span>Eksklusif Sekolah & Kampus Premium</span>
+              </div>
+
+              <h2 className="text-xl md:text-2xl font-black text-gray-900 leading-snug">
+                Buka Akses Rekomendasi Mitra Industri (DUDI) & Matchmaking Silabus AI
+              </h2>
+
+              <p className="text-xs md:text-sm text-gray-600 leading-relaxed">
+                Tingkatkan kualitas penempatan magang/PKL siswa dan mahasiswa Anda. AI akan menganalisis dokumen silabus, capaian pembelajaran, dan mata pelajaran kejuruan secara instan untuk mencocokkan mitra industri dan lowongan magang yang paling selaras.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-3 bg-white/80 border border-amber-100 rounded-xl space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                    <Sparkles className="w-3.5 h-3.5 text-[#035a70]" />
+                    AI Silabus Parser
+                  </div>
+                  <p className="text-[11px] text-gray-500">
+                    Ekstraksi otomatis fokus kejuruan dan kompetensi dari berkas kurikulum/RPP.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white/80 border border-amber-100 rounded-xl space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Match Score % DUDI
+                  </div>
+                  <p className="text-[11px] text-gray-500">
+                    Skor kecocokan industri mitra akurat berbasis relevansi mata pelajaran.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white/80 border border-amber-100 rounded-xl space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                    <Handshake className="w-3.5 h-3.5 text-blue-600" />
+                    Kemitraan & MoU
+                  </div>
+                  <p className="text-[11px] text-gray-500">
+                    Akses direct kontak HRD industri & percepat pengajuan kerja sama MoU resmi.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-shrink-0 text-center w-full md:w-auto">
+              <Link
+                href="/dashboard/subscription-tiers"
+                className="w-full md:w-auto px-7 py-3.5 bg-[#035a70] hover:bg-[#024353] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <Crown className="w-4 h-4 text-amber-300" />
+                Upgrade ke Premium
+              </Link>
+              <span className="block text-[11px] text-gray-400 mt-2 font-medium">
+                Mulai langganan untuk membuka fitur ini
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── UNIFIED ONE-CLICK DASHBOARD (Blurred if Free) ────────────────── */}
+      <div
+        className={`space-y-6 transition-all ${
+          !isPremiumUser ? "opacity-40 pointer-events-none select-none filter blur-[1.5px]" : ""
+        }`}
+      >
+        {/* ─── SECTION 1: ONE-CLICK ACTION & UPLOAD HUB ────────────────────── */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           {/* Left: Drag & Drop Dropzone */}
           <div className="lg:col-span-7">
@@ -899,6 +1018,7 @@ export default function AiSchoolMatchIndustryPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
 
       {/* Modal Detail Perusahaan Mitra */}
