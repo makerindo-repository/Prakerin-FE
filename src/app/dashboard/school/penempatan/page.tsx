@@ -17,6 +17,8 @@ import useDebounce from "@/hooks/useDebounce";
 import Image from "next/image";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import LoaderData from "@/components/loader";
+import PaginationComponent from "@/components/PaginationComponent";
+import { Pages } from "@/models/pagination";
 
 interface Student {
   id: number;
@@ -47,6 +49,10 @@ const PerusahaanPage: React.FC = () => {
   const [data, setData] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [count, setCount] = useState({ total_student_internship: "" });
+  const [pages, setPages] = useState<Pages>({
+    activePages: 1,
+    pages: 1,
+  });
   
   // Institution & role detection
   const [userRole, setUserRole] = useState<string>("");
@@ -86,6 +92,11 @@ const PerusahaanPage: React.FC = () => {
   const isUniversity = isSuperAdmin ? activeTab === "university" : institutionType === "university";
   const targetType = isSuperAdmin ? activeTab : institutionType;
 
+  // Reset page when filter/search changes
+  useEffect(() => {
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+  }, [debouncedQuery, activeTab]);
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -93,7 +104,7 @@ const PerusahaanPage: React.FC = () => {
         API.get(`${ENDPOINTS.USERS}`, {
           params: {
             is_verified: true,
-            page: 1,
+            page: pages.activePages,
             limit: 10,
             role: "student",
             status: "ongoing",
@@ -108,6 +119,10 @@ const PerusahaanPage: React.FC = () => {
         }),
       ]);
       setData(Array.isArray(userRes.data.data) ? userRes.data.data : []);
+      setPages({
+        activePages: userRes.data.current_page || 1,
+        pages: userRes.data.last_page || 1,
+      });
       setCount(countRes.data.data ?? { total_student_internship: "-" });
     } catch (error) {
       console.error(error);
@@ -118,11 +133,15 @@ const PerusahaanPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [debouncedQuery, activeTab, institutionType, userRole]);
+  }, [debouncedQuery, activeTab, institutionType, userRole, pages.activePages]);
 
   const handleTabChange = (tab: SchoolType) => {
     setActiveTab(tab);
     setSearchTerm("");
+  };
+
+  const handlePageChange = (page: number) => {
+    setPages((prev) => ({ ...prev, activePages: page }));
   };
 
   const labelType = isUniversity ? "Mahasiswa" : "Siswa";
@@ -308,6 +327,13 @@ const PerusahaanPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      <PaginationComponent
+        activePage={pages.activePages}
+        totalPages={pages.pages}
+        onPageChange={handlePageChange}
+        loading={isLoading}
+      />
     </main>
   );
 };
