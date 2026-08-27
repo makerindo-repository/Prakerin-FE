@@ -299,7 +299,7 @@ export default function AiSchoolProfilePage() {
     {
       num: 5,
       label: "Pratinjau",
-      desc: "AI Polish & Cetak",
+      desc: "Buat dengan AI & Cetak",
       isCompleted: completenessScore >= 80,
     },
   ];
@@ -1365,7 +1365,7 @@ export default function AiSchoolProfilePage() {
                 <div className="space-y-1 text-center md:text-left">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-bold">
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                    AI Copywriter & Profil Polisher
+                    AI Copywriter & Profil Generator
                   </div>
                   <h2 className="text-xl font-black">Generate Narasi & Cetak Dokumen Resmi</h2>
                   <p className="text-xs text-teal-100 max-w-xl">
@@ -1388,7 +1388,7 @@ export default function AiSchoolProfilePage() {
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        Poles dengan AI
+                        Buat dengan AI
                       </>
                     )}
                   </button>
@@ -1446,7 +1446,7 @@ export default function AiSchoolProfilePage() {
                     Profil & Ringkasan Institusi
                   </h3>
                   <p className="text-xs text-gray-700 leading-relaxed text-justify">
-                    {aiAboutSchool || shortDescription || "Belum ada narasi deskripsi. Klik tombol 'Poles dengan AI' di atas untuk menyusun narasi resmi secara otomatis."}
+                    {aiAboutSchool || shortDescription || "Belum ada narasi deskripsi. Klik tombol 'Buat dengan AI' di atas untuk menyusun narasi resmi secara otomatis."}
                   </p>
                 </div>
 

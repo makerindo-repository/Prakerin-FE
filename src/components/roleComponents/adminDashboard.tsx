@@ -199,10 +199,10 @@ const MAJOR_ICON_MAP: Record<string, React.ElementType> = {
 
 // Maps each recommendation key → the dashboard page it should navigate to
 const RECOMMENDATION_LINKS: Record<string, string> = {
-  no_mentor:           "/dashboard/siswa-magang",
-  zero_applicants:     "/dashboard/lowongan",
-  low_progress_classes:"/dashboard/pre-internship-classes",
-  unverified_schools:  "/dashboard/sekolah",
+  no_mentor:            "/dashboard/siswa-magang",
+  zero_applicants:      "/dashboard/lowongan",
+  low_progress_classes: "/dashboard/pre-internship-classes/manage",
+  unverified_schools:   "/dashboard/sekolah",
 };
 
 export default function AdminDashboard({ setIsLoading }: AdminDashboardProps) {
