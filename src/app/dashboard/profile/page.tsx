@@ -104,6 +104,7 @@ interface FormErrors {
 export default function ProfilePage() {
   const studentId = useAuthStore((s) => s.studentId);
   const companyId = useAuthStore((s) => s.companyId);
+  const schoolId = useAuthStore((s) => s.schoolId);
   const [authorization, setAuthorization] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [userForm, setUserForm] = useState<UserForm>({
@@ -286,6 +287,9 @@ export default function ProfilePage() {
               setDescriptionForm({
                 description: data.company.description || null,
               });
+              if (data.company.id) {
+                useAuthStore.getState().setCompanyId(data.company.id);
+              }
             }
             break;
           case "school":
@@ -294,9 +298,15 @@ export default function ProfilePage() {
               setDescriptionForm({
                 description: data.school.description || null,
               });
+              if (data.school.id) {
+                useAuthStore.getState().setSchoolId(data.school.id);
+              }
             }
             break;
           case "student":
+            if (data.student?.id) {
+              useAuthStore.getState().setStudentId(data.student.id);
+            }
             setStudentForm({
               name: data.student?.name || "",
               phone_number: data.student?.phone_number || "",
@@ -697,9 +707,10 @@ export default function ProfilePage() {
         Profile
       </h1>
 
-      {/* Status & Upgrade Langganan Premium — untuk siswa/mahasiswa dan perusahaan */}
+      {/* Status & Upgrade Langganan Premium — untuk siswa/mahasiswa, perusahaan, dan sekolah/kampus */}
       {studentId && <UpgradePremiumSection studentId={studentId} />}
       {companyId && <UpgradePremiumSection companyId={companyId} isCompany={true} />}
+      {schoolId && <UpgradePremiumSection schoolId={schoolId} isSchool={true} />}
 
       {/* Grid Utama Halaman */}
       <form className="grid grid-cols-1 lg:grid-cols-3 gap-8" onSubmit={handleGlobalSubmit}>

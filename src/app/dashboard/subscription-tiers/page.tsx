@@ -269,6 +269,8 @@ export default function SubscriptionTiersPage() {
             placeholder={
               activeTab === "company"
                 ? "Cari nama perusahaan atau email..."
+                : activeTab === "school"
+                ? "Cari nama sekolah, NPSN, atau email..."
                 : "Cari nama siswa/mahasiswa..."
             }
             value={search}
@@ -307,13 +309,23 @@ export default function SubscriptionTiersPage() {
             <thead className="bg-gray-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-800 text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-4">
-                  {activeTab === "company" ? "Nama Perusahaan" : "Nama Akun"}
+                  {activeTab === "company"
+                    ? "Nama Perusahaan"
+                    : activeTab === "school"
+                    ? "Nama Sekolah / Kampus"
+                    : "Nama Akun"}
                 </th>
                 <th className="px-6 py-4">
-                  {activeTab === "company" ? "Sektor Industri" : "Tipe Institusi"}
+                  {activeTab === "company"
+                    ? "Sektor Industri"
+                    : activeTab === "school"
+                    ? "Tipe Institusi"
+                    : "Tipe Akun"}
                 </th>
                 <th className="px-6 py-4">
-                  {activeTab === "company" ? "Email Kontak" : "Sekolah / PT"}
+                  {activeTab === "company" || activeTab === "school"
+                    ? "Email Kontak"
+                    : "Sekolah / PT"}
                 </th>
                 <th className="px-6 py-4">Tier Langganan</th>
                 <th className="px-6 py-4">Berakhir Pada</th>
@@ -362,11 +374,15 @@ export default function SubscriptionTiersPage() {
                     </td>
                     <td className="px-6 py-4 capitalize text-xs">
                       <span className="px-2.5 py-1 rounded-md bg-gray-100 dark:bg-slate-800 font-medium">
-                        {activeTab === "company" ? acc.school || "Industri" : acc.user_type}
+                        {activeTab === "company"
+                          ? acc.school || "Industri"
+                          : activeTab === "school"
+                          ? acc.school || "Sekolah / Kampus"
+                          : acc.user_type}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs">
-                      {activeTab === "company" ? acc.email || "—" : acc.school || "—"}
+                      {activeTab === "company" || activeTab === "school" ? acc.email || "—" : acc.school || "—"}
                     </td>
                     <td className="px-6 py-4">
                       <span

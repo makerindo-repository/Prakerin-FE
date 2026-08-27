@@ -541,7 +541,7 @@ export default function AiSchoolMatchIndustryPage() {
 
             <div className="flex-shrink-0 text-center w-full md:w-auto">
               <Link
-                href="/dashboard/subscription-tiers"
+                href="/dashboard/profile"
                 className="w-full md:w-auto px-7 py-3.5 bg-[#035a70] hover:bg-[#024353] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 <Crown className="w-4 h-4 text-amber-300" />
