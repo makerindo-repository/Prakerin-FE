@@ -907,9 +907,17 @@ export default function AiSchoolMatchIndustryPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 text-[#035a70] flex items-center justify-center font-black">
-                  {selectedCompany.initials || "PT"}
-                </div>
+                {selectedCompany.logo ? (
+                  <img
+                    src={getPhotoProfileUrl(selectedCompany.logo) || selectedCompany.logo}
+                    alt={selectedCompany.name}
+                    className="w-12 h-12 rounded-xl object-contain border border-gray-100 p-1 bg-white shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 text-[#035a70] flex items-center justify-center font-black shrink-0">
+                    {selectedCompany.initials || "PT"}
+                  </div>
+                )}
                 <div>
                   <h3 className="text-sm font-bold text-gray-900">{selectedCompany.name}</h3>
                   <p className="text-xs text-[#035a70] font-semibold">{selectedCompany.sector}</p>
