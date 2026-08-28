@@ -147,6 +147,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "MANAJEMEN",
       items: [
+        { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan", permission: "view_kelas" },
         { icon: UsersRound, label: "Siswa", href: "/dashboard/school/siswa", permission: "view_manajemen_user" },
         { icon: GraduationCap, label: "Mahasiswa", href: "/dashboard/school/mahasiswa", permission: "view_manajemen_user" },
         { icon: MapPin, label: "Penempatan", href: "/dashboard/school/penempatan", permission: "view_kelas" },
@@ -240,6 +241,7 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
         { icon: HelpCircle, label: "Tes", href: "/dashboard/tes", permission: "view_kelas" },
         { icon: Briefcase, label: "Lowongan", href: "/dashboard/lowongan", permission: "view_kelas" },
         { icon: FileText, label: "Lamaran", href: "/dashboard/industry/lamaran", permission: "view_kelas" },
+        { icon: ClipboardCheck, label: "Logbook Pelamar", href: "/dashboard/industry/logbook-pelamar", permission: "view_kelas" },
         { icon: ClipboardCheck, label: "Daftar Tugas", href: "/dashboard/tasklist", permission: "view_kelas" },
         { icon: BookOpen, label: "Sekolah/Universitas", href: "/dashboard/sekolah", permission: "view_kelas" },
         { icon: Handshake, label: "Kerja Sama", href: "/dashboard/mou", permission: "view_kelas" },

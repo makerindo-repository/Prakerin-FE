@@ -1,5 +1,6 @@
 "use client";
 import {
+  AlertCircle,
   BriefcaseBusiness,
   CheckCheck,
   Download,
@@ -56,6 +57,7 @@ interface Application {
   cv_id: string;
   curriculum_vitae_id?: string;
   status: Status;
+  message_rejected?: string | null;
   read_at?: string | null;
   is_read?: boolean;
 }
@@ -527,7 +529,7 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
             )}
 
             {/* Detail Lowongan */}
-            <div className="mt-6 mb-8 bg-gray-50 border border-gray-200 p-5 rounded-xl">
+            <div className="mt-6 mb-6 bg-gray-50 border border-gray-200 p-5 rounded-xl">
               <h3 className="text-lg font-semibold text-gray-900 mb-1">
                 {application?.job_opening?.title ?? "Lowongan Magang"}
               </h3>
@@ -535,6 +537,25 @@ const detailLamaran = ({ params }: { params: Promise<{ id: string }> }) => {
                 Posisi Magang ({application?.job_opening?.duration || "-"})
               </p>
             </div>
+
+            {/* Rejection Notice & Notes */}
+            {application?.status === "rejected" && (
+              <div className="mb-8 p-4 bg-red-50/80 border border-red-200 rounded-xl space-y-1.5">
+                <div className="flex items-center gap-2 text-red-900 font-semibold text-sm">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>Catatan / Alasan Penolakan Lamaran</span>
+                </div>
+                {application.message_rejected && typeof application.message_rejected === "string" && application.message_rejected.trim() ? (
+                  <p className="text-xs sm:text-sm text-red-800 italic pl-6">
+                    &ldquo;{application.message_rejected.trim()}&rdquo;
+                  </p>
+                ) : (
+                  <p className="text-xs text-red-600 pl-6">
+                    Tidak ada catatan alasan khusus yang disertakan saat penolakan.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Kelola Tes Kandidat */}
             <section className="my-8 flex flex-col gap-2">
