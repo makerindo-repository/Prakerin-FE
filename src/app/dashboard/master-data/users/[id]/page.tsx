@@ -1664,7 +1664,7 @@ export default function UserDetailPage() {
                     <option value="10">X</option>
                     <option value="11">XI</option>
                     <option value="12">XII</option>
-                    <option value="collage">Kuliah</option>
+                    <option value="collage">Perguruan Tinggi</option>
                   </select>
                   {formErrors.class && (
                     <p className="mt-1 text-sm text-red-500">

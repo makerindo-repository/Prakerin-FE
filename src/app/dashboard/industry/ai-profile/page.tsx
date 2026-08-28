@@ -736,7 +736,7 @@ export default function AiCompanyProfilePage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-gray-900">
-              Buat Profil Perusahaan AI
+              Profil Perusahaan
             </h1>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-[#035a70] border border-teal-200">
               <Sparkles className="w-3.5 h-3.5" />

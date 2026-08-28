@@ -76,7 +76,7 @@ function AiReportPageInner() {
 
       if (response && response.success && response.data) {
         setReport(response.data);
-        alertSuccess("Laporan AI berhasil dibuat!");
+        alertSuccess("Laporan Magang berhasil dibuat!");
       } else {
         if (response && response.message) {
           alertError(response.message);
@@ -84,7 +84,7 @@ function AiReportPageInner() {
       }
     } catch (err: any) {
       console.error(err);
-      alertError(err?.response?.data?.message || "Terjadi kesalahan saat memproses laporan AI.");
+      alertError(err?.response?.data?.message || "Terjadi kesalahan saat memproses laporan magang.");
     } finally {
       setLoading(false);
     }
@@ -126,7 +126,7 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Laporan AI - Prakerin.id</title>
+        <title>Laporan Magang - Prakerin.id</title>
         <style>
           body { font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.6; padding: 40px; color: #1f2937; }
           .header { display: flex; align-items: center; border-bottom: 2px solid #035a70; padding-bottom: 20px; margin-bottom: 30px; }
@@ -193,7 +193,7 @@ ${report.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join("\n")}
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-gray-800 flex items-center gap-2">
-                Laporan AI
+                Laporan Magang
                 <Sparkles className="w-5 h-5 text-amber-500 animate-pulse shrink-0" />
               </h2>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">

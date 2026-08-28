@@ -121,13 +121,13 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "FITUR AI",
       items: [
-        { icon: Sparkles, label: "Generator CV Pintar AI", href: "/dashboard/cv/cv-pintar", permission: "view_ai_analytics" },
-        { icon: Brain, label: "Analisis CV AI", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
-        { icon: FileText, label: "Laporan AI", href: "/dashboard/ai-report", permission: "view_ai_analytics" },
-        { icon: Sparkles, label: "Profil Perusahaan AI", href: "/dashboard/industry/ai-profile", permission: "view_ai_analytics" },
-        { icon: BrainCircuit, label: "Analisis Compro AI", href: "/dashboard/industry/ai-compro-talent", permission: "view_ai_analytics" },
-        { icon: Sparkles, label: "Profil Sekolah AI", href: "/dashboard/school/ai-profile", permission: "view_ai_analytics" },
-        { icon: BrainCircuit, label: "Pencocokan Industri AI", href: "/dashboard/school/ai-match-industry", permission: "view_ai_analytics" },
+        { icon: Sparkles, label: "Membuat CV", href: "/dashboard/cv/cv-pintar", permission: "view_ai_analytics" },
+        { icon: Brain, label: "Analisa CV", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+        { icon: FileText, label: "Laporan Magang", href: "/dashboard/ai-report", permission: "view_ai_analytics" },
+        { icon: Building2, label: "Profil Perusahaan", href: "/dashboard/industry/ai-profile", permission: "view_ai_analytics" },
+        { icon: BrainCircuit, label: "Analisa Profil Perusahaan", href: "/dashboard/industry/ai-compro-talent", permission: "view_ai_analytics" },
+        { icon: School, label: "Profil Sekolah/Perguruan Tinggi", href: "/dashboard/school/ai-profile", permission: "view_ai_analytics" },
+        { icon: BrainCircuit, label: "Analisa Profil Sekolah/Perguruan Tinggi", href: "/dashboard/school/ai-match-industry", permission: "view_ai_analytics" },
       ],
     },
     {
@@ -193,9 +193,9 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "FITUR AI",
       items: [
-        { icon: Sparkles, label: "Generator CV Pintar AI", href: "/dashboard/cv/cv-pintar", permission: "view_profil" },
-        { icon: Brain, label: "Analisis CV AI", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
-        { icon: FileText, label: "Laporan AI", href: "/dashboard/ai-report", permission: "view_dashboard" },
+        { icon: Sparkles, label: "Membuat CV", href: "/dashboard/cv/cv-pintar", permission: "view_profil" },
+        { icon: Brain, label: "Analisa CV", href: "/dashboard/ai-analytics", permission: "view_ai_analytics" },
+        { icon: FileText, label: "Laporan Magang", href: "/dashboard/ai-report", permission: "view_dashboard" },
       ],
     },
     {
@@ -228,8 +228,8 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "FITUR AI",
       items: [
-        { icon: Sparkles, label: "Profil Perusahaan AI", href: "/dashboard/industry/ai-profile", permission: "view_profil" },
-        { icon: BrainCircuit, label: "Analisis Compro AI", href: "/dashboard/industry/ai-compro-talent", permission: "view_kelas" },
+        { icon: Building2, label: "Profil Perusahaan", href: "/dashboard/industry/ai-profile", permission: "view_profil" },
+        { icon: BrainCircuit, label: "Analisa Profil Perusahaan", href: "/dashboard/industry/ai-compro-talent", permission: "view_kelas" },
       ],
     },
     {
@@ -265,8 +265,8 @@ const NAV_GROUPS: Record<string, NavGroup[]> = {
     {
       label: "FITUR AI",
       items: [
-        { icon: Sparkles, label: "Profil Sekolah AI", href: "/dashboard/school/ai-profile", permission: "view_dashboard" },
-        { icon: BrainCircuit, label: "Pencocokan Industri AI", href: "/dashboard/school/ai-match-industry", permission: "view_dashboard" },
+        { icon: School, label: "Profil Sekolah/Perguruan Tinggi", href: "/dashboard/school/ai-profile", permission: "view_dashboard" },
+        { icon: BrainCircuit, label: "Analisa Profil Sekolah/Perguruan Tinggi", href: "/dashboard/school/ai-match-industry", permission: "view_dashboard" },
         { icon: ScrollText, label: "Template Laporan", href: "/dashboard/school/template-laporan", permission: "view_dashboard" },
       ],
     },

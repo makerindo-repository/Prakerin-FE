@@ -183,7 +183,7 @@ const CvPage: React.FC = () => {
             className="bg-vip hover:bg-orange-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center "
           >
             <Sparkles size={16} className="mr-1.5 text-amber-300 animate-pulse" />
-            Generator CV Pintar AI
+            Membuat CV
           </Link>
           <button
             onClick={() => router.push("cv/create")}

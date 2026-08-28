@@ -584,7 +584,7 @@ function AiAnalyticsPageInner() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            Analisis CV AI
+            Analisa CV
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
             Unggah CV, temukan kekuatan, tingkatkan kompetensi, dan dapatkan rekomendasi magang terbaik.

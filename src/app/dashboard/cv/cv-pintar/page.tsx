@@ -1222,7 +1222,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
               <Link className="hover:underline hover:text-accent" href="/dashboard/cv">
                 Curriculum Vitae
               </Link>{" "}
-              &gt; Generator CV Pintar AI
+              &gt; Membuat CV
             </h1>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
               Buat CV ATS dengan AI

@@ -36,11 +36,15 @@ const AI_RESOURCE_TYPES = [
 
 const getResourceName = (type: string) => {
   switch (type) {
-    case "CVGenerator": return "Generator CV Pintar AI";
-    case "AiAnalytic": return "Analisis CV AI";
+    case "CVGenerator": return "Membuat CV";
+    case "AiAnalytic": return "Analisa CV";
     case "JobOpening": return "Pencarian Lowongan AI";
     case "TestScenarioAI": return "Skenario Tes AI";
-    case "ReportAI": return "Laporan AI";
+    case "ReportAI": return "Laporan Magang";
+    case "CompanyProfileAI": return "Profil Perusahaan";
+    case "CompanyTalentMatchAI": return "Analisa Profil Perusahaan";
+    case "SchoolProfileAI": return "Profil Sekolah/Perguruan Tinggi";
+    case "SchoolMatchIndustryAI": return "Analisa Profil Sekolah/Perguruan Tinggi";
     default: return type;
   }
 };

@@ -271,7 +271,7 @@ const JurusanPage: React.FC = () => {
             >
               <option value="">Semua</option>
               <option value="smk">SMK</option>
-              <option value="college">Kuliah</option>
+              <option value="college">Perguruan Tinggi</option>
             </select>
           </div>
 
@@ -432,7 +432,7 @@ const JurusanPage: React.FC = () => {
                 >
                   <option value="">Pilih tingkat</option>
                   <option value="smk">SMK</option>
-                  <option value="college">Kuliah</option>
+                  <option value="college">Perguruan Tinggi</option>
                 </select>
                 {formError.level && (
                   <p className="mt-1 text-xs sm:text-sm text-red-500">{formError.level}</p>

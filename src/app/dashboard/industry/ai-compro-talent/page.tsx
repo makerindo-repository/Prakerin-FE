@@ -416,7 +416,7 @@ export default function AiComproTalentPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-gray-900">
-              Analisis Compro & Rekomendasi Talent
+              Analisa Profil Perusahaan
             </h1>
             {isPremiumUser ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">

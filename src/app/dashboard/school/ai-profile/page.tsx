@@ -687,7 +687,7 @@ export default function AiSchoolProfilePage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-gray-900">
-              Buat Profil Sekolah & Kampus AI
+              Profil Sekolah/Perguruan Tinggi
             </h1>
           </div>
           <p className="text-sm text-gray-500 mt-1">
