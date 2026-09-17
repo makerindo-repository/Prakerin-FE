@@ -152,23 +152,32 @@ export const createApiCall = async <T = any>(arg1: any, arg2: any = {}): Promise
 };
 
 export const getPhotoProfileUrl = (photo: string | null | undefined): string | null => {
-  if (!photo || photo.startsWith("ai_failed")) return null;
+  if (!photo || photo.startsWith("ai_failed") || photo === "null" || photo === "undefined") return null;
   if (photo.startsWith("http://") || photo.startsWith("https://")) {
     return photo;
   }
-  const cleanPhoto = photo.startsWith("/") ? photo.slice(1) : photo;
-  if (cleanPhoto.startsWith("pfpupload/")) {
+  let cleanPhoto = photo.startsWith("/") ? photo.slice(1) : photo;
+  if (cleanPhoto.startsWith("storage/")) {
+    cleanPhoto = cleanPhoto.replace(/^storage\//, "");
+  }
+  if (cleanPhoto.startsWith("photo-profile/")) {
     return `${BASE_URL}/storage/${cleanPhoto}`;
   }
   return `${BASE_URL}/storage/photo-profile/${cleanPhoto}`;
 };
 
 export const getCommentPhotoUrl = (photo: string | null | undefined): string | null => {
-  if (!photo) return null;
+  if (!photo || photo === "null" || photo === "undefined") return null;
   if (photo.startsWith("http://") || photo.startsWith("https://")) {
     return photo;
   }
-  const cleanPhoto = photo.startsWith("/") ? photo.slice(1) : photo;
+  let cleanPhoto = photo.startsWith("/") ? photo.slice(1) : photo;
+  if (cleanPhoto.startsWith("storage/")) {
+    cleanPhoto = cleanPhoto.replace(/^storage\//, "");
+  }
+  if (cleanPhoto.startsWith("comment-prakerin/")) {
+    return `${BASE_URL}/storage/${cleanPhoto}`;
+  }
   if (cleanPhoto.startsWith("pfpupload/")) {
     return `${BASE_URL}/storage/photo-profile/${cleanPhoto}`;
   }
@@ -176,10 +185,16 @@ export const getCommentPhotoUrl = (photo: string | null | undefined): string | n
 };
 
 export const getPosterUrl = (poster: string | null | undefined): string | null => {
-  if (!poster) return null;
+  if (!poster || poster === "null" || poster === "undefined") return null;
   if (poster.startsWith("http://") || poster.startsWith("https://")) {
     return poster;
   }
-  const cleanPoster = poster.startsWith("/") ? poster.slice(1) : poster;
+  let cleanPoster = poster.startsWith("/") ? poster.slice(1) : poster;
+  if (cleanPoster.startsWith("storage/")) {
+    cleanPoster = cleanPoster.replace(/^storage\//, "");
+  }
+  if (cleanPoster.startsWith("job-opening-posters/")) {
+    return `${BASE_URL}/storage/${cleanPoster}`;
+  }
   return `${BASE_URL}/storage/job-opening-posters/${cleanPoster}`;
 };

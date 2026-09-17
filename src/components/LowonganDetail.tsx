@@ -49,7 +49,7 @@ import {
   getTypeTest,
 } from "@/utils/lowonganLabel";
 import { Building } from "lucide-react";
-import { getPhotoProfileUrl } from "@/utils/config";
+import { getPhotoProfileUrl, getPosterUrl } from "@/utils/config";
 import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Link from "next/link";
@@ -233,13 +233,13 @@ export default function LowonganDetail({
               Poster Lowongan
             </h3>
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL}/storage/job-opening-posters/${data.poster}`}
+              href={getPosterUrl(data.poster) || "#"}
               target="_blank"
               rel="noopener noreferrer"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`${process.env.NEXT_PUBLIC_API_URL}/storage/job-opening-posters/${data.poster}`}
+                src={getPosterUrl(data.poster) || ""}
                 alt={`Poster lowongan ${data.title}`}
                 className="w-full max-w-xl rounded-2xl border object-contain"
               />

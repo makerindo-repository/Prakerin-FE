@@ -17,7 +17,8 @@ import { use, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
-import { API, ENDPOINTS } from "@/utils/config";
+import ImageWithFallback from "@/components/ImageWithFallback";
+import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import { useRouter } from "next/navigation";
 import { alertConfirm, alertError, alertSuccess } from "@/libs/alert";
 import dynamic from "next/dynamic";
@@ -509,19 +510,20 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
               <div className="flex items-start gap-4">
                 {/* Company Logo */}
                 <div className="flex-shrink-0">
-                  {jobOpening?.user?.photo_profile ? (
-                    <div className="w-16 h-16 relative rounded-full border-white border">
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${jobOpening.user.photo_profile}`}
-                        alt="Logo Perusahaan"
-                        fill
-                        sizes="100%"
-                        className="object-cover rounded-full"
-                      />
-                    </div>
-                  ) : (
-                    <UserCircle className="w-16 h-16 text-[var(--color-accent)]" />
-                  )}
+                  <div className="w-16 h-16 relative rounded-full border border-gray-100 overflow-hidden shrink-0">
+                    <ImageWithFallback
+                      src={getPhotoProfileUrl(jobOpening?.user?.photo_profile)}
+                      alt="Logo Perusahaan"
+                      fill
+                      sizes="64px"
+                      className="object-cover rounded-full"
+                      fallback={
+                        <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                          <UserCircle className="w-8 h-8 text-[var(--color-accent)]" />
+                        </div>
+                      }
+                    />
+                  </div>
                 </div>
 
                 {/* Job Info */}

@@ -2,10 +2,11 @@
 import { Bookmark, BriefcaseBusiness, Building, MapPin, FileText, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl, getPosterUrl } from "@/utils/config";
 import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Image from "next/image";
+import ImageWithFallback from "@/components/ImageWithFallback";
 import Loader from "@/components/loader";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
@@ -124,12 +125,17 @@ const LowonganArchivePage: React.FC = () => {
                         <FileText className="w-6 h-6 text-red-400" />
                       </div>
                     ) : (
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/job-opening-posters/${job.poster}`}
+                      <ImageWithFallback
+                        src={getPosterUrl(job.poster)}
                         alt={`Poster ${job.title}`}
                         fill
                         sizes="56px"
                         className="object-cover"
+                        fallback={
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                            <ImageIcon className="w-6 h-6 text-gray-400" />
+                          </div>
+                        }
                       />
                     )}
                     <div className="absolute bottom-0 inset-x-0 bg-black/50 flex items-center justify-center py-0.5">
@@ -140,19 +146,20 @@ const LowonganArchivePage: React.FC = () => {
               </div>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-3">
-                  {job.user.photo_profile ? (
-                    <div className="w-15 h-15 relative rounded-full border-white border">
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${job.user.photo_profile}`}
-                        alt="Logo Perusahaan"
-                        fill
-                        sizes="100%"
-                        className="object-cover rounded-full"
-                      />
-                    </div>
-                  ) : (
-                    <Building className="w-15 h-15 text-[var(--color-accent)]" />
-                  )}
+                  <div className="w-14 h-14 relative rounded-full border border-gray-100 overflow-hidden shrink-0">
+                    <ImageWithFallback
+                      src={getPhotoProfileUrl(job.user?.photo_profile)}
+                      alt={job.company?.name ?? "Logo Perusahaan"}
+                      fill
+                      sizes="56px"
+                      className="object-cover rounded-full"
+                      fallback={
+                        <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                          <Building className="w-7 h-7 text-accent" />
+                        </div>
+                      }
+                    />
+                  </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">
                       {job.company?.name ?? "-"}

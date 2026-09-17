@@ -15,10 +15,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
+import ImageWithFallback from "@/components/ImageWithFallback";
 import { getDurationUnit } from "@/utils/getDurationUnit";
 import Loader from "@/components/loader";
 import { useRouter } from "next/navigation";
@@ -265,21 +266,21 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
               {/* Header */}
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
                 <div className="flex items-start gap-4">
-                  {/* Company Logo */}
                   <div className="flex-shrink-0">
-                    {jobOpening?.user?.photo_profile ? (
-                      <div className="w-16 h-16 relative rounded-full border-white border">
-                        <Image
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${jobOpening.user.photo_profile}`}
-                          alt="Logo Perusahaan"
-                          fill
-                          sizes="100%"
-                          className="object-cover rounded-full"
-                        />
-                      </div>
-                    ) : (
-                      <Building className="w-16 h-16 text-[var(--color-accent)]" />
-                    )}
+                    <div className="w-16 h-16 relative rounded-full border border-gray-100 overflow-hidden shrink-0">
+                      <ImageWithFallback
+                        src={getPhotoProfileUrl(jobOpening?.user?.photo_profile)}
+                        alt={jobOpening?.company?.name ?? "Logo Perusahaan"}
+                        fill
+                        sizes="64px"
+                        className="object-cover rounded-full"
+                        fallback={
+                          <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                            <Building className="w-8 h-8 text-[var(--color-accent)]" />
+                          </div>
+                        }
+                      />
+                    </div>
                   </div>
 
                   {/* Job Info */}

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl, getPosterUrl } from "@/utils/config";
 import Cookies from "js-cookie";
 import { timeAgo } from "@/utils/timeAgo";
 import Link from "next/link";
@@ -22,6 +22,7 @@ import Loader from "../loader";
 import PaginationComponent from "@/components/PaginationComponent";
 import { Pages } from "@/models/pagination";
 import useDebounce from "@/hooks/useDebounce";
+import ImageWithFallback from "@/components/ImageWithFallback";
 
 interface JobOpening {
   id: string;
@@ -144,10 +145,17 @@ export function IndustryLowongan() {
                           <FileText className="w-6 h-6 text-red-400" />
                         </div>
                       ) : (
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/job-opening-posters/${data.poster}`}
+                        <ImageWithFallback
+                          src={getPosterUrl(data.poster)}
                           alt={`Poster ${data.title}`}
-                          className="object-cover w-full h-full"
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                          fallback={
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <ImageIcon className="w-6 h-6 text-gray-400" />
+                            </div>
+                          }
                         />
                       )}
                       <div className="absolute bottom-0 inset-x-0 bg-black/50 flex items-center justify-center py-0.5">
@@ -159,19 +167,20 @@ export function IndustryLowongan() {
 
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center space-x-3">
-                    {data.user?.photo_profile ? (
-                      <div className="w-12 h-12 rounded-full border border-gray-100 overflow-hidden shrink-0">
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/storage/photo-profile/${data.user.photo_profile}`}
-                          alt="Logo Perusahaan"
-                          className="object-cover rounded-full w-full h-full"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                        <Building className="w-6 h-6 text-slate-500" />
-                      </div>
-                    )}
+                    <div className="w-12 h-12 relative rounded-full border border-gray-100 overflow-hidden shrink-0">
+                      <ImageWithFallback
+                        src={getPhotoProfileUrl(data.user?.photo_profile)}
+                        alt={data.company?.name ?? "Logo Perusahaan"}
+                        fill
+                        sizes="48px"
+                        className="object-cover rounded-full"
+                        fallback={
+                          <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                            <Building className="w-6 h-6 text-slate-500" />
+                          </div>
+                        }
+                      />
+                    </div>
                     <div>
                       <h4 className="font-semibold text-gray-800 text-base">
                         {data.company?.name ?? "Perusahaan"}
