@@ -4,6 +4,7 @@ export interface Lowongan {
   description: any;
 
   created_at: string;
+  poster?: string | null;
 
   grade: "smk" | "mahasiswa" | "all";
   type: "full_time" | "part_time";

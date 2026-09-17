@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
-import { API, ENDPOINTS } from "@/utils/config";
+import { API, ENDPOINTS, getPosterUrl } from "@/utils/config";
 import { useRouter, useSearchParams } from "next/navigation";
 import DescriptionRendererLite from "@/components/RenderBlocksLite";
 import LoaderData from "@/components/loader";
@@ -17,6 +17,7 @@ import {
   MapPin,
   Clock,
   GraduationCap,
+  Image as ImageIcon,
 } from "lucide-react";
 import {
   getGrade,
@@ -169,9 +170,18 @@ function InternshipPageContent() {
           search: search,
           duration_id: filterData.duration_id,
           field_id: filterData.field_id,
+          limit: "all",
         },
       });
-      setData(response.data.data);
+      const items = Array.isArray(response.data?.data) ? response.data.data : [];
+      setData(items);
+      setSelectedJob((prev) => {
+        if (!prev && items.length > 0) return items[0];
+        if (prev && items.some((it: Lowongan) => it.id === prev.id)) {
+          return items.find((it: Lowongan) => it.id === prev.id) || items[0];
+        }
+        return items[0] || null;
+      });
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -293,7 +303,7 @@ function InternshipPageContent() {
   );
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const itemsPerPage = 6;
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const paginatedData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -472,6 +482,25 @@ function InternshipPageContent() {
                             {item.title}
                           </h2>
                         </div>
+                        {item.poster && (
+                          <div
+                            title="Poster Lowongan Tersedia"
+                            className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                          >
+                            <ImageWithFallback
+                              src={getPosterUrl(item.poster)}
+                              alt={`Poster ${item.title}`}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                              fallback={
+                                <div className="flex h-full w-full items-center justify-center bg-gray-100">
+                                  <ImageIcon className="h-5 w-5 text-gray-400" />
+                                </div>
+                              }
+                            />
+                          </div>
+                        )}
                         <button
                           type="button"
                           onClick={(e) => handleClickFavorite(e, item.id)}

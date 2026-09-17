@@ -139,10 +139,17 @@ export function IndustryLowongan() {
                   </div>
 
                   {data.poster && (
-                    <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                    <a
+                      href={getPosterUrl(data.poster) || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      title="Buka poster lowongan ukuran penuh"
+                      className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group/poster block hover:border-accent hover:shadow-xs transition-all cursor-pointer"
+                    >
                       {data.poster.toLowerCase().endsWith(".pdf") ? (
                         <div className="w-full h-full flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-red-400" />
+                          <FileText className="w-6 h-6 text-red-500" />
                         </div>
                       ) : (
                         <ImageWithFallback
@@ -150,7 +157,7 @@ export function IndustryLowongan() {
                           alt={`Poster ${data.title}`}
                           fill
                           sizes="56px"
-                          className="object-cover"
+                          className="object-cover group-hover/poster:scale-105 transition-transform"
                           fallback={
                             <div className="w-full h-full flex items-center justify-center bg-gray-100">
                               <ImageIcon className="w-6 h-6 text-gray-400" />
@@ -158,10 +165,10 @@ export function IndustryLowongan() {
                           }
                         />
                       )}
-                      <div className="absolute bottom-0 inset-x-0 bg-black/50 flex items-center justify-center py-0.5">
+                      <div className="absolute bottom-0 inset-x-0 bg-black/60 flex items-center justify-center py-0.5">
                         <ImageIcon className="w-2.5 h-2.5 text-white" />
                       </div>
-                    </div>
+                    </a>
                   )}
                 </div>
 

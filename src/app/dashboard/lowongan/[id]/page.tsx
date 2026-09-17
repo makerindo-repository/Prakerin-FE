@@ -12,10 +12,14 @@ import {
   GraduationCap,
   Building,
   Trash2,
+  ExternalLink,
+  FileText,
+  Eye,
+  Image as ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { API, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
+import { API, ENDPOINTS, getPhotoProfileUrl, getPosterUrl } from "@/utils/config";
 import Cookies from "js-cookie";
 import RenderBlocks from "@/components/RenderBlocks";
 import Image from "next/image";
@@ -29,6 +33,7 @@ import { suppressErrorForSuperAdmin } from "@/libs/errorHandler";
 
 interface JobOpening {
   title: string;
+  poster?: string | null;
   description: any;
   grade: string;
   location: string;
@@ -76,6 +81,7 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
   const [authorization, setAuthorization] = useState<string>("");
   const [jobOpening, setJobOpening] = useState<JobOpening>({
     title: "",
+    poster: null,
     description: "",
     grade: "",
     location: "",
@@ -462,6 +468,74 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
                     </div>
                   </div>
                 </div>
+
+                {/* Poster Lowongan */}
+                {jobOpening.poster && (
+                  <div className="bg-white py-6 mb-6 border-b border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <ImageIcon className="w-5 h-5 text-accent" />
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Poster Lowongan
+                        </h3>
+                      </div>
+                      {getPosterUrl(jobOpening.poster) && (
+                        <a
+                          href={getPosterUrl(jobOpening.poster)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent-hover hover:underline"
+                        >
+                          <span>Lihat Ukuran Penuh</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
+
+                    {jobOpening.poster.toLowerCase().endsWith(".pdf") ? (
+                      <div className="flex items-center justify-between p-5 rounded-xl border border-red-200 bg-red-50/50 max-w-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="p-3 bg-red-100 text-red-600 rounded-lg">
+                            <FileText className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 text-sm">Dokumen Poster Lowongan (PDF)</p>
+                            <p className="text-xs text-gray-500">Klik tombol untuk membaca atau mengunduh</p>
+                          </div>
+                        </div>
+                        <a
+                          href={getPosterUrl(jobOpening.poster)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>Buka PDF</span>
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="max-w-xl rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 shadow-xs hover:shadow-md transition-shadow">
+                        <a
+                          href={getPosterUrl(jobOpening.poster)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block relative group cursor-zoom-in"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getPosterUrl(jobOpening.poster) || ""}
+                            alt={`Poster Lowongan ${jobOpening.title}`}
+                            className="w-full max-h-[500px] object-contain mx-auto transition-transform duration-300 group-hover:scale-[1.01]"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-medium text-sm">
+                            <ExternalLink className="w-5 h-5" />
+                            <span>Klik untuk memperbesar gambar</span>
+                          </div>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Content Area - Placeholder for job description */}
