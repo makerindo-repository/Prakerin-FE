@@ -1230,6 +1230,7 @@ function PengaturanContent() {
                       required
                       className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
                     />
+                    <p className="text-gray-400 text-[11px] mt-1">Gunakan <strong>465</strong> untuk SSL, atau <strong>587</strong> untuk TLS</p>
                   </div>
 
                   <div>
@@ -1240,10 +1241,11 @@ function PengaturanContent() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
                     >
-                      <option value="tls">TLS (Direkomendasikan)</option>
-                      <option value="ssl">SSL</option>
-                      <option value="none">Tanpa Enkripsi</option>
+                      <option value="ssl">SSL (Port 465)</option>
+                      <option value="tls">TLS / STARTTLS (Port 587)</option>
+                      <option value="none">Tanpa Enkripsi (Port 25 / 587)</option>
                     </select>
+                    <p className="text-gray-400 text-[11px] mt-1">Pastikan protokol cocok dengan port server yang dipilih</p>
                   </div>
 
                   <div>
