@@ -61,7 +61,8 @@ interface JobOpening {
   duration_id: string;
   start_date: string;
   closing_date: string;
-  tests: Array<{ id: string; title: string }>;
+  tests?: Array<{ id: string; title: string }>;
+  test?: Array<{ id: string; title: string }>;
 }
 
 interface Test {
@@ -141,7 +142,11 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
       });
       if (response.status === 200) {
         const data = response.data.data;
-        setJobOpening(data);
+        const rawTests = data.tests || data.test || [];
+        setJobOpening({
+          ...data,
+          tests: rawTests,
+        });
         // Set form data dari job opening
         const formatDateToInput = (dateStr: any) => {
           if (!dateStr) return "";
@@ -155,18 +160,20 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
           return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
         };
 
+        const testIds = rawTests.map((t: any) => t.id || t.pivot?.test_id).filter(Boolean);
+
         setFormData({
-          title: data.title,
-          type: data.type,
-          location: data.location,
-          grade: data.grade,
-          is_paid: data.is_paid.toString(),
-          qouta: data.qouta,
-          is_available: data.is_available.toString(),
-          field_id: data.field_id,
-          duration_id: data.duration_id,
-          description: data.description,
-          tests: data.tests?.map((t: any) => t.id) || [],
+          title: data.title || "",
+          type: data.type || "",
+          location: data.location || "",
+          grade: data.grade || "",
+          is_paid: String(data.is_paid ?? false),
+          qouta: data.qouta || 1,
+          is_available: String(data.is_available ?? true),
+          field_id: data.field_id || "",
+          duration_id: data.duration_id || "",
+          description: data.description || "",
+          tests: testIds,
           start_date: formatDateToInput(data.start_date),
           closing_date: formatDateToInput(data.closing_date),
         });
@@ -247,34 +254,69 @@ const DetailLowongan = ({ params }: { params: Promise<{ id: string }> }) => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const payload = {
-        ...formData,
-        is_available: formData.is_available === "true" ? true : false,
-        is_paid: formData.is_paid === "true" ? true : false,
-        start_date: formData.start_date ? `${formData.start_date} 00:00:00` : "",
-        closing_date: formData.closing_date ? `${formData.closing_date} 00:00:00` : "",
+      setErrors({});
+
+      const cleanTests = Array.isArray(formData.tests)
+        ? formData.tests.filter((t: string) => t && typeof t === "string" && t.trim() !== "")
+        : [];
+
+      const payload: Record<string, any> = {
+        title: formData.title,
+        type: formData.type,
+        location: formData.location,
+        grade: formData.grade,
+        field_id: formData.field_id,
+        duration_id: formData.duration_id,
+        description: formData.description,
+        qouta: Number(formData.qouta),
+        is_available: String(formData.is_available) === "true",
+        is_paid: String(formData.is_paid) === "true",
+        tests: cleanTests,
       };
 
-      await suppressErrorForSuperAdmin(() => API.patch(`${ENDPOINTS.JOB_OPENINGS}/${id}`, payload, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("userToken")}`,
-        },
-      }), { showSuccessMessage: true, successMessage: "Lowongan berhasil diperbarui!" });
+      if (formData.start_date) {
+        payload.start_date = formData.start_date.split(" ")[0];
+      }
+      if (formData.closing_date) {
+        payload.closing_date = formData.closing_date.split(" ")[0];
+      }
 
-      await alertSuccess("Lowongan berhasil diperbarui!");
+      await suppressErrorForSuperAdmin(
+        () =>
+          API.patch(`${ENDPOINTS.JOB_OPENINGS}/${id}`, payload, {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("userToken")}`,
+            },
+          }),
+        { showSuccessMessage: true, successMessage: "Lowongan berhasil diperbarui!" }
+      );
+
+      const currentRole = Cookies.get("authorization");
+      if (currentRole !== "super_admin") {
+        await alertSuccess("Lowongan berhasil diperbarui!");
+      }
+
       setIsEditMode(false);
       fetchJobOpening();
     } catch (error: AxiosError | unknown) {
       if (error instanceof AxiosError) {
-        console.log("Response data:", error.response?.data);
-        const responseError = error.response?.data.errors;
+        console.error("Response data:", error.response?.data);
+        const responseError = error.response?.data?.errors;
         if (typeof responseError === "string") {
           await alertError(responseError);
+        } else if (responseError && typeof responseError === "object") {
+          setErrors(responseError);
+          const firstKey = Object.keys(responseError)[0];
+          const firstVal = responseError[firstKey];
+          const firstMsg = Array.isArray(firstVal) ? firstVal[0] : firstVal;
+          await alertError(firstMsg || "Terjadi kesalahan validasi data.");
         } else {
-          setErrors(responseError ?? {});
+          await alertError(error.response?.data?.message || "Gagal memperbarui lowongan");
         }
+      } else {
+        console.error(error);
+        await alertError("Terjadi kesalahan sistem saat memperbarui lowongan.");
       }
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
