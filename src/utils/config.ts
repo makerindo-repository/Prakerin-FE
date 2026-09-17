@@ -67,10 +67,12 @@ export const ENDPOINTS = {
   COMPANY_AI_PROFILE_HISTORIES: '/api/v1/company-ai/profile/histories',
   COMPANY_AI_COMPRO_ANALYZE: '/api/v1/company-ai/compro/analyze',
   COMPANY_AI_COMPRO_TALENTS: '/api/v1/company-ai/compro/talents',
+  COMPANY_AI_COMPRO_INVITE: '/api/v1/company-ai/compro/invite',
 
   // School AI Features
   SCHOOL_AI_PROFILE: '/api/v1/school-ai/profile/generate',
   SCHOOL_AI_PROFILE_HISTORIES: '/api/v1/school-ai/profile/histories',
+  SCHOOL_AI_CURRICULUM_EXTRACT: '/api/v1/school-ai/curriculum/extract',
   SCHOOL_AI_CURRICULUM_ANALYZE: '/api/v1/school-ai/curriculum/analyze',
   SCHOOL_AI_MATCH_COMPANIES: '/api/v1/school-ai/match-companies',
 

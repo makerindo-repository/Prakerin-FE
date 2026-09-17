@@ -166,14 +166,23 @@ export default function AiSchoolMatchIndustryPage() {
           setIsPremiumUser(isPrem);
           useAuthStore.getState().setStatusSubscription(resolvedSub);
 
-          const defaultDomain = sch?.type === "university" ? "Teknik Informatika & Ilmu Komputer" : "Teknik Komputer & Informatika (RPL / TKJ / Multimedia)";
-          let subjects = [
-            "Pemrograman Web & Mobile",
-            "Basis Data SQL",
-            "Administrasi Server Jaringan",
-            "UI/UX Design Figma",
-            "Cloud Computing",
-          ];
+          const isHigherEdu = ["university", "polytechnic", "institute", "perguruan_tinggi"].includes(sch?.type?.toLowerCase());
+          const defaultDomain = isHigherEdu ? "Teknik Informatika & Ilmu Komputer" : "Teknik Komputer & Informatika (RPL / TKJ / Multimedia)";
+          let subjects = isHigherEdu
+            ? [
+                "Struktur Data & Algoritma",
+                "Pemrograman Berorientasi Objek",
+                "Sistem Basis Data Terdistribusi",
+                "Rekayasa Perangkat Lunak",
+                "Cloud Computing Architecture",
+              ]
+            : [
+                "Pemrograman Web & Mobile",
+                "Basis Data SQL",
+                "Administrasi Server Jaringan",
+                "UI/UX Design Figma",
+                "Cloud Computing",
+              ];
 
           if (sch?.description && typeof sch.description === "object") {
             if (Array.isArray(sch.description.competencies) && sch.description.competencies.length > 0) {
@@ -295,13 +304,22 @@ export default function AiSchoolMatchIndustryPage() {
       }
     } catch (err: any) {
       console.warn("Analysis fallback:", err);
+      const isHigherEdu = ["university", "polytechnic", "institute", "perguruan_tinggi"].includes(schoolProfileData?.type?.toLowerCase());
       const fallbackExtraction: CurriculumExtraction = {
-        curriculum_domain: "Teknologi Informasi, Rekayasa & Vokasi",
-        core_subjects: ["Pemrograman Web", "Mobile Apps", "IoT & Embedded", "Cloud Services"],
-        extracted_competencies: ["Fullstack Web Development", "REST API", "Database Design", "Git Workflow"],
+        curriculum_domain: isHigherEdu ? "Teknik Informatika, Sains Data & Rekayasa" : "Teknologi Informasi, Rekayasa & Vokasi",
+        core_subjects: isHigherEdu
+          ? ["Struktur Data & Algoritma", "Pemrograman Berorientasi Objek", "Basis Data Lanjut", "Cloud Computing"]
+          : ["Pemrograman Web", "Mobile Apps", "IoT & Embedded", "Cloud Services"],
+        extracted_competencies: isHigherEdu
+          ? ["Fullstack Web Development", "REST API", "Database Design", "Cloud Infrastructure"]
+          : ["Fullstack Web Development", "REST API", "Database Design", "Git Workflow"],
         target_industries: ["Software House", "Digital Agency", "Telekomunikasi", "Manufaktur Presisi"],
-        recommended_positions: ["Frontend Intern", "Backend Intern", "IoT Specialist Intern"],
-        collaboration_models: ["Praktik Kerja Lapangan (PKL)", "Guru Tamu", "Kelas Industri"],
+        recommended_positions: isHigherEdu
+          ? ["Software Engineer Intern", "Backend Developer Intern", "Cloud Specialist Intern"]
+          : ["Frontend Intern", "Backend Intern", "IoT Specialist Intern"],
+        collaboration_models: isHigherEdu
+          ? ["Magang MSIB", "Dosen Praktisi", "Riset Bersama"]
+          : ["Praktik Kerja Lapangan (PKL)", "Guru Tamu", "Kelas Industri"],
       };
       setAnalysisResult(fallbackExtraction);
       fetchMatchingCompanies(fallbackExtraction.core_subjects);
@@ -702,10 +720,15 @@ export default function AiSchoolMatchIndustryPage() {
             <div>
               <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#035a70]" />
-                Mata Pelajaran & Kompetensi Kejuruan ({analysisResult?.core_subjects.length || 0})
+                {["university", "polytechnic", "institute", "perguruan_tinggi"].includes(schoolProfileData?.type?.toLowerCase())
+                  ? "Mata Kuliah & Kurikulum Perguruan Tinggi"
+                  : "Mata Pelajaran & Kompetensi Kejuruan"}{" "}
+                ({analysisResult?.core_subjects.length || 0})
               </h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                Tambahkan atau sesuaikan mata pelajaran produktif untuk menyelaraskan pencocokan mitra industri secara real-time.
+                {["university", "polytechnic", "institute", "perguruan_tinggi"].includes(schoolProfileData?.type?.toLowerCase())
+                  ? "Tambahkan atau sesuaikan mata kuliah program studi untuk menyelaraskan pencocokan mitra industri secara real-time."
+                  : "Tambahkan atau sesuaikan mata pelajaran produktif untuk menyelaraskan pencocokan mitra industri secara real-time."}
               </p>
             </div>
 
@@ -721,7 +744,11 @@ export default function AiSchoolMatchIndustryPage() {
                     handleAddSubjectTag();
                   }
                 }}
-                placeholder="Tambah mata pelajaran..."
+                placeholder={
+                  ["university", "polytechnic", "institute", "perguruan_tinggi"].includes(schoolProfileData?.type?.toLowerCase())
+                    ? "Tambah mata kuliah..."
+                    : "Tambah mata pelajaran..."
+                }
                 className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 font-medium w-48"
               />
               <button
@@ -902,7 +929,9 @@ export default function AiSchoolMatchIndustryPage() {
                     {/* Matched Subjects */}
                     <div className="space-y-1 pt-1">
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-                        Mata Pelajaran yang Cocok:
+                        {["university", "polytechnic", "institute", "perguruan_tinggi"].includes(schoolProfileData?.type?.toLowerCase())
+                          ? "Mata Kuliah yang Cocok:"
+                          : "Mata Pelajaran yang Cocok:"}
                       </span>
                       <div className="flex flex-wrap gap-1">
                         {company.matched_subjects.map((sub) => (
@@ -1074,7 +1103,12 @@ export default function AiSchoolMatchIndustryPage() {
               )}
 
               <div className="space-y-1.5 pt-1">
-                <span className="text-gray-700 font-bold block">Kesesuaian Mata Pelajaran ({selectedCompany.match_score}%)</span>
+                <span className="text-gray-700 font-bold block">
+                  {["university", "polytechnic", "institute", "perguruan_tinggi"].includes(schoolProfileData?.type?.toLowerCase())
+                    ? "Kesesuaian Mata Kuliah"
+                    : "Kesesuaian Mata Pelajaran"}{" "}
+                  ({selectedCompany.match_score}%)
+                </span>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedCompany.matched_subjects.map((sub) => (
                     <span key={sub} className="px-2.5 py-1 bg-teal-50 border border-teal-200 text-[#035a70] font-semibold rounded-lg">

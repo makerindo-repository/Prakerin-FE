@@ -19,6 +19,9 @@ import {
   ShieldCheck,
   Layers,
   X,
+  Info,
+  FileText,
+  HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useRef, useState, useEffect, useMemo } from "react";
@@ -1152,9 +1155,25 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Pilihan Template Output
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Pilihan Template Output
+                  </label>
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-accent flex items-center gap-1 text-[11px] cursor-pointer"
+                      title="Pelajari Template ATS"
+                    >
+                      <HelpCircle size={12} />
+                      <span className="hidden sm:inline">Info Format</span>
+                    </button>
+                    <div className="absolute right-0 top-full mt-1 w-64 sm:w-72 p-3 bg-gray-900 text-white text-[11px] rounded-xl shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-30 leading-relaxed border border-gray-800">
+                      <p className="font-bold text-teal-400 mb-1">Template ATS Friendly</p>
+                      Tata letak satu kolom bersih tanpa tabel rumit atau grafik yang membingungkan mesin scanner HRD. Format teks mudah diindeks oleh sistem pelacak pelamar kerja.
+                    </div>
+                  </div>
+                </div>
                 <div className="flex gap-2">
                   {["ATS", "Classic"].map((tpl) => (
                     <button
@@ -1171,6 +1190,9 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                     </button>
                   ))}
                 </div>
+                <p className="text-[10px] text-gray-500 mt-1.5 leading-normal">
+                  💡 <strong>Format PDF Ringan:</strong> Dokumen PDF dihasilkan dalam format standar vektor ringan (&lt;500KB) sehingga cepat diunggah ke formulir lowongan kerja.
+                </p>
               </div>
             </div>
 
@@ -1224,11 +1246,50 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
               </Link>{" "}
               &gt; Membuat CV
             </h1>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-              Buat CV ATS dengan AI
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Lengkapi data berikut, lalu AI akan menyusun CV profesional yang ramah ATS.
+            <div className="flex items-center gap-2 mt-1">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                Buat CV ATS dengan AI
+              </h2>
+              {/* ATS Information Tooltip */}
+              <div className="relative group">
+                <button
+                  type="button"
+                  className="w-6 h-6 rounded-full bg-teal-50 border border-teal-200 text-accent flex items-center justify-center hover:bg-teal-100 transition-colors shadow-xs"
+                  title="Pelajari tentang ATS (Applicant Tracking System)"
+                  aria-label="Informasi ATS"
+                >
+                  <Info size={14} />
+                </button>
+                <div className="absolute left-0 sm:left-auto sm:right-0 md:left-0 top-full mt-2 w-80 sm:w-96 p-4 bg-gray-900 text-white text-xs rounded-2xl shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50 leading-relaxed border border-gray-800">
+                  <div className="flex items-center gap-2 font-bold text-teal-400 mb-2 text-sm">
+                    <Info size={16} /> Apa itu Standar ATS (Applicant Tracking System)?
+                  </div>
+                  <p className="text-gray-300 text-xs mb-3 leading-relaxed">
+                    <strong className="text-white">ATS</strong> adalah perangkat lunak otomatis yang digunakan oleh HRD dan perusahaan untuk memindai, membaca teks, dan menilai relevansi ratusan berkas pelamar sebelum masuk tahap wawancara.
+                  </p>
+                  <div className="space-y-1.5 text-[11px] text-gray-300 border-t border-gray-800 pt-2.5">
+                    <div className="flex items-start gap-2">
+                      <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                      <span><strong className="text-white">Struktur Terbaca Mesin:</strong> Format rapi 1 kolom tanpa tabel rumit atau grafik berlebih agar teks 100% terbaca sistem scanner.</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                      <span><strong className="text-white">Kata Kunci Kompetensi:</strong> Memuat keahlian teknis (hard skills) dan aksi kerja relevan yang dicari rekruter.</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                      <span><strong className="text-white">Format PDF Ringan:</strong> Menghasilkan PDF kompak (&lt;500KB) yang cepat diunggah ke portal lowongan kerja.</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <ShieldCheck size={14} className="text-teal-400 shrink-0 mt-0.5" />
+                      <span><strong className="text-white">Privasi Terjamin:</strong> Riwayat pembuatan CV hanya dapat diakses pada akun Anda sendiri.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-3xl leading-relaxed">
+              Lengkapi data kompetensi Anda, lalu AI akan menyusun berkas CV berformat <strong>ATS (Applicant Tracking System)</strong> standar industri yang siap lolos pemindaian rekruter dan diekspor dalam bentuk <strong>PDF ringan</strong>.
             </p>
           </div>
 
@@ -1567,12 +1628,17 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                   PDF
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-gray-900 truncate">
-                    CV_{(formData.fullName || "Prakerin").replace(/\s+/g, "_")}_ATS.pdf
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-gray-900 truncate">
+                      CV_{(formData.fullName || "Prakerin").replace(/\s+/g, "_")}_ATS.pdf
+                    </p>
+                    <span className="text-[9px] px-1.5 py-0.2 bg-teal-100 text-teal-800 rounded font-semibold shrink-0">
+                      PDF Ringan
+                    </span>
+                  </div>
                   <p className="text-[10px] text-gray-500 truncate">
                     {completeness >= 70
-                      ? "Siap diunduh & diajukan ke industri"
+                      ? "Format PDF Ringan • Riwayat tersimpan pada akun Anda"
                       : "Siap dibuat setelah data lengkap"}
                   </p>
                 </div>

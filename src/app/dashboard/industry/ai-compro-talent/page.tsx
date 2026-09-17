@@ -50,6 +50,7 @@ interface CandidateTalent {
   match_score: number;
   status: string;
   status_code?: string;
+  user_id?: string;
   phone?: string;
   email?: string;
   cv_url?: string | null;
@@ -106,6 +107,7 @@ export default function AiComproTalentPage() {
   const [invitationMessage, setInvitationMessage] = useState<string>(
     "Halo, profil Anda sangat cocok dengan kebutuhan perusahaan kami. Kami mengundang Anda untuk mengikuti proses seleksi magang di perusahaan kami."
   );
+  const [isSendingInvite, setIsSendingInvite] = useState<boolean>(false);
 
   // ── Helper: Fetch Talents by Competencies ──────────────────────────────────
   const fetchMatchingTalents = useCallback(async (competencies: string[]) => {
@@ -391,11 +393,33 @@ export default function AiComproTalentPage() {
     return filteredAndSortedTalents.slice(start, start + pageSize);
   }, [filteredAndSortedTalents, currentPage, pageSize]);
 
-  // Send Invitation Handler
+  // Send Invitation Handler - Real API Call to /api/v1/company-ai/compro/invite
   const handleSendInvitation = async () => {
     if (!selectedCandidate) return;
-    setShowInviteModal(false);
-    await alertSuccess(`Undangan seleksi magang berhasil dikirimkan kepada ${selectedCandidate.name}!`);
+    try {
+      setIsSendingInvite(true);
+      const res: any = await createApiCall(ENDPOINTS.COMPANY_AI_COMPRO_INVITE, {
+        method: "POST",
+        data: {
+          student_id: selectedCandidate.id,
+          message: invitationMessage,
+        },
+      });
+
+      setShowInviteModal(false);
+      await alertSuccess(
+        res?.message ||
+          `Undangan seleksi magang berhasil dikirimkan ke kotak masuk (Inbox) ${selectedCandidate.name}!`
+      );
+    } catch (err: any) {
+      console.error("Gagal mengirimkan undangan:", err);
+      const errMsg =
+        err?.response?.data?.message ||
+        "Gagal mengirimkan undangan seleksi magang ke akun siswa.";
+      alertError(errMsg);
+    } finally {
+      setIsSendingInvite(false);
+    }
   };
 
   if (loadingAuth) {
@@ -984,27 +1008,41 @@ export default function AiComproTalentPage() {
               </div>
 
               <div className="space-y-2">
-                <a
-                  href={`https://wa.me/${selectedCandidate.phone || "6281234567890"}?text=${encodeURIComponent(
-                    `Halo ${selectedCandidate.name}, kami dari tim HR ${companyProfileData?.name || "Perusahaan Mitra"} tertarik dengan profil Anda untuk posisi ${selectedCandidate.target_role}.`
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs"
-                >
-                  <Phone className="w-4 h-4" />
-                  Hubungi via WhatsApp
-                </a>
+                {selectedCandidate.phone ? (
+                  <a
+                    href={`https://wa.me/${selectedCandidate.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                      `Halo ${selectedCandidate.name}, kami dari tim HR ${companyProfileData?.name || "Perusahaan Mitra"} tertarik dengan profil Anda untuk posisi ${selectedCandidate.target_role}.`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-xs"
+                  >
+                    <Phone className="w-4 h-4" />
+                    Hubungi via WhatsApp ({selectedCandidate.phone})
+                  </a>
+                ) : (
+                  <div className="w-full py-2.5 px-4 bg-gray-100 text-gray-500 font-medium rounded-xl flex items-center justify-center gap-2 text-xs border border-gray-200">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    Nomor WhatsApp belum dicantumkan
+                  </div>
+                )}
 
-                <a
-                  href={`mailto:${selectedCandidate.email || "student@example.com"}?subject=${encodeURIComponent(
-                    `Peluang Magang & Karir: ${selectedCandidate.target_role}`
-                  )}`}
-                  className="w-full py-2.5 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-2xs"
-                >
-                  <Mail className="w-4 h-4 text-gray-500" />
-                  Kirim Email Langsung
-                </a>
+                {selectedCandidate.email ? (
+                  <a
+                    href={`mailto:${selectedCandidate.email}?subject=${encodeURIComponent(
+                      `Peluang Magang & Karir: ${selectedCandidate.target_role} - ${companyProfileData?.name || "Perusahaan Mitra"}`
+                    )}`}
+                    className="w-full py-2.5 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-2xs"
+                  >
+                    <Mail className="w-4 h-4 text-gray-500" />
+                    Kirim Email Langsung ({selectedCandidate.email})
+                  </a>
+                ) : (
+                  <div className="w-full py-2.5 px-4 bg-gray-100 text-gray-500 font-medium rounded-xl flex items-center justify-center gap-2 text-xs border border-gray-200">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    Email belum dicantumkan oleh siswa
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1142,18 +1180,29 @@ export default function AiComproTalentPage() {
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
+                  disabled={isSendingInvite}
                   onClick={() => setShowInviteModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800"
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800 disabled:opacity-50 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="button"
+                  disabled={isSendingInvite}
                   onClick={handleSendInvitation}
-                  className="px-4 py-2 bg-[#035a70] hover:bg-[#024353] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#035a70] hover:bg-[#024353] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  Kirim Undangan
+                  {isSendingInvite ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Mengirim Undangan...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      Kirim Undangan
+                    </>
+                  )}
                 </button>
               </div>
             </div>

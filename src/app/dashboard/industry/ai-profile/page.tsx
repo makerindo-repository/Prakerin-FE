@@ -29,9 +29,22 @@ import {
   Clock,
   RotateCcw,
   RefreshCw,
+  Instagram,
+  Facebook,
+  Youtube,
+  Share2,
+  Twitter,
 } from "lucide-react";
 import { createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import { alertSuccess, alertError, alertConfirm } from "@/libs/alert";
+
+export type SocialPlatform = "instagram" | "facebook" | "linkedin" | "twitter" | "youtube" | "tiktok" | "other";
+
+export interface SocialLinkItem {
+  id: string;
+  platform: SocialPlatform;
+  url: string;
+}
 
 interface PortfolioItem {
   id: string;
@@ -50,6 +63,7 @@ const isUuid = (val: string): boolean =>
 export interface ProfileHistoryItem {
   id: string;
   company_name: string;
+  company_type?: string | null;
   tagline: string | null;
   about_company: string | null;
   sector: string | null;
@@ -59,6 +73,7 @@ export interface ProfileHistoryItem {
   email: string | null;
   phone: string | null;
   linkedin: string | null;
+  social_links?: SocialLinkItem[] | null;
   address: string | null;
   vision: string | null;
   mission: string | null;
@@ -85,6 +100,7 @@ export default function AiCompanyProfilePage() {
 
   // Form Fields (Dynamic - loaded from logged in company profile)
   const [companyName, setCompanyName] = useState<string>("");
+  const [companyType, setCompanyType] = useState<"PT" | "CV">("PT");
   const [sector, setSector] = useState<string>("");
   const [sectorsList, setSectorsList] = useState<SectorOption[]>([]);
   const [establishedYear, setEstablishedYear] = useState<string>("");
@@ -93,10 +109,83 @@ export default function AiCompanyProfilePage() {
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
   const [linkedin, setLinkedin] = useState<string>("");
+  const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([]);
   const [address, setAddress] = useState<string>("");
   const [shortDescription, setShortDescription] = useState<string>("");
   const [vision, setVision] = useState<string>("");
   const [mission, setMission] = useState<string>("");
+
+  // Social Links management helpers (Max: 4)
+  const addSocialLink = () => {
+    if (socialLinks.length >= 4) return;
+    const existing = new Set(socialLinks.map((s) => s.platform));
+    const platforms: SocialPlatform[] = [
+      "instagram",
+      "facebook",
+      "linkedin",
+      "twitter",
+      "youtube",
+      "tiktok",
+      "other",
+    ];
+    const nextPlatform = platforms.find((p) => !existing.has(p)) || "instagram";
+    setSocialLinks((prev) => [
+      ...prev,
+      {
+        id: `social-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        platform: nextPlatform,
+        url: "",
+      },
+    ]);
+  };
+
+  const updateSocialLink = (index: number, field: "platform" | "url", value: string) => {
+    setSocialLinks((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value as any };
+      return next;
+    });
+  };
+
+  const removeSocialLink = (index: number) => {
+    setSocialLinks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const getSocialPlaceholder = (platform: SocialPlatform) => {
+    switch (platform) {
+      case "instagram":
+        return "https://instagram.com/namaperusahaan atau @username";
+      case "facebook":
+        return "https://facebook.com/namaperusahaan";
+      case "linkedin":
+        return "https://linkedin.com/company/nama-perusahaan";
+      case "twitter":
+        return "https://x.com/username";
+      case "youtube":
+        return "https://youtube.com/@channel";
+      case "tiktok":
+        return "https://tiktok.com/@username";
+      default:
+        return "https://tautan-media-sosial.com";
+    }
+  };
+
+  const getSocialIcon = (platform: SocialPlatform, className: string = "w-3.5 h-3.5") => {
+    switch (platform) {
+      case "instagram":
+        return <Instagram className={`${className} text-pink-600 shrink-0`} />;
+      case "facebook":
+        return <Facebook className={`${className} text-blue-600 shrink-0`} />;
+      case "linkedin":
+        return <Linkedin className={`${className} text-[#0a66c2] shrink-0`} />;
+      case "youtube":
+        return <Youtube className={`${className} text-red-600 shrink-0`} />;
+      case "twitter":
+        return <Twitter className={`${className} text-slate-800 shrink-0`} />;
+      default:
+        return <Share2 className={`${className} text-[#035a70] shrink-0`} />;
+    }
+  };
 
   // Competencies & Portfolios
   const [competencies, setCompetencies] = useState<string[]>([]);
@@ -180,7 +269,13 @@ export default function AiCompanyProfilePage() {
 
         if (isMounted && user) {
           if (comp?.name || user.name) {
-            setCompanyName(comp?.name || user.name || "");
+            const rawName = comp?.name || user.name || "";
+            setCompanyName(rawName);
+            if (rawName.trim().toUpperCase().startsWith("CV")) {
+              setCompanyType("CV");
+            } else {
+              setCompanyType("PT");
+            }
           }
           if (comp?.sector?.name) {
             setSector(comp.sector.name);
@@ -206,6 +301,10 @@ export default function AiCompanyProfilePage() {
           if (comp?.website) {
             setWebsite(comp.website);
           }
+          if (comp?.linkedin) {
+            setLinkedin(comp.linkedin);
+            setSocialLinks([{ id: "init-li", platform: "linkedin", url: comp.linkedin }]);
+          }
           if (comp?.address) {
             setAddress(comp.address);
           }
@@ -229,6 +328,9 @@ export default function AiCompanyProfilePage() {
               }
               if (Array.isArray(comp.description.portfolios) && comp.description.portfolios.length > 0) {
                 setPortfolios(comp.description.portfolios);
+              }
+              if (Array.isArray(comp.description.social_links) && comp.description.social_links.length > 0) {
+                setSocialLinks(comp.description.social_links);
               }
             }
           }
@@ -259,12 +361,12 @@ export default function AiCompanyProfilePage() {
     if (email.trim() || phone.trim()) filledCount++;
     if (address.trim()) filledCount++;
     if (shortDescription.trim() || aiAboutCompany.trim()) filledCount++;
-    if (website.trim() || linkedin.trim()) filledCount++;
+    if (website.trim() || linkedin.trim() || socialLinks.some((s) => s.url.trim() !== "")) filledCount++;
     if (competencies.length > 0) filledCount++;
     if (portfolios.length > 0) filledCount++;
 
     return Math.min(100, Math.round((filledCount / totalFields) * 100));
-  }, [companyName, sector, email, phone, address, shortDescription, aiAboutCompany, website, linkedin, competencies, portfolios]);
+  }, [companyName, sector, email, phone, address, shortDescription, aiAboutCompany, website, linkedin, socialLinks, competencies, portfolios]);
 
   // ── 3. Step Configuration ──────────────────────────────────────────────────
   const stepItems = [
@@ -360,15 +462,20 @@ export default function AiCompanyProfilePage() {
 
     try {
       setIsGenerating(true);
+      const activeSocialLinks = socialLinks.filter((s) => s.url.trim() !== "");
+      const linkedInUrl = activeSocialLinks.find((s) => s.platform === "linkedin")?.url || linkedin;
+
       const payload = {
         name: companyName,
+        company_type: companyType,
         sector,
         established_year: establishedYear,
         employee_count: employeeCount,
         website,
         email,
         phone,
-        linkedin,
+        linkedin: linkedInUrl,
+        social_links: activeSocialLinks,
         address,
         short_description: shortDescription,
         vision,
@@ -419,7 +526,14 @@ export default function AiCompanyProfilePage() {
 
   // ── History Handlers ───────────────────────────────────────────────────────
   const handleRestoreHistory = (item: ProfileHistoryItem) => {
-    if (item.company_name) setCompanyName(item.company_name);
+    if (item.company_name) {
+      setCompanyName(item.company_name);
+      if (item.company_type === "CV" || item.company_name.trim().toUpperCase().startsWith("CV")) {
+        setCompanyType("CV");
+      } else {
+        setCompanyType("PT");
+      }
+    }
     if (item.tagline) setAiTagline(item.tagline);
     if (item.about_company) {
       setAiAboutCompany(item.about_company);
@@ -441,6 +555,13 @@ export default function AiCompanyProfilePage() {
     if (item.email) setEmail(item.email);
     if (item.phone) setPhone(item.phone);
     if (item.linkedin) setLinkedin(item.linkedin);
+    if (Array.isArray(item.social_links) && item.social_links.length > 0) {
+      setSocialLinks(item.social_links);
+    } else if (item.linkedin) {
+      setSocialLinks([{ id: `social-restored-${Date.now()}`, platform: "linkedin", url: item.linkedin }]);
+    } else {
+      setSocialLinks([]);
+    }
     if (item.address) setAddress(item.address);
     if (item.vision) setVision(item.vision);
     if (item.mission) setMission(item.mission);
@@ -564,6 +685,7 @@ export default function AiCompanyProfilePage() {
             ${item.phone ? `<div><strong>Telepon:</strong> ${item.phone}</div>` : ""}
             ${item.website ? `<div><strong>Website:</strong> ${item.website}</div>` : ""}
             ${item.linkedin ? `<div><strong>LinkedIn:</strong> ${item.linkedin}</div>` : ""}
+            ${Array.isArray(item.social_links) ? item.social_links.filter(s => s.url?.trim()).map(s => `<div><strong>${s.platform.charAt(0).toUpperCase() + s.platform.slice(1)}:</strong> ${s.url}</div>`).join("") : ""}
             ${item.address ? `<div style="grid-column: span 2;"><strong>Alamat:</strong> ${item.address}</div>` : ""}
           </div>
 
@@ -680,6 +802,7 @@ export default function AiCompanyProfilePage() {
             ${phone ? `<div><strong>Telepon:</strong> ${phone}</div>` : ""}
             ${website ? `<div><strong>Website:</strong> ${website}</div>` : ""}
             ${linkedin ? `<div><strong>LinkedIn:</strong> ${linkedin}</div>` : ""}
+            ${socialLinks.filter(s => s.url.trim()).map(s => `<div><strong>${s.platform.charAt(0).toUpperCase() + s.platform.slice(1)}:</strong> ${s.url}</div>`).join("")}
             ${address ? `<div style="grid-column: span 2;"><strong>Alamat:</strong> ${address}</div>` : ""}
           </div>
 
@@ -1092,6 +1215,94 @@ export default function AiCompanyProfilePage() {
                 </div>
               </div>
 
+              {/* Bentuk Badan Usaha: PT vs CV */}
+              <div>
+                <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                  Bentuk Badan Usaha <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Pilihan PT */}
+                  <label
+                    onClick={() => {
+                      setCompanyType("PT");
+                      if (companyName.trim().toUpperCase().startsWith("CV ")) {
+                        setCompanyName("PT " + companyName.trim().slice(3));
+                      } else if (companyName.trim().toUpperCase().startsWith("CV. ")) {
+                        setCompanyName("PT " + companyName.trim().slice(4));
+                      }
+                    }}
+                    className={`relative p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                      companyType === "PT"
+                        ? "border-[#035a70] bg-teal-50/40 shadow-xs ring-1 ring-[#035a70]/20"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="companyType"
+                          checked={companyType === "PT"}
+                          onChange={() => setCompanyType("PT")}
+                          className="w-4 h-4 text-[#035a70] focus:ring-[#035a70] cursor-pointer"
+                        />
+                        <span className="font-extrabold text-xs sm:text-sm text-gray-900">
+                          PT <span className="font-semibold text-gray-500 text-xs">(Perseroan Terbatas)</span>
+                        </span>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        companyType === "PT" ? "bg-[#035a70] text-white" : "bg-gray-100 text-gray-500"
+                      }`}>
+                        Badan Hukum
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 leading-relaxed pl-6">
+                      Badan hukum dengan modal berupa saham dan tanggung jawab terbatas.
+                    </p>
+                  </label>
+
+                  {/* Pilihan CV */}
+                  <label
+                    onClick={() => {
+                      setCompanyType("CV");
+                      if (companyName.trim().toUpperCase().startsWith("PT ")) {
+                        setCompanyName("CV " + companyName.trim().slice(3));
+                      } else if (companyName.trim().toUpperCase().startsWith("PT. ")) {
+                        setCompanyName("CV " + companyName.trim().slice(4));
+                      }
+                    }}
+                    className={`relative p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                      companyType === "CV"
+                        ? "border-[#035a70] bg-teal-50/40 shadow-xs ring-1 ring-[#035a70]/20"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="companyType"
+                          checked={companyType === "CV"}
+                          onChange={() => setCompanyType("CV")}
+                          className="w-4 h-4 text-[#035a70] focus:ring-[#035a70] cursor-pointer"
+                        />
+                        <span className="font-extrabold text-xs sm:text-sm text-gray-900">
+                          CV <span className="font-semibold text-gray-500 text-xs">(Commanditaire Vennootschap)</span>
+                        </span>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        companyType === "CV" ? "bg-[#035a70] text-white" : "bg-gray-100 text-gray-500"
+                      }`}>
+                        Persekutuan
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 leading-relaxed pl-6">
+                      Persekutuan komanditer dengan sekutu aktif dan pasif.
+                    </p>
+                  </label>
+                </div>
+              </div>
+
               {/* Nama Perusahaan */}
               <div>
                 <label className="text-xs font-semibold text-gray-700 block mb-1">
@@ -1101,7 +1312,7 @@ export default function AiCompanyProfilePage() {
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="mis. PT Solusi Digital Nusantara"
+                  placeholder={companyType === "PT" ? "mis. PT Solusi Digital Nusantara" : "mis. CV Solusi Kreatif Mandiri"}
                   className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 font-medium"
                 />
               </div>
@@ -1134,31 +1345,125 @@ export default function AiCompanyProfilePage() {
                 </div>
               </div>
 
-              {/* Website & LinkedIn */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
+              {/* Website Perusahaan (Opsional) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-[#035a70]" />
                     Website Perusahaan
                   </label>
-                  <input
-                    type="text"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                    placeholder="www.perusahaan.com"
-                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 font-medium"
-                  />
+                  <span className="text-[11px] text-gray-400 font-medium bg-gray-100 px-2 py-0.5 rounded-full">
+                    Opsional (Nullable)
+                  </span>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    LinkedIn URL
-                  </label>
-                  <input
-                    type="text"
-                    value={linkedin}
-                    onChange={(e) => setLinkedin(e.target.value)}
-                    placeholder="linkedin.com/company/nama-perusahaan"
-                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 font-medium"
-                  />
+                <input
+                  type="text"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://perusahaan.com (opsional, boleh dikosongkan)"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 font-medium transition-all"
+                />
+              </div>
+
+              {/* Tautan Media Sosial (Instagram, Facebook, LinkedIn, dll - Maksimal: 4) */}
+              <div className="bg-gradient-to-br from-gray-50/90 to-slate-50/50 p-3.5 rounded-2xl border border-gray-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                      <Share2 className="w-3.5 h-3.5 text-[#035a70]" />
+                      Tautan Media Sosial Resmi
+                    </label>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Instagram, Facebook, LinkedIn, X, YouTube, atau TikTok (Maksimal 4 tautan)
+                    </p>
+                  </div>
+                  <span
+                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                      socialLinks.length >= 4
+                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                        : "bg-white text-gray-600 border-gray-200 shadow-2xs"
+                    }`}
+                  >
+                    {socialLinks.length}/4 Tautan
+                  </span>
+                </div>
+
+                {/* List of social links */}
+                <div className="space-y-2">
+                  {socialLinks.map((item, idx) => (
+                    <div
+                      key={item.id || idx}
+                      className="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-200 shadow-2xs transition-all hover:border-gray-300"
+                    >
+                      {/* Platform Select */}
+                      <div className="w-36 shrink-0 relative">
+                        <select
+                          value={item.platform}
+                          onChange={(e) => updateSocialLink(idx, "platform", e.target.value)}
+                          className="w-full pl-7 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 cursor-pointer appearance-none"
+                        >
+                          <option value="instagram">Instagram</option>
+                          <option value="facebook">Facebook</option>
+                          <option value="linkedin">LinkedIn</option>
+                          <option value="twitter">X / Twitter</option>
+                          <option value="youtube">YouTube</option>
+                          <option value="tiktok">TikTok</option>
+                          <option value="other">Lainnya</option>
+                        </select>
+                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                          {getSocialIcon(item.platform, "w-3.5 h-3.5")}
+                        </div>
+                      </div>
+
+                      {/* URL / Handle Input */}
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={item.url}
+                          onChange={(e) => updateSocialLink(idx, "url", e.target.value)}
+                          placeholder={getSocialPlaceholder(item.platform)}
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#035a70]/20 transition-all"
+                        />
+                      </div>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => removeSocialLink(idx)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 active:scale-95 cursor-pointer"
+                        title="Hapus tautan ini"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {socialLinks.length === 0 && (
+                    <div className="text-center py-3.5 px-4 border border-dashed border-gray-200 rounded-xl bg-white/60 text-[11px] text-gray-500">
+                      Belum ada media sosial ditambahkan. Klik tombol di bawah untuk menambahkan tautan resmi perusahaan.
+                    </div>
+                  )}
+                </div>
+
+                {/* Add button or limit reached */}
+                <div className="flex items-center justify-between pt-1">
+                  {socialLinks.length < 4 ? (
+                    <button
+                      type="button"
+                      onClick={addSocialLink}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-dashed border-[#035a70]/50 hover:border-[#035a70] text-[#035a70] bg-[#035a70]/5 hover:bg-[#035a70]/10 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Tambah Media Sosial ({socialLinks.length}/4)
+                    </button>
+                  ) : (
+                    <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                      ✓ Batas maksimal 4 tautan media sosial telah tercapai.
+                    </span>
+                  )}
+                  <span className="text-[10px] text-gray-400 italic">
+                    *Maksimal 4 tautan dapat dicantumkan di profil
+                  </span>
                 </div>
               </div>
 
@@ -1641,9 +1946,14 @@ export default function AiCompanyProfilePage() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-base font-black text-gray-900 truncate">
-                  {companyName || "Nama Perusahaan Anda"}
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-black text-gray-900 truncate">
+                    {companyName || "Nama Perusahaan Anda"}
+                  </h2>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-[#035a70]/10 text-[#035a70] border border-[#035a70]/20 shrink-0">
+                    {companyType}
+                  </span>
+                </div>
                 <p className="text-xs font-semibold text-[#035a70] mt-0.5">
                   {aiTagline || sector || "Sektor Industri & Bidang Usaha"}
                 </p>
@@ -1724,29 +2034,49 @@ export default function AiCompanyProfilePage() {
             )}
 
             {/* Footer Kontak */}
-            <div className="pt-3 border-t border-gray-100 grid grid-cols-2 gap-2 text-[10px] text-gray-500">
-              {email && (
-                <div className="flex items-center gap-1.5 truncate">
-                  <Mail className="w-3 h-3 text-[#035a70] shrink-0" />
-                  <span className="truncate">{email}</span>
-                </div>
-              )}
-              {phone && (
-                <div className="flex items-center gap-1.5 truncate">
-                  <Phone className="w-3 h-3 text-[#035a70] shrink-0" />
-                  <span className="truncate">{phone}</span>
-                </div>
-              )}
-              {website && (
-                <div className="flex items-center gap-1.5 truncate">
-                  <Globe className="w-3 h-3 text-[#035a70] shrink-0" />
-                  <span className="truncate">{website}</span>
-                </div>
-              )}
-              {address && (
-                <div className="flex items-center gap-1.5 truncate col-span-2">
-                  <MapPin className="w-3 h-3 text-[#035a70] shrink-0" />
-                  <span className="truncate">{address}</span>
+            <div className="pt-3 border-t border-gray-100 space-y-2 text-[10px] text-gray-500">
+              <div className="grid grid-cols-2 gap-2">
+                {email && (
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Mail className="w-3 h-3 text-[#035a70] shrink-0" />
+                    <span className="truncate">{email}</span>
+                  </div>
+                )}
+                {phone && (
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Phone className="w-3 h-3 text-[#035a70] shrink-0" />
+                    <span className="truncate">{phone}</span>
+                  </div>
+                )}
+                {website && (
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Globe className="w-3 h-3 text-[#035a70] shrink-0" />
+                    <span className="truncate">{website}</span>
+                  </div>
+                )}
+                {address && (
+                  <div className="flex items-center gap-1.5 truncate col-span-2">
+                    <MapPin className="w-3 h-3 text-[#035a70] shrink-0" />
+                    <span className="truncate">{address}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Social Media Links Pills in Preview */}
+              {socialLinks.filter((s) => s.url.trim() !== "").length > 0 && (
+                <div className="pt-1.5 border-t border-dashed border-gray-100 flex flex-wrap gap-1.5">
+                  {socialLinks
+                    .filter((s) => s.url.trim() !== "")
+                    .map((s, idx) => (
+                      <div
+                        key={s.id || idx}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-50 border border-gray-200/70 text-[9px] text-gray-700 max-w-[180px] truncate shadow-2xs"
+                      >
+                        {getSocialIcon(s.platform, "w-2.5 h-2.5")}
+                        <span className="font-bold capitalize text-gray-500">{s.platform}:</span>
+                        <span className="truncate font-medium">{s.url.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                      </div>
+                    ))}
                 </div>
               )}
             </div>

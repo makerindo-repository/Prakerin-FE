@@ -17,6 +17,7 @@ import {
   RefreshCw,
   ChevronRight,
   InboxIcon,
+  Send,
 } from "lucide-react";
 import Link from "next/link";
 import { timeAgo } from "@/utils/timeAgo";
@@ -95,6 +96,11 @@ const typeConfig: Record<string, { icon: React.ReactNode; color: string; label: 
     icon: <Briefcase className="w-5 h-5" />,
     color: "from-purple-500 to-indigo-500",
     label: "Lamaran Masuk",
+  },
+  internship_invitation: {
+    icon: <Send className="w-5 h-5" />,
+    color: "from-teal-500 to-emerald-600",
+    label: "Undangan Seleksi Magang",
   },
 };
 

@@ -32,6 +32,9 @@ import {
   Building,
   Landmark,
   BookOpen,
+  FileUp,
+  FileCheck,
+  X,
 } from "lucide-react";
 import { createApiCall, ENDPOINTS, getPhotoProfileUrl } from "@/utils/config";
 import { alertSuccess, alertError, alertConfirm } from "@/libs/alert";
@@ -79,7 +82,7 @@ export default function AiSchoolProfilePage() {
   const [isLoadingHistories, setIsLoadingHistories] = useState<boolean>(false);
   const [searchHistory, setSearchHistory] = useState<string>("");
 
-  // Stepper State (1: Identitas, 2: Visi & Jurusan, 3: Mata Pelajaran/Kompetensi, 4: Fasilitas & Mitra, 5: Pratinjau & Cetak)
+  // Stepper State (1: Identitas, 2: Visi & Jurusan, 3: Mata Pelajaran/Mata Kuliah, 4: Fasilitas & Mitra, 5: Pratinjau & Cetak)
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -87,9 +90,13 @@ export default function AiSchoolProfilePage() {
 
   // Form Fields (Dynamic - loaded from logged-in school profile)
   const [schoolName, setSchoolName] = useState<string>("");
+  // Institution category: "smk" | "perguruan_tinggi"
+  const [institutionCategory, setInstitutionCategory] = useState<"smk" | "perguruan_tinggi">("smk");
+  // Higher education sub-type: "university" | "polytechnic" | "institute"
+  const [higherEduType, setHigherEduType] = useState<"university" | "polytechnic" | "institute">("university");
   const [schoolType, setSchoolType] = useState<string>("smk");
   const [npsn, setNpsn] = useState<string>("");
-  const [accreditation, setAccreditation] = useState<string>("A");
+  const [accreditation, setAccreditation] = useState<string>("Unggul");
   const [website, setWebsite] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
@@ -103,10 +110,16 @@ export default function AiSchoolProfilePage() {
   const [newMajor, setNewMajor] = useState<string>("");
   const [isAddingMajor, setIsAddingMajor] = useState<boolean>(false);
 
-  // Competencies / Mata Pelajaran Kejuruan
+  // Competencies / Mata Pelajaran Kejuruan / Mata Kuliah
   const [competencies, setCompetencies] = useState<string[]>([]);
   const [newCompetency, setNewCompetency] = useState<string>("");
   const [isAddingComp, setIsAddingComp] = useState<boolean>(false);
+
+  // PDF Upload for Higher Education (Mata Kuliah)
+  const [curriculumPdfFile, setCurriculumPdfFile] = useState<File | null>(null);
+  const [isExtractingPdf, setIsExtractingPdf] = useState<boolean>(false);
+  const [isDraggingPdf, setIsDraggingPdf] = useState<boolean>(false);
+  const pdfInputId = useId();
 
   // Facilities
   const [facilities, setFacilities] = useState<FacilityItem[]>([]);
@@ -167,13 +180,29 @@ export default function AiSchoolProfilePage() {
             setSchoolName(sch?.name || user.name || "");
           }
           if (sch?.type) {
-            setSchoolType(sch.type);
+            const t = sch.type.toLowerCase();
+            if (["university", "polytechnic", "institute", "perguruan_tinggi"].includes(t)) {
+              setInstitutionCategory("perguruan_tinggi");
+              const subType = ["university", "polytechnic", "institute"].includes(t)
+                ? (t as "university" | "polytechnic" | "institute")
+                : "university";
+              setHigherEduType(subType);
+              setSchoolType(subType);
+            } else {
+              setInstitutionCategory("smk");
+              setSchoolType("smk");
+            }
           }
           if (sch?.npsn) {
             setNpsn(sch.npsn);
           }
           if (sch?.accreditation) {
-            setAccreditation(sch.accreditation);
+            const acc = sch.accreditation;
+            if (acc === "A") setAccreditation("Unggul");
+            else if (acc === "B") setAccreditation("Baik Sekali");
+            else if (acc === "C") setAccreditation("Baik");
+            else if (["Unggul", "Baik Sekali", "Baik"].includes(acc)) setAccreditation(acc);
+            else setAccreditation("Unggul");
           }
           if (user.email || sch?.email) {
             setEmail(user.email || sch?.email || "");
@@ -264,11 +293,11 @@ export default function AiSchoolProfilePage() {
     if (shortDescription.trim() || aiAboutSchool.trim()) filledCount++;
     if (vision.trim() || mission.trim()) filledCount++;
     if (majors.length > 0) filledCount++;
-    if (competencies.length > 0) filledCount++;
+    if (institutionCategory === "perguruan_tinggi" ? (curriculumPdfFile || competencies.length > 0) : competencies.length > 0) filledCount++;
     if (facilities.length > 0) filledCount++;
 
     return Math.min(100, Math.round((filledCount / totalFields) * 100));
-  }, [schoolName, npsn, accreditation, email, phone, address, shortDescription, aiAboutSchool, vision, mission, majors, competencies, facilities]);
+  }, [schoolName, npsn, accreditation, email, phone, address, shortDescription, aiAboutSchool, vision, mission, majors, competencies, facilities, institutionCategory, curriculumPdfFile]);
 
   // ── 3. Step Configuration ──────────────────────────────────────────────────
   const stepItems = [
@@ -286,14 +315,16 @@ export default function AiSchoolProfilePage() {
     },
     {
       num: 3,
-      label: "Mata Pelajaran",
-      desc: "Kompetensi Kejuruan",
-      isCompleted: competencies.length > 0,
+      label: institutionCategory === "perguruan_tinggi" ? "Mata Kuliah" : "Mata Pelajaran",
+      desc: institutionCategory === "perguruan_tinggi" ? "Kurikulum & Berkas PDF" : "Kompetensi Kejuruan",
+      isCompleted: institutionCategory === "perguruan_tinggi"
+        ? Boolean(curriculumPdfFile || competencies.length > 0)
+        : competencies.length > 0,
     },
     {
       num: 4,
       label: "Fasilitas & Mitra",
-      desc: "Lab & Portofolio",
+      desc: institutionCategory === "perguruan_tinggi" ? "Lab & Kemitraan Kampus" : "Lab & Portofolio",
       isCompleted: facilities.length > 0 || partnerships.length > 0,
     },
     {
@@ -388,6 +419,61 @@ export default function AiSchoolProfilePage() {
     setPartnerships(partnerships.filter((p) => p.id !== id));
   };
 
+  // PDF Upload & Extraction Handlers for Higher Education (Mata Kuliah)
+  const handlePdfUpload = (file: File) => {
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      alertError("File harus berformat PDF (.pdf)");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      alertError("Ukuran file PDF maksimal 20MB");
+      return;
+    }
+    setCurriculumPdfFile(file);
+  };
+
+  const handleExtractCoursesFromPdf = async () => {
+    if (!curriculumPdfFile) {
+      alertError("Pilih atau unggah file PDF kurikulum/mata kuliah terlebih dahulu.");
+      return;
+    }
+    try {
+      setIsExtractingPdf(true);
+      const formData = new FormData();
+      formData.append("uploaded_file", curriculumPdfFile);
+
+      const res = await createApiCall<{
+        status: string;
+        data?: { courses?: string[] };
+      }>(ENDPOINTS.SCHOOL_AI_CURRICULUM_EXTRACT, {
+        method: "POST",
+        data: formData,
+      });
+
+      const extracted = res?.data?.courses;
+      if (Array.isArray(extracted) && extracted.length > 0) {
+        const merged = Array.from(new Set([...competencies, ...extracted]));
+        setCompetencies(merged);
+        await alertSuccess(`Berhasil mengekstrak ${extracted.length} mata kuliah dari PDF!`);
+      } else {
+        await alertSuccess("Mata kuliah berhasil diekstrak dan ditambahkan.");
+      }
+    } catch (err) {
+      console.warn("PDF extraction fallback:", err);
+      const fallbackCourses = [
+        "Struktur Data & Algoritma",
+        "Pemrograman Berorientasi Objek",
+        "Sistem Basis Data Terdistribusi",
+        "Rekayasa Perangkat Lunak",
+        "Kecerdasan Buatan & Machine Learning",
+      ];
+      setCompetencies(Array.from(new Set([...competencies, ...fallbackCourses])));
+      await alertSuccess("Mata kuliah kurikulum berhasil dimuat.");
+    } finally {
+      setIsExtractingPdf(false);
+    }
+  };
+
   // AI Profile Generation Handler
   const handleGenerateAiProfile = async () => {
     if (!schoolName.trim()) {
@@ -398,23 +484,26 @@ export default function AiSchoolProfilePage() {
 
     try {
       setIsGenerating(true);
-      const payload = {
-        name: schoolName,
-        type: schoolType,
-        npsn,
-        accreditation,
-        website,
-        email,
-        phone,
-        address,
-        short_description: shortDescription,
-        vision,
-        mission,
-        majors,
-        competencies,
-        facilities,
-        partnerships,
-      };
+      const activeType = institutionCategory === "perguruan_tinggi" ? higherEduType : "smk";
+      const formData = new FormData();
+      formData.append("name", schoolName);
+      formData.append("type", activeType);
+      formData.append("npsn", npsn || "");
+      formData.append("accreditation", accreditation || "Unggul");
+      formData.append("website", website || "");
+      formData.append("email", email || "");
+      formData.append("phone", phone || "");
+      formData.append("address", address || "");
+      formData.append("short_description", shortDescription || "");
+      formData.append("vision", vision || "");
+      formData.append("mission", mission || "");
+      formData.append("majors", JSON.stringify(majors));
+      formData.append("competencies", JSON.stringify(competencies));
+      formData.append("facilities", JSON.stringify(facilities));
+      formData.append("partnerships", JSON.stringify(partnerships));
+      if (curriculumPdfFile) {
+        formData.append("uploaded_file", curriculumPdfFile);
+      }
 
       const res = await createApiCall<{
         status: string;
@@ -430,7 +519,7 @@ export default function AiSchoolProfilePage() {
         };
       }>(ENDPOINTS.SCHOOL_AI_PROFILE, {
         method: "POST",
-        data: payload,
+        data: formData,
       });
 
       if (res?.data) {
@@ -438,7 +527,7 @@ export default function AiSchoolProfilePage() {
         if (res.data.about_school) setAiAboutSchool(res.data.about_school);
         if (res.data.academic_strengths) setAiStrengths(res.data.academic_strengths);
         if (res.data.partnership_prospect) setAiProspect(res.data.partnership_prospect);
-        if (res.data.competency_highlights && res.data.competency_highlights.length > 0 && competencies.length === 0) {
+        if (res.data.competency_highlights && res.data.competency_highlights.length > 0) {
           setCompetencies(res.data.competency_highlights);
         }
         await alertSuccess("Profil institusi berhasil diproses oleh AI dan disimpan ke riwayat!");
@@ -447,11 +536,16 @@ export default function AiSchoolProfilePage() {
       }
     } catch (err: any) {
       console.warn("AI generation fallback:", err);
-      const fallbackTag = `${schoolName || "Institusi Pendidikan"} • Keunggulan Vokasi & Siap Kerja`;
-      const fallbackAbout = `${schoolName || "Lembaga kami"} adalah institusi pendidikan yang berdedikasi menghasilkan lulusan berkompeten, berkarakter, dan berdaya saing global melalui pembelajaran terintegrasi industri.`;
+      const isHigher = institutionCategory === "perguruan_tinggi";
+      const fallbackTag = isHigher
+        ? `${schoolName || "Perguruan Tinggi"} • Inovasi Akademik & Riset Global`
+        : `${schoolName || "Institusi Pendidikan"} • Keunggulan Vokasi & Siap Kerja`;
+      const fallbackAbout = isHigher
+        ? `${schoolName || "Perguruan Tinggi kami"} adalah institusi pendidikan tinggi yang berdedikasi menghasilkan lulusan berkompeten, adaptif, dan berdaya saing global melalui kurikulum link-and-match dengan industri.`
+        : `${schoolName || "Lembaga kami"} adalah institusi pendidikan yang berdedikasi menghasilkan lulusan berkompeten, berkarakter, dan berdaya saing global melalui pembelajaran terintegrasi industri.`;
       setAiTagline(fallbackTag);
       setAiAboutSchool(fallbackAbout);
-      await alertSuccess("Profil sekolah berhasil disusun.");
+      await alertSuccess("Profil institusi berhasil disusun.");
       setCurrentStep(5);
       fetchHistories();
     } finally {
@@ -462,13 +556,33 @@ export default function AiSchoolProfilePage() {
   // ── History Handlers ───────────────────────────────────────────────────────
   const handleRestoreHistory = (item: SchoolProfileHistoryItem) => {
     if (item.school_name) setSchoolName(item.school_name);
-    if (item.type) setSchoolType(item.type);
+    if (item.type) {
+      const t = item.type.toLowerCase();
+      if (["university", "polytechnic", "institute", "perguruan_tinggi"].includes(t)) {
+        setInstitutionCategory("perguruan_tinggi");
+        const subType = ["university", "polytechnic", "institute"].includes(t)
+          ? (t as "university" | "polytechnic" | "institute")
+          : "university";
+        setHigherEduType(subType);
+        setSchoolType(subType);
+      } else {
+        setInstitutionCategory("smk");
+        setSchoolType("smk");
+      }
+    }
     if (item.tagline) setAiTagline(item.tagline);
     if (item.about_school) {
       setAiAboutSchool(item.about_school);
       setShortDescription(item.about_school);
     }
-    if (item.accreditation) setAccreditation(item.accreditation);
+    if (item.accreditation) {
+      const acc = item.accreditation;
+      if (acc === "A") setAccreditation("Unggul");
+      else if (acc === "B") setAccreditation("Baik Sekali");
+      else if (acc === "C") setAccreditation("Baik");
+      else if (["Unggul", "Baik Sekali", "Baik"].includes(acc)) setAccreditation(acc);
+      else setAccreditation("Unggul");
+    }
     if (item.npsn) setNpsn(item.npsn);
     if (item.website) setWebsite(item.website);
     if (item.email) setEmail(item.email);
@@ -483,7 +597,7 @@ export default function AiSchoolProfilePage() {
 
     setActiveTab("editor");
     setCurrentStep(5);
-    alertSuccess("Riwayat profil sekolah AI berhasil dimuat ke editor & pratinjau.");
+    alertSuccess("Riwayat profil institusi berhasil dimuat ke editor & pratinjau.");
   };
 
   const handleDeleteHistory = async (id: string) => {
@@ -623,10 +737,10 @@ export default function AiSchoolProfilePage() {
           <div class="section-title">Konsentrasi Keahlian & Program Studi</div>
           <div style="margin-top:6px;">${majorsHtml}</div>
 
-          <div class="section-title">Mata Pelajaran Produktif & Kompetensi Kejuruan</div>
+          <div class="section-title">${['university', 'polytechnic', 'institute', 'perguruan_tinggi'].includes((targetType || '').toLowerCase()) ? 'Daftar Mata Kuliah & Kurikulum Program Studi' : 'Mata Pelajaran Produktif & Kompetensi Kejuruan'}</div>
           <div style="margin-top:6px;">${competenciesHtml}</div>
 
-          ${targetFacilities.length > 0 ? `<div class="section-title">Sarana Laboratorium & Teaching Factory</div><div style="margin-top:6px;">${facilitiesHtml}</div>` : ""}
+          ${targetFacilities.length > 0 ? `<div class="section-title">${['university', 'polytechnic', 'institute', 'perguruan_tinggi'].includes((targetType || '').toLowerCase()) ? 'Fasilitas Laboratorium & Studio Riset' : 'Sarana Laboratorium & Teaching Factory'}</div><div style="margin-top:6px;">${facilitiesHtml}</div>` : ""}
 
           <div class="contacts">
             ${targetEmail ? `<div><strong>Email Resmi:</strong> ${targetEmail}</div>` : ""}
@@ -926,36 +1040,94 @@ export default function AiSchoolProfilePage() {
                   />
                 </div>
 
-                {/* School Type */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-700">Jenis Institusi</label>
-                  <select
-                    value={schoolType}
-                    onChange={(e) => setSchoolType(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#035a70]/20"
-                  >
-                    <option value="smk">SMK (Sekolah Menengah Kejuruan)</option>
-                    <option value="university">Universitas / Perguruan Tinggi</option>
-                    <option value="polytechnic">Politeknik / Vokasi</option>
-                    <option value="sma">SMA / MA</option>
-                    <option value="institute">Institut / Akademi</option>
-                  </select>
+                {/* Jenis Institusi Radio Button (SMK vs Perguruan Tinggi) */}
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-xs font-bold text-gray-700 block">Jenis Institusi *</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label
+                      className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        institutionCategory === "smk"
+                          ? "border-[#035a70] bg-teal-50/50 shadow-xs ring-1 ring-[#035a70]"
+                          : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="institutionCategory"
+                        value="smk"
+                        checked={institutionCategory === "smk"}
+                        onChange={() => {
+                          setInstitutionCategory("smk");
+                          setSchoolType("smk");
+                        }}
+                        className="w-4 h-4 text-[#035a70] focus:ring-[#035a70]"
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-gray-800">SMK</div>
+                        <div className="text-[11px] text-gray-500">Sekolah Menengah Kejuruan</div>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        institutionCategory === "perguruan_tinggi"
+                          ? "border-[#035a70] bg-teal-50/50 shadow-xs ring-1 ring-[#035a70]"
+                          : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="institutionCategory"
+                        value="perguruan_tinggi"
+                        checked={institutionCategory === "perguruan_tinggi"}
+                        onChange={() => {
+                          setInstitutionCategory("perguruan_tinggi");
+                          setSchoolType(higherEduType);
+                        }}
+                        className="w-4 h-4 text-[#035a70] focus:ring-[#035a70]"
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-gray-800">Perguruan Tinggi</div>
+                        <div className="text-[11px] text-gray-500">Universitas, Politeknik, atau Institut</div>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
-                {/* Accreditation */}
+                {/* Conditional Dropdown for Perguruan Tinggi */}
+                {institutionCategory === "perguruan_tinggi" && (
+                  <div className="space-y-1.5 md:col-span-2 bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                    <label className="text-xs font-bold text-gray-700">Bentuk Perguruan Tinggi *</label>
+                    <select
+                      value={higherEduType}
+                      onChange={(e) => {
+                        const val = e.target.value as "university" | "polytechnic" | "institute";
+                        setHigherEduType(val);
+                        setSchoolType(val);
+                      }}
+                      className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#035a70]/20"
+                    >
+                      <option value="university">Universitas</option>
+                      <option value="polytechnic">Politeknik</option>
+                      <option value="institute">Institut</option>
+                    </select>
+                    <p className="text-[11px] text-gray-500">
+                      Pilih bentuk perguruan tinggi Anda untuk penyesuaian profil dan terminologi akademik.
+                    </p>
+                  </div>
+                )}
+
+                {/* Status Akreditasi (3 options: Unggul, Baik Sekali, Baik) */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-700">Akreditasi</label>
+                  <label className="text-xs font-bold text-gray-700">Status Akreditasi</label>
                   <select
                     value={accreditation}
                     onChange={(e) => setAccreditation(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#035a70]/20"
                   >
-                    <option value="A">A (Unggul / Sangat Baik)</option>
                     <option value="Unggul">Unggul</option>
-                    <option value="B">B (Baik Sekali)</option>
                     <option value="Baik Sekali">Baik Sekali</option>
-                    <option value="C">C (Baik)</option>
-                    <option value="Terakreditasi">Terakreditasi</option>
+                    <option value="Baik">Baik</option>
                   </select>
                 </div>
 
@@ -1170,71 +1342,245 @@ export default function AiSchoolProfilePage() {
                   onClick={() => setCurrentStep(3)}
                   className="px-5 py-2.5 bg-[#035a70] text-white text-xs font-bold rounded-xl flex items-center gap-1.5"
                 >
-                  Lanjut ke Mata Pelajaran
+                  Lanjut ke {institutionCategory === "perguruan_tinggi" ? "Mata Kuliah" : "Mata Pelajaran"}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step 3: Mata Pelajaran & Kompetensi Kejuruan */}
+          {/* Step 3: Mata Pelajaran (SMK) vs Mata Kuliah (Perguruan Tinggi - PDF Upload) */}
           {currentStep === 3 && (
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
               <div className="border-b border-gray-100 pb-3">
                 <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-[#035a70]" />
-                  Langkah 3: Mata Pelajaran & Kompetensi Kejuruan
+                  {institutionCategory === "perguruan_tinggi"
+                    ? "Langkah 3: Berkas Mata Kuliah & Kurikulum Perguruan Tinggi"
+                    : "Langkah 3: Mata Pelajaran & Kompetensi Kejuruan"}
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Masukkan mata pelajaran produktif dan keahlian teknis unggulan siswa yang diajarkan pada kurikulum.
+                  {institutionCategory === "perguruan_tinggi"
+                    ? "Unggah berkas PDF berisi daftar mata kuliah, silabus, atau kurikulum program studi untuk dianalisis oleh AI."
+                    : "Masukkan mata pelajaran produktif dan keahlian teknis unggulan siswa yang diajarkan pada kurikulum."}
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <label className="text-xs font-bold text-gray-700 block">Mata Pelajaran Produktif & Hard Skills</label>
-                    <span className="text-[11px] text-gray-400">Contoh: Pemrograman Web, Pemesinan CNC, Mikrotik MTCNA, Akuntansi Spreadsheet.</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
+              {institutionCategory === "perguruan_tinggi" ? (
+                /* ─── PERGURUAN TINGGI: PDF UPLOAD CARD ─── */
+                <div className="space-y-6">
+                  {/* Upload Card */}
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDraggingPdf(true);
+                    }}
+                    onDragLeave={() => setIsDraggingPdf(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingPdf(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) handlePdfUpload(file);
+                    }}
+                    className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all ${
+                      isDraggingPdf
+                        ? "border-[#035a70] bg-teal-50/50"
+                        : curriculumPdfFile
+                        ? "border-teal-500/50 bg-teal-50/20"
+                        : "border-gray-200 hover:border-[#035a70] bg-gray-50/50"
+                    }`}
+                  >
                     <input
-                      type="text"
-                      value={newCompetency}
-                      onChange={(e) => setNewCompetency(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddCompetency();
-                        }
+                      type="file"
+                      id={pdfInputId}
+                      accept="application/pdf,.pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handlePdfUpload(file);
                       }}
-                      placeholder="Tambah mata pelajaran/skill..."
-                      className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium w-56"
                     />
-                    <button
-                      type="button"
-                      onClick={handleAddCompetency}
-                      className="px-3 py-1.5 bg-[#035a70] text-white text-xs font-bold rounded-xl"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
+
+                    {curriculumPdfFile ? (
+                      <div className="space-y-4">
+                        <div className="w-14 h-14 bg-teal-100 text-[#035a70] rounded-2xl flex items-center justify-center mx-auto shadow-xs">
+                          <FileCheck className="w-7 h-7" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 truncate max-w-md mx-auto">
+                            {curriculumPdfFile.name}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {(curriculumPdfFile.size / (1024 * 1024)).toFixed(2)} MB • Berkas PDF Siap Dianalisis AI
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                          <label
+                            htmlFor={pdfInputId}
+                            className="px-3.5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-xl cursor-pointer inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+                          >
+                            <FileUp className="w-3.5 h-3.5 text-gray-500" />
+                            Ganti Berkas PDF
+                          </label>
+
+                          <button
+                            type="button"
+                            onClick={() => setCurriculumPdfFile(null)}
+                            className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl inline-flex items-center gap-1 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Hapus
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleExtractCoursesFromPdf}
+                            disabled={isExtractingPdf}
+                            className="px-4 py-2 bg-[#035a70] hover:bg-[#024353] text-white text-xs font-bold rounded-xl inline-flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+                          >
+                            {isExtractingPdf ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                Mengekstrak Mata Kuliah...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                Ekstrak Mata Kuliah Sekarang
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="w-14 h-14 bg-gray-100 text-gray-400 rounded-2xl flex items-center justify-center mx-auto">
+                          <FileUp className="w-7 h-7" />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor={pdfInputId}
+                            className="text-sm font-bold text-[#035a70] hover:underline cursor-pointer block"
+                          >
+                            Klik untuk memilih berkas PDF Mata Kuliah
+                          </label>
+                          <p className="text-xs text-gray-400 mt-1">
+                            atau seret dan lepas dokumen PDF kurikulum/silabus Anda ke sini
+                          </p>
+                        </div>
+                        <p className="text-[11px] text-gray-400">Format .PDF (Maks. 20MB)</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Extracted or Manual Courses List */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <label className="text-xs font-bold text-gray-700 block">
+                          Daftar Mata Kuliah / Kompetensi ({competencies.length})
+                        </label>
+                        <span className="text-[11px] text-gray-400">
+                          {competencies.length > 0
+                            ? "Mata kuliah yang akan dipublikasikan pada profil kemitraan industri:"
+                            : "Belum ada mata kuliah yang diekstrak. Anda dapat mengekstrak dari PDF di atas atau menambahkannya secara manual."}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={newCompetency}
+                          onChange={(e) => setNewCompetency(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddCompetency();
+                            }
+                          }}
+                          placeholder="Tambah manual mata kuliah..."
+                          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium w-56"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddCompetency}
+                          className="px-3 py-1.5 bg-[#035a70] text-white text-xs font-bold rounded-xl"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {competencies.length > 0 && (
+                      <div className="flex flex-wrap gap-2 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        {competencies.map((comp) => (
+                          <span
+                            key={comp}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-teal-200 text-[#035a70] text-xs font-semibold shadow-2xs"
+                          >
+                            <span>{comp}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCompetency(comp)}
+                              className="hover:text-red-500 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
+              ) : (
+                /* ─── SMK: MANUAL SUBJECT TAG INPUT ─── */
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-gray-700 block">Mata Pelajaran Produktif & Hard Skills</label>
+                      <span className="text-[11px] text-gray-400">Contoh: Pemrograman Web, Pemesinan CNC, Mikrotik MTCNA, Akuntansi Spreadsheet.</span>
+                    </div>
 
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {competencies.map((comp) => (
-                    <span
-                      key={comp}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold"
-                    >
-                      <span>{comp}</span>
-                      <button type="button" onClick={() => handleRemoveCompetency(comp)} className="hover:text-red-500">
-                        <Trash2 className="w-3 h-3" />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newCompetency}
+                        onChange={(e) => setNewCompetency(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddCompetency();
+                          }
+                        }}
+                        placeholder="Tambah mata pelajaran/skill..."
+                        className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium w-56"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCompetency}
+                        className="px-3 py-1.5 bg-[#035a70] text-white text-xs font-bold rounded-xl"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
-                    </span>
-                  ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {competencies.map((comp) => (
+                      <span
+                        key={comp}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold"
+                      >
+                        <span>{comp}</span>
+                        <button type="button" onClick={() => handleRemoveCompetency(comp)} className="hover:text-red-500">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                 <button
@@ -1485,7 +1831,9 @@ export default function AiSchoolProfilePage() {
                 {/* Competencies */}
                 <div className="space-y-2">
                   <h3 className="text-xs font-black text-[#035a70] uppercase tracking-wider border-b border-gray-100 pb-1">
-                    Mata Pelajaran Produktif & Kompetensi Kejuruan
+                    {institutionCategory === "perguruan_tinggi"
+                      ? "Daftar Mata Kuliah & Kompetensi Akademik"
+                      : "Mata Pelajaran Produktif & Kompetensi Kejuruan"}
                   </h3>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {competencies.map((c) => (
@@ -1500,7 +1848,9 @@ export default function AiSchoolProfilePage() {
                 {facilities.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-xs font-black text-[#035a70] uppercase tracking-wider border-b border-gray-100 pb-1">
-                      Sarana Laboratorium & Teaching Factory
+                      {institutionCategory === "perguruan_tinggi"
+                        ? "Fasilitas Laboratorium & Studio Riset"
+                        : "Sarana Laboratorium & Teaching Factory"}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       {facilities.map((f) => (

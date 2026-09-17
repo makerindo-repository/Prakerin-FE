@@ -31,7 +31,11 @@ import {
   Languages,
   Target,
   Rocket,
-  ShieldCheck
+  ShieldCheck,
+  Info,
+  HelpCircle,
+  BookOpen,
+  GraduationCap
 } from "lucide-react";
 import Cookies from "js-cookie";
 import { createApiCall, API, ENDPOINTS } from "@/utils/config";
@@ -583,11 +587,17 @@ function AiAnalyticsPageInner() {
       {/* ─── TOP HEADER ─── */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            Analisa CV
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Unggah CV, temukan kekuatan, tingkatkan kompetensi, dan dapatkan rekomendasi magang terbaik.
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+              Analisa CV
+            </h1>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-50 text-[#035a70] border border-teal-200 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              ATS &amp; AI Engine
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-3xl leading-relaxed">
+            Evaluasi komprehensif berbasis <strong>Applicant Tracking System (ATS)</strong> dan AI Gemini untuk menguji keterbacaan berkas, keselarasan kata kunci kompetensi industri, kesiapan magang, serta validasi data profil Anda.
           </p>
         </div>
 
@@ -901,21 +911,40 @@ function AiAnalyticsPageInner() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 
                 {/* Card 1: ATS Score */}
-                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-teal-50 text-[#035a70] rounded-xl">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="text-xs text-gray-500 font-semibold block">Skor CV ATS</span>
-                      <div className="flex items-baseline gap-1.5 mt-0.5">
-                        <span className="text-2xl font-extrabold text-gray-900">{atsScore}/100</span>
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3 relative group/card">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-teal-50 text-[#035a70] rounded-xl shrink-0">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-gray-500 font-semibold block">Skor CV ATS</span>
+                          {/* Info Tooltip */}
+                          <div className="relative group">
+                            <button
+                              type="button"
+                              className="text-gray-400 hover:text-[#035a70] transition-colors cursor-pointer"
+                              title="Penjelasan Skor CV ATS"
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-72 p-3.5 bg-gray-900 text-white text-[11px] rounded-xl shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-30 leading-relaxed border border-gray-800">
+                              <p className="font-bold text-teal-400 mb-1">Skor CV ATS (0 - 100)</p>
+                              Mengukur seberapa ramah dokumen CV Anda terhadap sistem pemindai otomatis HRD (Applicant Tracking System). Dinilai dari struktur 1-kolom rapi, teks terbaca tanpa tabel kompleks, dan ketiadaan format yang berisiko gagal dibaca mesin.
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="text-2xl font-extrabold text-gray-900">{atsScore}/100</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between items-center text-xs font-bold text-[#035a70]">
                       <span>{atsQuality}</span>
+                      <span className="text-[10px] text-gray-400 font-normal">Keterbacaan Dokumen</span>
                     </div>
                     <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                       <div 
@@ -926,22 +955,41 @@ function AiAnalyticsPageInner() {
                   </div>
                 </div>
 
-                {/* Card 2: Competency Match */}
-                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-teal-50 text-[#035a70] rounded-xl">
-                      <Target className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="text-xs text-gray-500 font-semibold block">Kesesuaian Kompetensi</span>
-                      <div className="flex items-baseline gap-1.5 mt-0.5">
-                        <span className="text-2xl font-extrabold text-gray-900">{competencyScore}%</span>
+                {/* Card 2: Competency Match (Kesesuaian ATS) */}
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3 relative group/card">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-teal-50 text-[#035a70] rounded-xl shrink-0">
+                        <Target className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-gray-500 font-semibold block">Kesesuaian ATS</span>
+                          {/* Info Tooltip */}
+                          <div className="relative group">
+                            <button
+                              type="button"
+                              className="text-gray-400 hover:text-[#035a70] transition-colors cursor-pointer"
+                              title="Penjelasan Kesesuaian ATS"
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-72 p-3.5 bg-gray-900 text-white text-[11px] rounded-xl shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-30 leading-relaxed border border-gray-800">
+                              <p className="font-bold text-teal-400 mb-1">Kesesuaian ATS &amp; Kompetensi</p>
+                              Menganalisis kecocokan kata kunci teknis (hard skills) dan soft skills di CV Anda terhadap syarat lowongan magang industri. Semakin tinggi skor, semakin besar peluang CV lolos filter kata kunci HRD.
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="text-2xl font-extrabold text-gray-900">{competencyScore}%</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between items-center text-xs font-bold text-[#035a70]">
                       <span>{competencyQuality}</span>
+                      <span className="text-[10px] text-gray-400 font-normal">Kecocokan Kata Kunci</span>
                     </div>
                     <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                       <div 
@@ -953,21 +1001,40 @@ function AiAnalyticsPageInner() {
                 </div>
 
                 {/* Card 3: Internship Readiness */}
-                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-teal-50 text-[#035a70] rounded-xl">
-                      <Briefcase className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="text-xs text-gray-500 font-semibold block">Kesiapan Magang</span>
-                      <div className="flex items-baseline gap-1.5 mt-0.5">
-                        <span className="text-2xl font-extrabold text-gray-900">{readinessScore}%</span>
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3 relative group/card">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-teal-50 text-[#035a70] rounded-xl shrink-0">
+                        <Briefcase className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-gray-500 font-semibold block">Kesiapan Magang</span>
+                          {/* Info Tooltip */}
+                          <div className="relative group">
+                            <button
+                              type="button"
+                              className="text-gray-400 hover:text-[#035a70] transition-colors cursor-pointer"
+                              title="Penjelasan Kesiapan Magang"
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-72 p-3.5 bg-gray-900 text-white text-[11px] rounded-xl shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-30 leading-relaxed border border-gray-800">
+                              <p className="font-bold text-teal-400 mb-1">Kesiapan Magang Kerja</p>
+                              Menilai kesiapan praktis kandidat berdasarkan portofolio proyek riil, relevansi mata pelajaran / mata kuliah keahlian, serta pengalaman kerja lapangan sebelum ditempatkan di industri.
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="text-2xl font-extrabold text-gray-900">{readinessScore}%</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between items-center text-xs font-bold text-[#035a70]">
                       <span>{readinessQuality}</span>
+                      <span className="text-[10px] text-gray-400 font-normal">Kematangan Praktik</span>
                     </div>
                     <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                       <div 
@@ -979,21 +1046,40 @@ function AiAnalyticsPageInner() {
                 </div>
 
                 {/* Card 4: Verified Profile */}
-                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-teal-50 text-[#035a70] rounded-xl">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="text-xs text-gray-500 font-semibold block">Profil Terverifikasi</span>
-                      <div className="flex items-baseline gap-1.5 mt-0.5">
-                        <span className="text-2xl font-extrabold text-gray-900">{verificationScore}%</span>
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3 relative group/card">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-teal-50 text-[#035a70] rounded-xl shrink-0">
+                        <ShieldCheck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-gray-500 font-semibold block">Profil Verifikasi</span>
+                          {/* Info Tooltip */}
+                          <div className="relative group">
+                            <button
+                              type="button"
+                              className="text-gray-400 hover:text-[#035a70] transition-colors cursor-pointer"
+                              title="Penjelasan Profil Verifikasi"
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="absolute right-0 top-full mt-2 w-72 p-3.5 bg-gray-900 text-white text-[11px] rounded-xl shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-30 leading-relaxed border border-gray-800">
+                              <p className="font-bold text-teal-400 mb-1">Status Verifikasi Akun</p>
+                              Mengukur kelengkapan dan keabsahan data siswa/mahasiswa: terhubung ke SMK/Perguruan Tinggi resmi mitra, kontak aktif (email &amp; WhatsApp), serta portofolio valid.
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="text-2xl font-extrabold text-gray-900">{verificationScore}%</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between items-center text-xs font-bold text-[#035a70]">
                       <span>{verificationStatus}</span>
+                      <span className="text-[10px] text-gray-400 font-normal">Validitas Akun Resmi</span>
                     </div>
                     <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                       <div 
@@ -1152,7 +1238,13 @@ function AiAnalyticsPageInner() {
 
                     {/* Column 2: Temuan Perbaikan (4 cols) */}
                     <div className="md:col-span-4 space-y-3">
-                      <h4 className="text-xs font-bold text-gray-800">Temuan Perbaikan</h4>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-gray-800">Rekomendasi Peningkatan CV</h4>
+                        <span className="text-[10px] text-gray-500 font-medium">{improvements.length} Poin Perbaikan</span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 leading-snug">
+                        Fokus pada poin-poin berikut untuk menaikkan skor ATS dan daya tarik bagi HRD:
+                      </p>
                       <div className="space-y-2.5">
                         {improvements.map((item, idx) => {
                           const isHigh = item.priority?.toLowerCase() === "tinggi";
@@ -1164,7 +1256,7 @@ function AiAnalyticsPageInner() {
                             : "bg-gray-100 text-gray-600 border border-gray-200";
 
                           return (
-                            <div key={idx} className="flex items-start justify-between gap-2 text-xs text-gray-700">
+                            <div key={idx} className="flex items-start justify-between gap-2 text-xs text-gray-700 p-2 rounded-xl bg-gray-50/60 border border-gray-100">
                               <div className="flex items-start gap-1.5 flex-1">
                                 <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                                 <span className="leading-snug">{item.issue}</span>
@@ -1349,9 +1441,18 @@ function AiAnalyticsPageInner() {
 
                   {/* Right: Rekomendasi Belajar untuk Anda (5 cols) */}
                   <div className="lg:col-span-5 space-y-4">
-                    <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
-                      Rekomendasi Belajar untuk Anda
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <GraduationCap className="w-4 h-4 text-[#035a70]" />
+                        Rekomendasi Kelas &amp; Modul Online
+                      </h4>
+                      <Link
+                        href="/dashboard/student/pre-internship-classes"
+                        className="text-[11px] font-semibold text-[#035a70] hover:underline flex items-center gap-0.5"
+                      >
+                        Katalog Kelas &gt;
+                      </Link>
+                    </div>
 
                     <div className="space-y-3">
                       {learningRecs.map((mod, idx) => {
@@ -1375,9 +1476,14 @@ function AiAnalyticsPageInner() {
                                 <IconComp className="w-4 h-4" />
                               </div>
                               <div className="space-y-1 min-w-0">
-                                <h5 className="font-bold text-xs sm:text-sm text-gray-900 truncate">
-                                  {mod.title}
-                                </h5>
+                                <div className="flex items-center gap-1.5">
+                                  <h5 className="font-bold text-xs sm:text-sm text-gray-900 truncate">
+                                    {mod.title}
+                                  </h5>
+                                  <span className="text-[9px] px-1.5 py-0.2 bg-teal-50 text-teal-700 border border-teal-200 rounded font-semibold shrink-0">
+                                    Kelas Online
+                                  </span>
+                                </div>
                                 <p className="text-xs text-gray-500 leading-snug line-clamp-2">
                                   {mod.description}
                                 </p>
@@ -1388,10 +1494,11 @@ function AiAnalyticsPageInner() {
                             </div>
 
                             <Link
-                              href="/dashboard/ai-report"
+                              href="/dashboard/student/pre-internship-classes"
                               className="px-3.5 py-1.5 border border-gray-300 hover:border-[#035a70] hover:text-[#035a70] bg-white rounded-lg text-xs font-bold text-gray-700 transition-colors shrink-0 cursor-pointer"
+                              title="Buka Kelas Online Terkait"
                             >
-                              Mulai
+                              Ikuti Kelas
                             </Link>
                           </div>
                         );
