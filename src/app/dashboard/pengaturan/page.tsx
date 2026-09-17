@@ -30,6 +30,8 @@ import {
   Banknote,
   Upload,
   Image as ImageIcon,
+  Send,
+  RefreshCw,
 } from "lucide-react";
 
 export default function PengaturanPage() {
@@ -273,6 +275,52 @@ function PengaturanContent() {
       alertError(msg);
     } finally {
       setIsTestingSmtp(false);
+    }
+  };
+
+  const [testEmailRecipient, setTestEmailRecipient] = useState<string>("");
+  const [isSendingTestEmail, setIsSendingTestEmail] = useState<boolean>(false);
+
+  const handleSendTestEmail = async () => {
+    if (!testEmailRecipient.trim()) {
+      alertError("Harap masukkan alamat email tujuan uji coba.");
+      return;
+    }
+
+    setIsSendingTestEmail(true);
+    try {
+      // First save settings so backend has latest config
+      await API.post(
+        ENDPOINTS.SETTINGS,
+        { settings: form },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      const response = await API.post(
+        `${ENDPOINTS.SETTINGS}/send-test-email`,
+        { recipient_email: testEmailRecipient.trim() },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("userToken")}`,
+          },
+        }
+      );
+
+      if (response.data?.status === "success") {
+        alertSuccess(response.data.message || `Email uji coba berhasil dikirim ke ${testEmailRecipient}!`);
+      } else {
+        alertError(response.data?.message || "Gagal mengirim email uji coba.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Gagal mengirim email uji coba.";
+      alertError(msg);
+    } finally {
+      setIsSendingTestEmail(false);
     }
   };
 
@@ -1302,7 +1350,50 @@ function PengaturanContent() {
                       value={form.smtp_from_name}
                       onChange={handleInputChange}
                       placeholder="Prakerin Indonesia"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
                     />
+                  </div>
+                </div>
+
+                {/* Direct Test Email Box */}
+                <div className="mt-6 p-4.5 bg-gradient-to-r from-indigo-50/70 via-purple-50/40 to-blue-50/60 border border-indigo-100/80 rounded-2xl">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h5 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <Send className="w-4 h-4 text-indigo-600" />
+                        Kirim Email Uji Coba Langsung
+                      </h5>
+                      <p className="text-xs text-gray-500">
+                        Kirim email nyata ke alamat tujuan Anda untuk memverifikasi bahwa pengiriman email benar-benar masuk ke inbox.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 max-w-md w-full sm:w-auto">
+                      <input
+                        type="email"
+                        value={testEmailRecipient}
+                        onChange={(e) => setTestEmailRecipient(e.target.value)}
+                        placeholder="email.tujuan@gmail.com"
+                        className="flex-1 min-w-[200px] px-3.5 py-2 bg-white rounded-xl border border-indigo-200 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendTestEmail}
+                        disabled={isSendingTestEmail}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap disabled:opacity-50 cursor-pointer"
+                      >
+                        {isSendingTestEmail ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            Mengirim...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-3.5 h-3.5" />
+                            Kirim Tes
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
