@@ -1217,7 +1217,7 @@ export default function AiCompanyProfilePage() {
 
               {/* Bentuk Badan Usaha: PT vs CV */}
               <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                <label className="text-xs font-bold text-gray-700 block mb-1.5">
                   Bentuk Badan Usaha <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1231,34 +1231,23 @@ export default function AiCompanyProfilePage() {
                         setCompanyName("PT " + companyName.trim().slice(4));
                       }
                     }}
-                    className={`relative p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                       companyType === "PT"
-                        ? "border-[#035a70] bg-teal-50/40 shadow-xs ring-1 ring-[#035a70]/20"
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50"
+                        ? "border-[#035a70] bg-teal-50/50 shadow-xs ring-1 ring-[#035a70]"
+                        : "border-gray-200 bg-gray-50 hover:bg-gray-100"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="companyType"
-                          checked={companyType === "PT"}
-                          onChange={() => setCompanyType("PT")}
-                          className="w-4 h-4 text-[#035a70] focus:ring-[#035a70] cursor-pointer"
-                        />
-                        <span className="font-extrabold text-xs sm:text-sm text-gray-900">
-                          PT <span className="font-semibold text-gray-500 text-xs">(Perseroan Terbatas)</span>
-                        </span>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        companyType === "PT" ? "bg-[#035a70] text-white" : "bg-gray-100 text-gray-500"
-                      }`}>
-                        Badan Hukum
-                      </span>
+                    <input
+                      type="radio"
+                      name="companyType"
+                      checked={companyType === "PT"}
+                      onChange={() => setCompanyType("PT")}
+                      className="w-4 h-4 text-[#035a70] focus:ring-[#035a70] cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-bold text-gray-800">PT</div>
+                      <div className="text-[11px] text-gray-500">Perseroan Terbatas</div>
                     </div>
-                    <p className="text-[11px] text-gray-500 leading-relaxed pl-6">
-                      Badan hukum dengan modal berupa saham dan tanggung jawab terbatas.
-                    </p>
                   </label>
 
                   {/* Pilihan CV */}
@@ -1271,34 +1260,23 @@ export default function AiCompanyProfilePage() {
                         setCompanyName("CV " + companyName.trim().slice(4));
                       }
                     }}
-                    className={`relative p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                       companyType === "CV"
-                        ? "border-[#035a70] bg-teal-50/40 shadow-xs ring-1 ring-[#035a70]/20"
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50"
+                        ? "border-[#035a70] bg-teal-50/50 shadow-xs ring-1 ring-[#035a70]"
+                        : "border-gray-200 bg-gray-50 hover:bg-gray-100"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="companyType"
-                          checked={companyType === "CV"}
-                          onChange={() => setCompanyType("CV")}
-                          className="w-4 h-4 text-[#035a70] focus:ring-[#035a70] cursor-pointer"
-                        />
-                        <span className="font-extrabold text-xs sm:text-sm text-gray-900">
-                          CV <span className="font-semibold text-gray-500 text-xs">(Commanditaire Vennootschap)</span>
-                        </span>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        companyType === "CV" ? "bg-[#035a70] text-white" : "bg-gray-100 text-gray-500"
-                      }`}>
-                        Persekutuan
-                      </span>
+                    <input
+                      type="radio"
+                      name="companyType"
+                      checked={companyType === "CV"}
+                      onChange={() => setCompanyType("CV")}
+                      className="w-4 h-4 text-[#035a70] focus:ring-[#035a70] cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-bold text-gray-800">CV</div>
+                      <div className="text-[11px] text-gray-500">Commanditaire Vennootschap</div>
                     </div>
-                    <p className="text-[11px] text-gray-500 leading-relaxed pl-6">
-                      Persekutuan komanditer dengan sekutu aktif dan pasif.
-                    </p>
                   </label>
                 </div>
               </div>
