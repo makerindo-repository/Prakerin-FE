@@ -1,5 +1,6 @@
 import {
   Bookmark,
+  Briefcase,
   Building,
   CirclePlus,
   MapPin,
@@ -41,6 +42,11 @@ interface JobOpening {
   type?: string;
 }
 
+interface LowonganStats {
+  total: number;
+  with_active_applicants: number;
+}
+
 export function IndustryLowongan() {
   const route = useRouter();
   const [jobOpenings, setJobOpenings] = useState<JobOpening[]>([]);
@@ -52,6 +58,32 @@ export function IndustryLowongan() {
     activePages: 1,
     pages: 1,
   });
+  const [stats, setStats] = useState<LowonganStats>({
+    total: 0,
+    with_active_applicants: 0,
+  });
+  const [isStatsLoading, setIsStatsLoading] = useState<boolean>(true);
+
+  const fetchStats = async () => {
+    setIsStatsLoading(true);
+    try {
+      const response = await API.get(`${ENDPOINTS.JOB_OPENINGS}/count`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("userToken")}`,
+        },
+      });
+      if (response.status === 200 && response.data?.data) {
+        setStats({
+          total: response.data.data.total ?? 0,
+          with_active_applicants: response.data.data.with_active_applicants ?? 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching job opening stats:", error);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  };
 
   const fetchJobOpenings = async (selectedPage = page.activePages, searchQuery = debouncedSearch) => {
     setIsLoading(true);
@@ -83,6 +115,7 @@ export function IndustryLowongan() {
 
   useEffect(() => {
     setRole(Cookies.get("authorization") || "");
+    fetchStats();
   }, []);
 
   useEffect(() => {
@@ -93,6 +126,45 @@ export function IndustryLowongan() {
 
   return (
     <>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        {/* Total Lowongan */}
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Total Lowongan
+            </p>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-accent-dark tracking-tight">
+              {isStatsLoading ? "..." : stats.total}
+            </h3>
+            <p className="text-xs text-gray-400">
+              Total seluruh lowongan magang
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Briefcase className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Lowongan dengan Pelamar Aktif */}
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Lowongan dgn Pelamar Aktif
+            </p>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-accent-dark tracking-tight">
+              {isStatsLoading ? "..." : stats.with_active_applicants}
+            </h3>
+            <p className="text-xs text-gray-400">
+              Lowongan yang memiliki pelamar aktif
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+            <Users className="w-6 h-6" />
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
