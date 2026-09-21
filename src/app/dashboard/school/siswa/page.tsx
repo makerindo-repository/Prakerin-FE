@@ -91,12 +91,15 @@ const DaftarSiswaPage: React.FC = () => {
     }
   };
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (pageToFetch?: number, tabToFetch?: string) => {
     setIsLoading(true);
+
+    const targetPage = pageToFetch ?? pages.activePages;
+    const currentTab = tabToFetch ?? activeTab;
 
     try {
       let status: string | undefined;
-      switch (activeTab) {
+      switch (currentTab) {
         case "Sedang Magang":
           status = "ongoing";
           break;
@@ -113,7 +116,7 @@ const DaftarSiswaPage: React.FC = () => {
       const response = await API.get(`${ENDPOINTS.USERS}`, {
         params: {
           is_verified: true,
-          page: pages.activePages,
+          page: targetPage,
           limit: 10,
           role: "student",
           school_type: "school", // hanya siswa (institusi type=school)
@@ -124,11 +127,10 @@ const DaftarSiswaPage: React.FC = () => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      console.log(response.data.data);
-      setStudents(response.data.data);
+      setStudents(response.data.data || []);
       setPages({
-        activePages: response.data.current_page,
-        pages: response.data.last_page,
+        activePages: response.data.current_page || 1,
+        pages: response.data.last_page || 1,
       });
     } catch (error) {
       console.error("Error fetching students:", error);
@@ -250,20 +252,26 @@ const DaftarSiswaPage: React.FC = () => {
   };
 
   const handleChangePage = (selectedPage: number) => {
-    console.log(selectedPage);
     setPages((prev) => ({
       ...prev,
       activePages: selectedPage,
     }));
+    fetchStudents(selectedPage, activeTab);
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchStudents(1, tab);
   };
 
   useEffect(() => {
     setPages((prev) => ({ ...prev, activePages: 1 }));
-  }, [activeTab, debouncedQuery]);
-
-  useEffect(() => {
-    fetchStudents();
-  }, [pages.activePages, activeTab, debouncedQuery]);
+    fetchStudents(1, activeTab);
+  }, [debouncedQuery]);
 
   return (
     <main className="p-4 sm:p-6">
@@ -287,7 +295,10 @@ const DaftarSiswaPage: React.FC = () => {
             <TabsComponent
               data={tabs}
               activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              setActiveTab={(val) => {
+                const nextTab = typeof val === "function" ? (val as any)(activeTab) : val;
+                handleTabChange(nextTab);
+              }}
             />
           </div>
         </div>
