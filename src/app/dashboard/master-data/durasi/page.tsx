@@ -71,24 +71,24 @@ const DurasiPage: React.FC = () => {
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [isReload, setIsReload] = useState(false);
-
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
 
-  const handleChangePage = (selectedPage: number) => {
-    setPages((prev) => ({
-      ...prev,
-      activePages: selectedPage,
-    }));
-  };
-
-  const fetchData = async () => {
-    if (loading) return;
+  const fetchData = async (
+    targetPage?: number,
+    targetTab?: ActiveTab,
+    targetUnit?: string | null,
+    targetSearch?: string
+  ) => {
     setLoading(true);
+
+    const currentPage = targetPage ?? pages.activePages;
+    const currentTab = targetTab ?? activeTab;
+    const currentUnit = targetUnit !== undefined ? targetUnit : selectedUnit;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
 
     try {
       let isAccepted: boolean | undefined = undefined;
-      switch (activeTab) {
+      switch (currentTab) {
         case "Diterima":
           isAccepted = true;
           break;
@@ -100,16 +100,15 @@ const DurasiPage: React.FC = () => {
       const response = await API.get(ENDPOINTS.DURATIONS, {
         params: {
           is_accepted: isAccepted,
-          search: inputSearch,
+          search: currentSearch,
           limit: 10,
-          page: pages.activePages,
-          unit: selectedUnit || undefined,
+          page: currentPage,
+          unit: currentUnit || undefined,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      console.log(response.data.data);
       setProvinces(response.data.data);
       setPages({
         activePages: response.data.current_page,
@@ -120,6 +119,32 @@ const DurasiPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePages: selectedPage,
+    }));
+    fetchData(selectedPage, activeTab, selectedUnit, debouncedQuery);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchData(1, tab, selectedUnit, debouncedQuery);
+  };
+
+  const handleUnitChange = (unit: string | null) => {
+    setSelectedUnit(unit);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchData(1, activeTab, unit, debouncedQuery);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -226,20 +251,9 @@ const DurasiPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setProvinces([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
-  }, [activeTab, debouncedQuery, selectedUnit]);
-
-  useEffect(() => {
-    fetchData();
-  }, [pages.activePages, isReload]);
+    fetchData(1, activeTab, selectedUnit, debouncedQuery);
+  }, [debouncedQuery]);
   
   return (
     <main className="p-4 sm:p-6">
@@ -258,7 +272,7 @@ const DurasiPage: React.FC = () => {
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as ActiveTab)}
+              onClick={() => handleTabChange(tab as ActiveTab)}
               className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer ${
                 activeTab === tab
                   ? "bg-accent text-white shadow-sm hover:bg-accent-hover"
@@ -279,7 +293,7 @@ const DurasiPage: React.FC = () => {
             <select
               id="select-major"
               value={selectedUnit || ""}
-              onChange={(e) => setSelectedUnit(e.target.value || null)}
+              onChange={(e) => handleUnitChange(e.target.value || null)}
               className="border p-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent text-sm"
             >
               <option value="">Semua</option>

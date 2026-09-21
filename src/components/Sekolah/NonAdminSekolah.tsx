@@ -52,20 +52,28 @@ const NonAdminSekolah: React.FC = () => {
     pages: 1,
   });
 
-  const fetchCompany = async () => {
+  const fetchCompany = async (
+    targetPage?: number,
+    targetTab?: ActiveTab,
+    targetSearch?: string
+  ) => {
     setIsLoading(true);
+    const currentPage = targetPage ?? pages.activePages;
+    const currentTab = targetTab ?? activeTab;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
+
     try {
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
-          search: debouncedQuery,
+          search: currentSearch,
           role: "school",
           is_mou:
-            activeTab === "Semua"
+            currentTab === "Semua"
               ? undefined
-              : activeTab === "Sudah Kerja Sama"
+              : currentTab === "Sudah Kerja Sama"
               ? true
               : false,
-          page: pages.activePages,
+          page: currentPage,
           limit: 8,
         },
         headers: {
@@ -73,7 +81,6 @@ const NonAdminSekolah: React.FC = () => {
         },
       });
 
-      console.log("Company fetched successfully:", response.data.data);
       const data = response.data.data.map((item: any) => ({
         id: item.id,
         photo_profile: item.photo_profile,
@@ -103,7 +110,6 @@ const NonAdminSekolah: React.FC = () => {
         },
       });
       if (response.status === 200) {
-        console.log("Company Count fetched successfully:", response.data.data);
         setCompanyCount(response.data.data);
       }
     } catch (error) {
@@ -116,15 +122,22 @@ const NonAdminSekolah: React.FC = () => {
       ...prev,
       activePages: selectedPage,
     }));
+    fetchCompany(selectedPage, activeTab, debouncedQuery);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchCompany(1, tab, debouncedQuery);
   };
 
   useEffect(() => {
     setPages((prev) => ({ ...prev, activePages: 1 }));
-  }, [activeTab, debouncedQuery]);
-
-  useEffect(() => {
-    fetchCompany();
-  }, [pages.activePages, activeTab, debouncedQuery]);
+    fetchCompany(1, activeTab, debouncedQuery);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     fetchCompanyCount();
@@ -172,7 +185,10 @@ const NonAdminSekolah: React.FC = () => {
         <TabsComponent
           data={tabs}
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(val) => {
+            const nextTab = typeof val === "function" ? (val as any)(activeTab) : val;
+            handleTabChange(nextTab);
+          }}
         />
       </div>
 

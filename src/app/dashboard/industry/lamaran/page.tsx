@@ -73,19 +73,25 @@ const lamaranPage: React.FC = () => {
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const tabs: ActiveTab[] = ["Semua", "Diterima", "Pengajuan", "Ditolak"];
   const [activeTab, setActiveTab] = useState<ActiveTab>("Semua");
-  const [isReload, setIsReload] = useState<boolean>(false);
 
   const [pages, setPages] = useState<Pages>({
     activePages: 1,
     pages: 1,
   });
 
-  const fetchInternshipAplication = async () => {
-    if (isLoading) return;
+  const fetchInternshipAplication = async (
+    pageToFetch?: number,
+    tabToFetch?: ActiveTab,
+    searchToFetch?: string
+  ) => {
     setIsLoading(true);
 
+    const targetPage = pageToFetch ?? pages.activePages;
+    const currentTab = tabToFetch ?? activeTab;
+    const currentSearch = searchToFetch !== undefined ? searchToFetch : debouncedQuery;
+
     let status: string | undefined = undefined;
-    switch (activeTab) {
+    switch (currentTab) {
       case "Diterima":
         status = "accepted";
         break;
@@ -100,9 +106,9 @@ const lamaranPage: React.FC = () => {
     try {
       const response = await API.get(ENDPOINTS.INTERNSHIP_APPLICATIONS, {
         params: {
-          search: inputSearch,
+          search: currentSearch,
           limit: 10,
-          page: pages.activePages,
+          page: targetPage,
           status: status,
         },
         headers: {
@@ -110,7 +116,6 @@ const lamaranPage: React.FC = () => {
         },
       });
 
-      console.log(response.data.data);
       setInternshipApplications(response.data.data);
       setPages({
         activePages: response.data.current_page,
@@ -150,23 +155,22 @@ const lamaranPage: React.FC = () => {
       ...prev,
       activePages: selectedPage,
     }));
+    fetchInternshipAplication(selectedPage, activeTab, debouncedQuery);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchInternshipAplication(1, tab, debouncedQuery);
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setInternshipApplications([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
-  }, [activeTab, debouncedQuery]);
-
-  useEffect(() => {
-    fetchInternshipAplication();
-  }, [pages.activePages, isReload]);
+    fetchInternshipAplication(1, activeTab, debouncedQuery);
+  }, [debouncedQuery]);
 
   const handleMarkAsRead = async (applicationId: string) => {
     if (markingReadId) return;
@@ -282,7 +286,10 @@ const lamaranPage: React.FC = () => {
         <TabsComponent
           data={tabs}
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(val) => {
+            const nextTab = typeof val === "function" ? (val as any)(activeTab) : val;
+            handleTabChange(nextTab);
+          }}
         />
       </div>
 

@@ -47,8 +47,6 @@ const DetailSekolahPage = ({
     pages: 1,
   });
 
-  const [isReload, setIsReload] = useState(false);
-
   const tabs = [
     "Semua",
     "Belum Magang",
@@ -82,15 +80,21 @@ const DetailSekolahPage = ({
     }
   };
 
-  const fetchStudents = async () => {
-    if (isLoading) return;
-
+  const fetchStudents = async (
+    targetPage?: number,
+    targetTab?: string,
+    targetSearch?: string
+  ) => {
     setIsLoading(true);
+
+    const currentPage = targetPage ?? pages.activePages;
+    const currentTab = targetTab ?? activeTab;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
 
     try {
       let status: string | undefined;
 
-      switch (activeTab) {
+      switch (currentTab) {
         case "Sedang Magang":
           status = "ongoing";
           break;
@@ -107,18 +111,14 @@ const DetailSekolahPage = ({
           role: "student",
           school_id: id,
           status,
-          search: searchTerm,
-          page: pages.activePages,
+          search: currentSearch,
+          page: currentPage,
           limit: 10,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-
-        console.log("Students:", response.data);
-        console.log("school id:", id);
-        console.log(response.data.data);
 
       setStudents(response.data.data);
 
@@ -138,27 +138,22 @@ const DetailSekolahPage = ({
       ...prev,
       activePages: selectedPage,
     }));
+    fetchStudents(selectedPage, activeTab, debouncedQuery);
   };
 
-  useEffect(() => {
-    if (searchTerm.trim() !== "") {
-      if (!debouncedQuery) {
-        setStudents([]);
-        return;
-      }
-    }
-
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
     setPages((prev) => ({
       ...prev,
       activePages: 1,
     }));
-
-    setIsReload((prev) => !prev);
-  }, [activeTab, debouncedQuery]);
+    fetchStudents(1, tab, debouncedQuery);
+  };
 
   useEffect(() => {
-    fetchStudents();
-  }, [pages.activePages, isReload]);
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    fetchStudents(1, activeTab, debouncedQuery);
+  }, [debouncedQuery]);
 
   return (
     <main className="p-6">
@@ -184,7 +179,10 @@ const DetailSekolahPage = ({
         <TabsComponent
           data={tabs}
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(val) => {
+            const nextTab = typeof val === "function" ? (val as any)(activeTab) : val;
+            handleTabChange(nextTab);
+          }}
         />
       </div>
 

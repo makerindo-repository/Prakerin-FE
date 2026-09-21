@@ -45,11 +45,13 @@ interface CVFormData {
   schoolName: string;
   major: string;
   degreeYear: string;
+  careerTrack: "technical" | "non_technical";
   competencyArea: string;
   email: string;
   phone: string;
   address: string;
   github: string;
+  portfolioUrl: string;
   linkedin: string;
   competencyDescription: string;
   skills: string[];
@@ -113,11 +115,13 @@ export default function BuatCvPintarPage() {
     schoolName: "",
     major: "",
     degreeYear: "2022 - 2025",
+    careerTrack: "technical",
     competencyArea: "Frontend Development",
     email: "",
     phone: "",
     address: "",
     github: "",
+    portfolioUrl: "",
     linkedin: "",
     competencyDescription: "",
     skills: ["HTML5", "CSS3", "JavaScript", "React.js", "Tailwind CSS", "REST API", "Git"],
@@ -453,6 +457,8 @@ export default function BuatCvPintarPage() {
             description: "Membangun dashboard real-time dan meningkatkan kecepatan pemantauan data sistem.",
           },
         ],
+        careerTrack: "technical",
+        portfolioUrl: "",
         photoUrl: null,
       });
       await fetchUserProfile();
@@ -468,6 +474,12 @@ export default function BuatCvPintarPage() {
       return;
     }
 
+    if (formData.careerTrack === "technical" && !formData.github.trim()) {
+      alertError("Bidang Teknis mewajibkan akun GitHub. Mohon masukkan link atau username GitHub Anda.");
+      setActiveStep(1);
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const profileUserPayload = {
@@ -476,7 +488,7 @@ export default function BuatCvPintarPage() {
           email: formData.email,
           phone_number: formData.phone,
           address: formData.address,
-          linkedin_url: formData.linkedin || formData.github,
+          linkedin_url: formData.linkedin || (formData.careerTrack === "technical" ? formData.github : formData.portfolioUrl),
         },
         work_experience: formData.projects
           .filter((p) => p.name.trim())
@@ -816,23 +828,104 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  GitHub (URL / Username)
+            {/* Career Track Radio Selection */}
+            <div className="bg-teal-50/50 border border-teal-100/80 rounded-2xl p-4">
+              <label className="block text-xs font-bold text-gray-800 mb-2">
+                Pilih Kategori Keahlian / Jurusan Anda <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label
+                  onClick={() => setFormData((prev) => ({ ...prev, careerTrack: "technical" }))}
+                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    formData.careerTrack === "technical"
+                      ? "bg-white border-accent shadow-sm ring-2 ring-accent/20"
+                      : "bg-white/60 border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="careerTrack"
+                    value="technical"
+                    checked={formData.careerTrack === "technical"}
+                    onChange={() => setFormData((prev) => ({ ...prev, careerTrack: "technical" }))}
+                    className="mt-0.5 text-accent focus:ring-accent"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                      💻 Bidang Teknis (IT &amp; Rekayasa)
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Coding, RPL, TKJ, Web/Mobile Dev, Cloud, UI/UX, dll. Form GitHub wajib diisi.
+                    </p>
+                  </div>
                 </label>
-                <input
-                  type="text"
-                  value={formData.github}
-                  onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                  placeholder="github.com/adityapratama"
-                  className="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white transition-all"
-                />
+
+                <label
+                  onClick={() => setFormData((prev) => ({ ...prev, careerTrack: "non_technical", github: "" }))}
+                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    formData.careerTrack === "non_technical"
+                      ? "bg-white border-accent shadow-sm ring-2 ring-accent/20"
+                      : "bg-white/60 border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="careerTrack"
+                    value="non_technical"
+                    checked={formData.careerTrack === "non_technical"}
+                    onChange={() => setFormData((prev) => ({ ...prev, careerTrack: "non_technical", github: "" }))}
+                    className="mt-0.5 text-accent focus:ring-accent"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                      📂 Bidang Non-Teknis / Humaniora
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Bisnis, Administrasi, Akuntansi, Manajemen, Pemasaran, Sosial, dll. (Tanpa GitHub).
+                    </p>
+                  </div>
+                </label>
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {formData.careerTrack === "technical" ? (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    GitHub (URL / Username) <span className="text-red-500 font-bold">* (Wajib)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.github}
+                    onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+                    placeholder="github.com/adityapratama"
+                    className="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white transition-all"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Diperlukan untuk meninjau repository kode dan portofolio teknis Anda.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Link Portofolio / Berkas Karya <span className="text-gray-400 font-normal">(Opsional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.portfolioUrl}
+                    onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
+                    placeholder="dribbble.com/aditya atau drive.google.com/..."
+                    className="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white transition-all"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Tautan Google Drive, Behance, Canva, atau website karya Anda (opsional).
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  LinkedIn (URL / Username)
+                  LinkedIn (URL / Username) <span className="text-gray-400 font-normal">(Opsional)</span>
                 </label>
                 <input
                   type="text"
@@ -1421,7 +1514,19 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                     {activeStep < 5 ? (
                       <button
                         type="button"
-                        onClick={() => setActiveStep((prev) => prev + 1)}
+                        onClick={() => {
+                          if (activeStep === 1) {
+                            if (!formData.fullName.trim()) {
+                              alertError("Mohon masukkan nama lengkap terlebih dahulu.");
+                              return;
+                            }
+                            if (formData.careerTrack === "technical" && !formData.github.trim()) {
+                              alertError("Bidang Teknis mewajibkan akun GitHub. Mohon masukkan link atau username GitHub Anda.");
+                              return;
+                            }
+                          }
+                          setActiveStep((prev) => prev + 1);
+                        }}
                         className="px-5 py-2.5 rounded-xl bg-accent text-white hover:bg-teal-700 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                       >
                         Lanjut <ChevronRight size={14} />
@@ -1531,7 +1636,12 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                   {formData.phone && <span>| 📞 {formData.phone}</span>}
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-x-2 text-[10px] text-gray-500 mt-0.5">
-                  {formData.github && <span>🐙 {formData.github}</span>}
+                  {formData.careerTrack === "technical" && formData.github && (
+                    <span>🐙 {formData.github}</span>
+                  )}
+                  {formData.careerTrack === "non_technical" && formData.portfolioUrl && (
+                    <span>🌐 {formData.portfolioUrl}</span>
+                  )}
                   {formData.linkedin && <span>| 💼 {formData.linkedin}</span>}
                   {formData.address && <span>| 📍 {formData.address}</span>}
                 </div>

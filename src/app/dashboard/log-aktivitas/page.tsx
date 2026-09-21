@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { createApiCall } from "@/utils/config";
+import useDebounce from "@/hooks/useDebounce";
 import {
   Activity,
   Search,
@@ -45,12 +46,13 @@ interface StatsData {
 export default function LogAktivitasPage() {
   const [logs, setLogs] = useState<ActivityLogData[]>([]);
   const [stats, setStats] = useState<StatsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   
   // Filters
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
   const [userId, setUserId] = useState("");
   const [action, setAction] = useState("");
   const [resourceType, setResourceType] = useState("");
@@ -69,17 +71,25 @@ export default function LogAktivitasPage() {
     }
   };
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (
+    targetPage = page,
+    targetSearch = debouncedSearch,
+    targetUserId = userId,
+    targetAction = action,
+    targetResource = resourceType,
+    targetStart = startDate,
+    targetEnd = endDate
+  ) => {
     setLoading(true);
     try {
       const headers = { Authorization: `Bearer ${Cookies.get("userToken")}` };
-      const params: any = { page, limit: 15 };
-      if (search) params.search = search;
-      if (userId) params.user_id = userId;
-      if (action) params.action = action;
-      if (resourceType) params.resource_type = resourceType;
-      if (startDate) params.start_date = startDate;
-      if (endDate) params.end_date = endDate;
+      const params: any = { page: targetPage, limit: 15 };
+      if (targetSearch) params.search = targetSearch;
+      if (targetUserId) params.user_id = targetUserId;
+      if (targetAction) params.action = targetAction;
+      if (targetResource) params.resource_type = targetResource;
+      if (targetStart) params.start_date = targetStart;
+      if (targetEnd) params.end_date = targetEnd;
 
       const queryString = new URLSearchParams(params).toString();
       const res = await createApiCall({
@@ -102,13 +112,19 @@ export default function LogAktivitasPage() {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchLogs(newPage, debouncedSearch, userId, action, resourceType, startDate, endDate);
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
   useEffect(() => {
-    fetchLogs();
-  }, [page, search, userId, action, resourceType, startDate, endDate]);
+    setPage(1);
+    fetchLogs(1, debouncedSearch, userId, action, resourceType, startDate, endDate);
+  }, [debouncedSearch, userId, action, resourceType, startDate, endDate]);
 
   const handleExportCSV = () => {
     // Generate simple CSV content of visible logs
@@ -409,14 +425,14 @@ export default function LogAktivitasPage() {
                 <div className="flex gap-2">
                   <button
                     disabled={page === 1}
-                    onClick={() => setPage(p => Math.max(p - 1, 1))}
+                    onClick={() => handlePageChange(Math.max(page - 1, 1))}
                     className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     disabled={page === totalPages}
-                    onClick={() => setPage(p => Math.min(p + 1, totalPages))}
+                    onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
                     className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />

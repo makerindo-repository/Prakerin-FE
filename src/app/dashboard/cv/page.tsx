@@ -95,15 +95,17 @@ const CvPage: React.FC = () => {
     }
   };
 
-  const fetchCv = async (selectedPage = page.activePages) => {
-    if (loading) return;
+  const fetchCv = async (
+    selectedPage = page.activePages,
+    searchQuery = debouncedQuery
+  ) => {
     setLoading(true);
     try {
       const response = await API.get(`${ENDPOINTS.CURRICULUM_VITAE}`, {
         params: {
           page: selectedPage,
           limit: 10,
-          search: searchTerm,
+          search: searchQuery,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -112,8 +114,8 @@ const CvPage: React.FC = () => {
       if (response.status === 200) {
         setCvList(response.data.data);
         setPage({
-          activePages: selectedPage,
-          pages: response.data.last_page,
+          activePages: response.data.current_page || selectedPage,
+          pages: response.data.last_page || 1,
         });
       }
     } catch (error: any) {
@@ -147,23 +149,18 @@ const CvPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (searchTerm.trim() !== "") {
-      if (!debouncedQuery) {
-        setCvList([]);
-        return;
-      }
-    }
-
-    fetchCv();
-  }, [debouncedQuery, page.activePages]);
-
   const handlePageChange = (selectedPage: number) => {
     setPage((prev) => ({
       ...prev,
       activePages: selectedPage,
     }));
+    fetchCv(selectedPage, debouncedQuery);
   };
+
+  useEffect(() => {
+    setPage((prev) => ({ ...prev, activePages: 1 }));
+    fetchCv(1, debouncedQuery);
+  }, [debouncedQuery]);
 
   return (
     <main className="flex-1 p-4 lg:p-6">

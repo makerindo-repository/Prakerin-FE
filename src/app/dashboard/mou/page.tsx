@@ -54,10 +54,18 @@ const lamaranPage: React.FC = () => {
   const [pages, setPages] = useState<Pages>({ activePages: 1, pages: 1 });
   const [isMounted, setIsMounted] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = async (
+    targetPage?: number,
+    targetTab?: ActiveTab,
+    targetSearch?: string
+  ) => {
     setIsLoading(true);
+    const currentPage = targetPage ?? pages.activePages;
+    const currentTab = targetTab ?? activeTab;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
+
     let type: string | undefined = undefined;
-    switch (activeTab) {
+    switch (currentTab) {
       case "Semua":
         type = undefined;
         break;
@@ -75,16 +83,15 @@ const lamaranPage: React.FC = () => {
     try {
       const response = await API.get(ENDPOINTS.MOUS, {
         params: {
-          search: debouncedQuery,
+          search: currentSearch,
           type: type,
           limit: 10,
-          page: pages.activePages,
+          page: currentPage,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      console.log(response.data);
       setData(response.data.data);
       setPages({
         activePages: response.data.current_page,
@@ -200,6 +207,16 @@ const lamaranPage: React.FC = () => {
       ...prev,
       activePages: selectedPage,
     }));
+    fetchData(selectedPage, activeTab, debouncedQuery);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchData(1, tab, debouncedQuery);
   };
 
   useEffect(() => {
@@ -208,14 +225,11 @@ const lamaranPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setPages((prev) => ({ ...prev, activePages: 1 }));
-  }, [debouncedQuery, activeTab]);
-
-  useEffect(() => {
     if (isMounted) {
-      fetchData();
+      setPages((prev) => ({ ...prev, activePages: 1 }));
+      fetchData(1, activeTab, debouncedQuery);
     }
-  }, [pages.activePages, debouncedQuery, activeTab, isMounted]);
+  }, [debouncedQuery, isMounted]);
 
   if (!isMounted) {
     return (
@@ -241,7 +255,10 @@ const lamaranPage: React.FC = () => {
           <TabsComponent
             data={tabs}
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
+            setActiveTab={(val) => {
+              const nextTab = typeof val === "function" ? (val as any)(activeTab) : val;
+              handleTabChange(nextTab);
+            }}
           />
         </div>
       </div>

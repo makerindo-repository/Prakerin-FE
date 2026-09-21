@@ -60,20 +60,20 @@ const JurusanPage: React.FC = () => {
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleChangePage = (selectedPage: number) => {
-    setPages((prev) => ({
-      ...prev,
-      activePages: selectedPage,
-    }));
-  };
-
-  const fetchData = async () => {
-    if (loading) return;
+  const fetchData = async (
+    targetPage?: number,
+    targetTab?: ActiveTab,
+    targetSearch?: string
+  ) => {
     setLoading(true);
+
+    const currentPage = targetPage ?? pages.activePages;
+    const currentTab = targetTab ?? activeTab;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
 
     try {
       let isAccepted: boolean | undefined = undefined;
-      switch (activeTab) {
+      switch (currentTab) {
         case "Diterima":
           isAccepted = true;
           break;
@@ -85,15 +85,14 @@ const JurusanPage: React.FC = () => {
       const response = await API.get(ENDPOINTS.ROLES, {
         params: {
           is_accepted: isAccepted,
-          search: inputSearch,
+          search: currentSearch,
           limit: 10,
-          page: pages.activePages,
+          page: currentPage,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      console.log(response.data.data);
       setRoles(response.data.data);
       setPages({
         activePages: response.data.current_page,
@@ -104,6 +103,23 @@ const JurusanPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleChangePage = (selectedPage: number) => {
+    setPages((prev) => ({
+      ...prev,
+      activePages: selectedPage,
+    }));
+    fetchData(selectedPage, activeTab, debouncedQuery);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchData(1, tab, debouncedQuery);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -210,14 +226,9 @@ const JurusanPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setRoles([]);
-        return;
-      }
-    }
-    fetchData();
-  }, [activeTab, debouncedQuery, pages.activePages]);
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    fetchData(1, activeTab, debouncedQuery);
+  }, [debouncedQuery]);
 
   return (
     <main className="p-6 ">
@@ -236,7 +247,7 @@ const JurusanPage: React.FC = () => {
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as ActiveTab)}
+              onClick={() => handleTabChange(tab as ActiveTab)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer  ${
                 activeTab === tab
                   ? "bg-accent text-white shadow-sm hover:bg-accent-hover"

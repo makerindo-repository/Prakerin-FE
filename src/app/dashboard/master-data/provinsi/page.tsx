@@ -49,6 +49,16 @@ const ProvinsiPage: React.FC = () => {
       ...prev,
       activePages: selectedPage,
     }));
+    fetchData(selectedPage, sortOption, debouncedQuery);
+  };
+
+  const handleSortChange = (newSort: SortOption) => {
+    setSortOption(newSort);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchData(1, newSort, debouncedQuery);
   };
 
   const getSortParams = (option: SortOption) => {
@@ -75,18 +85,25 @@ const ProvinsiPage: React.FC = () => {
     }
   };
 
-  const fetchData = async () => {
-    if (loading) return;
+  const fetchData = async (
+    targetPage?: number,
+    targetSort?: SortOption,
+    targetSearch?: string
+  ) => {
     setLoading(true);
 
+    const currentPage = targetPage ?? pages.activePages;
+    const currentSort = targetSort ?? sortOption;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
+
     try {
-      const sortParams = getSortParams(sortOption);
+      const sortParams = getSortParams(currentSort);
 
       const response = await API.get(ENDPOINTS.PROVINCES, {
         params: {
-          search: inputSearch,
+          search: currentSearch,
           limit: 10,
-          page: pages.activePages,
+          page: currentPage,
           is_limit: true,
           ...sortParams,
         },
@@ -117,11 +134,8 @@ const ProvinsiPage: React.FC = () => {
 
   useEffect(() => {
     setPages((prev) => ({ ...prev, activePages: 1 }));
-  }, [debouncedQuery, sortOption]);
-
-  useEffect(() => {
-    fetchData();
-  }, [pages.activePages, debouncedQuery, sortOption]);
+    fetchData(1, sortOption, debouncedQuery);
+  }, [debouncedQuery]);
 
   return (
     <main className="p-6">
@@ -192,10 +206,7 @@ const ProvinsiPage: React.FC = () => {
             <span className="text-xs text-blue-100 font-medium whitespace-nowrap">Urutkan:</span>
             <select
               value={sortOption}
-              onChange={(e) => {
-                setSortOption(e.target.value as SortOption);
-                setPages((prev) => ({ ...prev, activePages: 1 }));
-              }}
+              onChange={(e) => handleSortChange(e.target.value as SortOption)}
               className="bg-white text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-accent-light cursor-pointer"
             >
               <option value="code_asc">Kode Kemendagri (Urut Terkecil)</option>

@@ -342,8 +342,9 @@ function AiAnalyticsPageInner() {
   };
 
   // Upload and scan resume
-  const handleStartScan = async () => {
-    if (!selectedFile) return;
+  const handleStartScan = async (fileToScan?: File) => {
+    const file = fileToScan || selectedFile;
+    if (!file) return;
 
     setScanning(true);
     setScanProgress(5);
@@ -369,7 +370,7 @@ function AiAnalyticsPageInner() {
     }, 1000);
 
     const formData = new FormData();
-    formData.append("uploaded_file", selectedFile);
+    formData.append("uploaded_file", file);
 
     try {
       const res = await API.post("/api/v1/ai-analytics", formData, {
@@ -846,12 +847,17 @@ function AiAnalyticsPageInner() {
                     accept=".pdf"
                     className="hidden"
                     onChange={(e) => {
-                      handleFileChange(e);
                       if (e.target.files && e.target.files[0]) {
                         const file = e.target.files[0];
+                        if (file.type !== "application/pdf") {
+                          alertError("File harus berupa PDF!");
+                          e.target.value = "";
+                          return;
+                        }
                         setSelectedFile(file);
-                        setTimeout(() => handleStartScan(), 100);
+                        handleStartScan(file);
                       }
+                      e.target.value = "";
                     }}
                   />
                   <button
@@ -1297,41 +1303,6 @@ function AiAnalyticsPageInner() {
                       </div>
                     </div>
 
-                  </div>
-
-                  {/* AI Assistance Action Card */}
-                  <div className="bg-[#0b2545] rounded-2xl p-5 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-md">
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-sm sm:text-base text-white">
-                        Tingkatkan kualitas CV Anda dengan bantuan AI.
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-gray-200">
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                          <span>Perbaiki struktur &amp; penulisan</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                          <span>Tambahkan hasil terukur proyek</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                          <span>Optimalkan kata kunci ATS</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                          <span>Ringkas dan profesional</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <Link
-                      href="/dashboard/cv/cv-pintar"
-                      className="px-5 py-2.5 bg-[#035a70] hover:bg-[#04829e] text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-2 transition-all shrink-0 self-start md:self-center cursor-pointer"
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-                      Perbaiki CV dengan AI
-                    </Link>
                   </div>
 
                 </div>

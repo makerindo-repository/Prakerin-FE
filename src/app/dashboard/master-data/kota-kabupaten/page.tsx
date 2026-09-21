@@ -72,6 +72,25 @@ const KotaKabupatenPage: React.FC = () => {
       ...prev,
       activePages: selectedPage,
     }));
+    fetchData(selectedPage, sortOption, selectedProvinces, debouncedQuery);
+  };
+
+  const handleSortChange = (newSort: SortOption) => {
+    setSortOption(newSort);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchData(1, newSort, selectedProvinces, debouncedQuery);
+  };
+
+  const handleProvincesChange = (provinces: ProvinceOption[]) => {
+    setSelectedProvinces(provinces);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchData(1, sortOption, provinces, debouncedQuery);
   };
 
   const getSortParams = (option: SortOption) => {
@@ -121,20 +140,29 @@ const KotaKabupatenPage: React.FC = () => {
     }
   };
 
-  const fetchData = async () => {
-    if (loading) return;
+  const fetchData = async (
+    targetPage?: number,
+    targetSort?: SortOption,
+    targetProvinces?: ProvinceOption[],
+    targetSearch?: string
+  ) => {
     setLoading(true);
 
+    const currentPage = targetPage ?? pages.activePages;
+    const currentSort = targetSort ?? sortOption;
+    const currentProvinces = targetProvinces !== undefined ? targetProvinces : selectedProvinces;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
+
     try {
-      const provinceIds = selectedProvinces.map((p) => p.value);
-      const sortParams = getSortParams(sortOption);
+      const provinceIds = currentProvinces.map((p) => p.value);
+      const sortParams = getSortParams(currentSort);
 
       const response = await API.get(ENDPOINTS.CITY_REGENCIES, {
         params: {
-          search: inputSearch,
+          search: currentSearch,
           province_id: provinceIds,
           limit: 10,
-          page: pages.activePages,
+          page: currentPage,
           is_limit: true,
           ...sortParams,
         },
@@ -165,11 +193,8 @@ const KotaKabupatenPage: React.FC = () => {
 
   useEffect(() => {
     setPages((prev) => ({ ...prev, activePages: 1 }));
-  }, [debouncedQuery, selectedProvinces, sortOption]);
-
-  useEffect(() => {
-    fetchData();
-  }, [pages.activePages, debouncedQuery, selectedProvinces, sortOption]);
+    fetchData(1, sortOption, selectedProvinces, debouncedQuery);
+  }, [debouncedQuery]);
 
   return (
     <main className="p-6">
@@ -228,10 +253,7 @@ const KotaKabupatenPage: React.FC = () => {
             isMulti
             options={filterProvinceOptions}
             value={selectedProvinces}
-            onChange={(selected: any) => {
-              setSelectedProvinces(selected || []);
-              setPages((prev) => ({ ...prev, activePages: 1 }));
-            }}
+            onChange={(selected: any) => handleProvincesChange(selected || [])}
             onInputChange={(input: any) => setFilterProvinceSearch(input)}
             placeholder="Pilih atau cari provinsi..."
             className="react-select-container text-sm"
@@ -260,10 +282,7 @@ const KotaKabupatenPage: React.FC = () => {
             <span className="text-xs text-blue-100 font-medium whitespace-nowrap">Urutkan:</span>
             <select
               value={sortOption}
-              onChange={(e) => {
-                setSortOption(e.target.value as SortOption);
-                setPages((prev) => ({ ...prev, activePages: 1 }));
-              }}
+              onChange={(e) => handleSortChange(e.target.value as SortOption)}
               className="bg-white text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-accent-light cursor-pointer"
             >
               <option value="code_asc">Kode Kemendagri (Urut Terkecil)</option>

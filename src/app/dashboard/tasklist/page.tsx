@@ -90,11 +90,20 @@ const TasklistPage: React.FC = () => {
       : deadline;
   };
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (
+    targetPage?: number,
+    targetTab?: string,
+    targetSearch?: string
+  ) => {
     setIsLoading(true);
+
+    const currentPage = targetPage ?? pages.activePages;
+    const currentTab = targetTab ?? activeTab;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
+
     try {
       let filteredStatus = "all";
-      switch (activeTab) {
+      switch (currentTab) {
         case "Belum":
           filteredStatus = "pending";
           break;
@@ -114,10 +123,10 @@ const TasklistPage: React.FC = () => {
 
       const response = await API.get(ENDPOINTS.TASKS, {
         params: {
-          search: inputSearch,
+          search: currentSearch,
           status: filteredStatus,
           limit: 10,
-          page: pages.activePages,
+          page: currentPage,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -129,13 +138,8 @@ const TasklistPage: React.FC = () => {
         activePages: response.data?.current_page || 1,
         pages: response.data?.last_page || 1,
       });
-    } catch (error: AxiosError | unknown) {
-      if (error instanceof AxiosError) {
-        const responseError = error.response?.data.errors;
-        await alertError(responseError);
-      }
+    } catch (error) {
       console.error(error);
-      setTasks([]);
     } finally {
       setIsLoading(false);
     }
@@ -146,11 +150,22 @@ const TasklistPage: React.FC = () => {
       ...prev,
       activePages: selectedPage,
     }));
+    fetchTasks(selectedPage, activeTab, debouncedQuery);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchTasks(1, tab, debouncedQuery);
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, [debouncedQuery, pages.activePages, activeTab]);
+    setPages((prev) => ({ ...prev, activePages: 1 }));
+    fetchTasks(1, activeTab, debouncedQuery);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     setAuthorization(Cookies.get("authorization") || "");
@@ -182,7 +197,10 @@ const TasklistPage: React.FC = () => {
           <TabsComponent
             data={tabs}
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
+            setActiveTab={(val) => {
+              const nextTab = typeof val === "function" ? (val as any)(activeTab) : val;
+              handleTabChange(nextTab);
+            }}
           />
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />

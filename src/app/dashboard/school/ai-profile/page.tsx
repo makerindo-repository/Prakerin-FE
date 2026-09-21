@@ -96,7 +96,7 @@ export default function AiSchoolProfilePage() {
   const [higherEduType, setHigherEduType] = useState<"university" | "polytechnic" | "institute">("university");
   const [schoolType, setSchoolType] = useState<string>("smk");
   const [npsn, setNpsn] = useState<string>("");
-  const [accreditation, setAccreditation] = useState<string>("Unggul");
+  const [accreditation, setAccreditation] = useState<string>("A");
   const [website, setWebsite] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
@@ -198,11 +198,20 @@ export default function AiSchoolProfilePage() {
           }
           if (sch?.accreditation) {
             const acc = sch.accreditation;
-            if (acc === "A") setAccreditation("Unggul");
-            else if (acc === "B") setAccreditation("Baik Sekali");
-            else if (acc === "C") setAccreditation("Baik");
-            else if (["Unggul", "Baik Sekali", "Baik"].includes(acc)) setAccreditation(acc);
-            else setAccreditation("Unggul");
+            const isUni = ["university", "polytechnic", "institute", "perguruan_tinggi"].includes(sch?.type?.toLowerCase() || "");
+            if (isUni) {
+              if (acc === "A") setAccreditation("Unggul");
+              else if (acc === "B") setAccreditation("Baik Sekali");
+              else if (acc === "C") setAccreditation("Baik");
+              else if (["Unggul", "Baik Sekali", "Baik"].includes(acc)) setAccreditation(acc);
+              else setAccreditation("Unggul");
+            } else {
+              if (acc === "Unggul") setAccreditation("A");
+              else if (acc === "Baik Sekali") setAccreditation("B");
+              else if (acc === "Baik") setAccreditation("C");
+              else if (["A", "B", "C"].includes(acc)) setAccreditation(acc);
+              else setAccreditation("A");
+            }
           }
           if (user.email || sch?.email) {
             setEmail(user.email || sch?.email || "");
@@ -315,7 +324,7 @@ export default function AiSchoolProfilePage() {
     },
     {
       num: 3,
-      label: institutionCategory === "perguruan_tinggi" ? "Mata Kuliah" : "Mata Pelajaran",
+      label: institutionCategory === "perguruan_tinggi" ? "Kurikulum" : "Mata Pelajaran",
       desc: institutionCategory === "perguruan_tinggi" ? "Kurikulum & Berkas PDF" : "Kompetensi Kejuruan",
       isCompleted: institutionCategory === "perguruan_tinggi"
         ? Boolean(curriculumPdfFile || competencies.length > 0)
@@ -577,11 +586,20 @@ export default function AiSchoolProfilePage() {
     }
     if (item.accreditation) {
       const acc = item.accreditation;
-      if (acc === "A") setAccreditation("Unggul");
-      else if (acc === "B") setAccreditation("Baik Sekali");
-      else if (acc === "C") setAccreditation("Baik");
-      else if (["Unggul", "Baik Sekali", "Baik"].includes(acc)) setAccreditation(acc);
-      else setAccreditation("Unggul");
+      const isUni = item.type && ["university", "polytechnic", "institute", "perguruan_tinggi"].includes(item.type.toLowerCase());
+      if (isUni) {
+        if (acc === "A") setAccreditation("Unggul");
+        else if (acc === "B") setAccreditation("Baik Sekali");
+        else if (acc === "C") setAccreditation("Baik");
+        else if (["Unggul", "Baik Sekali", "Baik"].includes(acc)) setAccreditation(acc);
+        else setAccreditation("Unggul");
+      } else {
+        if (acc === "Unggul") setAccreditation("A");
+        else if (acc === "Baik Sekali") setAccreditation("B");
+        else if (acc === "Baik") setAccreditation("C");
+        else if (["A", "B", "C"].includes(acc)) setAccreditation(acc);
+        else setAccreditation("A");
+      }
     }
     if (item.npsn) setNpsn(item.npsn);
     if (item.website) setWebsite(item.website);
@@ -737,7 +755,7 @@ export default function AiSchoolProfilePage() {
           <div class="section-title">Konsentrasi Keahlian & Program Studi</div>
           <div style="margin-top:6px;">${majorsHtml}</div>
 
-          <div class="section-title">${['university', 'polytechnic', 'institute', 'perguruan_tinggi'].includes((targetType || '').toLowerCase()) ? 'Daftar Mata Kuliah & Kurikulum Program Studi' : 'Mata Pelajaran Produktif & Kompetensi Kejuruan'}</div>
+          <div class="section-title">${['university', 'polytechnic', 'institute', 'perguruan_tinggi'].includes((targetType || '').toLowerCase()) ? 'Daftar Kurikulum & Silabus Program Studi' : 'Mata Pelajaran Produktif & Kompetensi Kejuruan'}</div>
           <div style="margin-top:6px;">${competenciesHtml}</div>
 
           ${targetFacilities.length > 0 ? `<div class="section-title">${['university', 'polytechnic', 'institute', 'perguruan_tinggi'].includes((targetType || '').toLowerCase()) ? 'Fasilitas Laboratorium & Studio Riset' : 'Sarana Laboratorium & Teaching Factory'}</div><div style="margin-top:6px;">${facilitiesHtml}</div>` : ""}
@@ -1059,6 +1077,11 @@ export default function AiSchoolProfilePage() {
                         onChange={() => {
                           setInstitutionCategory("smk");
                           setSchoolType("smk");
+                          // Map accreditation from PT to SMK
+                          if (accreditation === "Unggul") setAccreditation("A");
+                          else if (accreditation === "Baik Sekali") setAccreditation("B");
+                          else if (accreditation === "Baik") setAccreditation("C");
+                          else if (!["A", "B", "C"].includes(accreditation)) setAccreditation("A");
                         }}
                         className="w-4 h-4 text-[#035a70] focus:ring-[#035a70]"
                       />
@@ -1083,6 +1106,11 @@ export default function AiSchoolProfilePage() {
                         onChange={() => {
                           setInstitutionCategory("perguruan_tinggi");
                           setSchoolType(higherEduType);
+                          // Map accreditation from SMK to PT
+                          if (accreditation === "A") setAccreditation("Unggul");
+                          else if (accreditation === "B") setAccreditation("Baik Sekali");
+                          else if (accreditation === "C") setAccreditation("Baik");
+                          else if (!["Unggul", "Baik Sekali", "Baik"].includes(accreditation)) setAccreditation("Unggul");
                         }}
                         className="w-4 h-4 text-[#035a70] focus:ring-[#035a70]"
                       />
@@ -1117,7 +1145,7 @@ export default function AiSchoolProfilePage() {
                   </div>
                 )}
 
-                {/* Status Akreditasi (3 options: Unggul, Baik Sekali, Baik) */}
+                {/* Status Akreditasi (A, B, C for SMK vs Unggul, Baik Sekali, Baik for Perguruan Tinggi) */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-700">Status Akreditasi</label>
                   <select
@@ -1125,9 +1153,19 @@ export default function AiSchoolProfilePage() {
                     onChange={(e) => setAccreditation(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#035a70]/20"
                   >
-                    <option value="Unggul">Unggul</option>
-                    <option value="Baik Sekali">Baik Sekali</option>
-                    <option value="Baik">Baik</option>
+                    {institutionCategory === "smk" ? (
+                      <>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="Unggul">Unggul</option>
+                        <option value="Baik Sekali">Baik Sekali</option>
+                        <option value="Baik">Baik</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -1342,26 +1380,26 @@ export default function AiSchoolProfilePage() {
                   onClick={() => setCurrentStep(3)}
                   className="px-5 py-2.5 bg-[#035a70] text-white text-xs font-bold rounded-xl flex items-center gap-1.5"
                 >
-                  Lanjut ke {institutionCategory === "perguruan_tinggi" ? "Mata Kuliah" : "Mata Pelajaran"}
+                  Lanjut ke {institutionCategory === "perguruan_tinggi" ? "Kurikulum" : "Mata Pelajaran"}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step 3: Mata Pelajaran (SMK) vs Mata Kuliah (Perguruan Tinggi - PDF Upload) */}
+          {/* Step 3: Mata Pelajaran (SMK) vs Kurikulum (Perguruan Tinggi - PDF Upload) */}
           {currentStep === 3 && (
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
               <div className="border-b border-gray-100 pb-3">
                 <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-[#035a70]" />
                   {institutionCategory === "perguruan_tinggi"
-                    ? "Langkah 3: Berkas Mata Kuliah & Kurikulum Perguruan Tinggi"
+                    ? "Langkah 3: Berkas Kurikulum Perguruan Tinggi"
                     : "Langkah 3: Mata Pelajaran & Kompetensi Kejuruan"}
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {institutionCategory === "perguruan_tinggi"
-                    ? "Unggah berkas PDF berisi daftar mata kuliah, silabus, atau kurikulum program studi untuk dianalisis oleh AI."
+                    ? "Unggah berkas PDF berisi daftar kurikulum, silabus, atau mata kuliah program studi untuk dianalisis oleh AI."
                     : "Masukkan mata pelajaran produktif dan keahlian teknis unggulan siswa yang diajarkan pada kurikulum."}
                 </p>
               </div>
@@ -1442,12 +1480,12 @@ export default function AiSchoolProfilePage() {
                             {isExtractingPdf ? (
                               <>
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                Mengekstrak Mata Kuliah...
+                                Mengekstrak Kurikulum...
                               </>
                             ) : (
                               <>
                                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                                Ekstrak Mata Kuliah Sekarang
+                                Ekstrak Kurikulum Sekarang
                               </>
                             )}
                           </button>
@@ -1463,7 +1501,7 @@ export default function AiSchoolProfilePage() {
                             htmlFor={pdfInputId}
                             className="text-sm font-bold text-[#035a70] hover:underline cursor-pointer block"
                           >
-                            Klik untuk memilih berkas PDF Mata Kuliah
+                            Klik untuk memilih berkas PDF Kurikulum
                           </label>
                           <p className="text-xs text-gray-400 mt-1">
                             atau seret dan lepas dokumen PDF kurikulum/silabus Anda ke sini
@@ -1479,12 +1517,12 @@ export default function AiSchoolProfilePage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <label className="text-xs font-bold text-gray-700 block">
-                          Daftar Mata Kuliah / Kompetensi ({competencies.length})
+                          Daftar Kurikulum / Kompetensi ({competencies.length})
                         </label>
                         <span className="text-[11px] text-gray-400">
                           {competencies.length > 0
-                            ? "Mata kuliah yang akan dipublikasikan pada profil kemitraan industri:"
-                            : "Belum ada mata kuliah yang diekstrak. Anda dapat mengekstrak dari PDF di atas atau menambahkannya secara manual."}
+                            ? "Kurikulum dan mata kuliah yang akan dipublikasikan pada profil kemitraan industri:"
+                            : "Belum ada kurikulum yang diekstrak. Anda dapat mengekstrak dari PDF di atas atau menambahkannya secara manual."}
                         </span>
                       </div>
 
@@ -1499,7 +1537,7 @@ export default function AiSchoolProfilePage() {
                               handleAddCompetency();
                             }
                           }}
-                          placeholder="Tambah manual mata kuliah..."
+                          placeholder="Tambah manual kurikulum / mata kuliah..."
                           className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium w-56"
                         />
                         <button
@@ -1832,7 +1870,7 @@ export default function AiSchoolProfilePage() {
                 <div className="space-y-2">
                   <h3 className="text-xs font-black text-[#035a70] uppercase tracking-wider border-b border-gray-100 pb-1">
                     {institutionCategory === "perguruan_tinggi"
-                      ? "Daftar Mata Kuliah & Kompetensi Akademik"
+                      ? "Daftar Kurikulum & Kompetensi Akademik"
                       : "Mata Pelajaran Produktif & Kompetensi Kejuruan"}
                   </h3>
                   <div className="flex flex-wrap gap-2 pt-1">

@@ -44,19 +44,27 @@ const SiswMagangPage: React.FC = () => {
   const [inputSearch, setInputSearch] = useState<string>("");
   const debouncedQuery = useDebounce(inputSearch, 500);
 
-  const fetchData = async () => {
+  const fetchData = async (
+    targetPage?: number,
+    targetTab?: ActiveTab,
+    targetSearch?: string
+  ) => {
     try {
       setIsLoading(true);
+      const currentPage = targetPage ?? page.activePages;
+      const currentTab = targetTab ?? activeTab;
+      const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
+
       const response = await API.get(ENDPOINTS.USERS, {
         params: {
-          page: page.activePages,
+          page: currentPage,
           limit: 10,
           role: "student",
-          search: debouncedQuery,
+          search: currentSearch,
           is_completed:
-            activeTab === "Semua"
+            currentTab === "Semua"
               ? undefined
-              : activeTab === "Sudah Magang"
+              : currentTab === "Sudah Magang"
               ? 1
               : 0,
         },
@@ -64,7 +72,6 @@ const SiswMagangPage: React.FC = () => {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
         },
       });
-      console.log(response.data.data);
       setPage({
         activePages: response.data.current_page,
         pages: response.data.last_page,
@@ -82,15 +89,22 @@ const SiswMagangPage: React.FC = () => {
       ...prev,
       activePages: selectedPage,
     }));
+    fetchData(selectedPage, activeTab, debouncedQuery);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setPage((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchData(1, tab, debouncedQuery);
   };
 
   useEffect(() => {
     setPage((prev) => ({ ...prev, activePages: 1 }));
-  }, [activeTab, debouncedQuery]);
-
-  useEffect(() => {
-    fetchData();
-  }, [page.activePages, activeTab, debouncedQuery]);
+    fetchData(1, activeTab, debouncedQuery);
+  }, [debouncedQuery]);
 
   return (
     <main className="p-4 sm:p-6">
@@ -106,7 +120,10 @@ const SiswMagangPage: React.FC = () => {
         <TabsComponent
           data={tabs}
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(val) => {
+            const nextTab = typeof val === "function" ? (val as any)(activeTab) : val;
+            handleTabChange(nextTab);
+          }}
         />
       </div>
 

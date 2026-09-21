@@ -63,20 +63,26 @@ const TestListPage: React.FC = () => {
   const debouncedQuery = useDebounce(inputSearch, 1000);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isReload, setIsReload] = useState<boolean>(false);
 
   const [pages, setPages] = useState<Pages>({
     activePages: 1,
     pages: 1,
   });
 
-  const fetchTests = async () => {
-    if (isLoading) return;
+  const fetchTests = async (
+    targetPage?: number,
+    targetTab?: ActiveTab,
+    targetSearch?: string
+  ) => {
     setIsLoading(true);
+
+    const currentPage = targetPage ?? pages.activePages;
+    const currentTab = targetTab ?? activeTab;
+    const currentSearch = targetSearch !== undefined ? targetSearch : debouncedQuery;
 
     try {
       let filteredStatus: undefined | string = "all";
-      switch (activeTab) {
+      switch (currentTab) {
         case "Semua":
           filteredStatus = undefined;
           break;
@@ -94,9 +100,9 @@ const TestListPage: React.FC = () => {
       const response = await API.get(ENDPOINTS.TESTS, {
         params: {
           type: filteredStatus,
-          search: inputSearch,
+          search: currentSearch,
           limit: 10,
-          page: pages.activePages,
+          page: currentPage,
         },
         headers: {
           Authorization: `Bearer ${Cookies.get("userToken")}`,
@@ -205,23 +211,22 @@ const TestListPage: React.FC = () => {
       ...prev,
       activePages: selectedPage,
     }));
+    fetchTests(selectedPage, activeTab, debouncedQuery);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setPages((prev) => ({
+      ...prev,
+      activePages: 1,
+    }));
+    fetchTests(1, tab, debouncedQuery);
   };
 
   useEffect(() => {
-    if (inputSearch.trim() !== "") {
-      if (!debouncedQuery) {
-        setTests([]);
-        return;
-      }
-    }
-
     setPages((prev) => ({ ...prev, activePages: 1 }));
-    setIsReload(!isReload);
-  }, [activeTab, debouncedQuery]);
-
-  useEffect(() => {
-    fetchTests();
-  }, [pages.activePages, isReload]);
+    fetchTests(1, activeTab, debouncedQuery);
+  }, [debouncedQuery]);
 
   return (
     <main className="p-4 sm:p-6">
@@ -241,7 +246,10 @@ const TestListPage: React.FC = () => {
             <TabsComponent
               data={tabs}
               activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              setActiveTab={(val) => {
+                const nextTab = typeof val === "function" ? (val as any)(activeTab) : val;
+                handleTabChange(nextTab);
+              }}
             />
           </div>
         </div>
