@@ -82,7 +82,7 @@ export default function AiSchoolProfilePage() {
   const [isLoadingHistories, setIsLoadingHistories] = useState<boolean>(false);
   const [searchHistory, setSearchHistory] = useState<string>("");
 
-  // Stepper State (1: Identitas, 2: Visi & Jurusan, 3: Mata Pelajaran/Mata Kuliah, 4: Fasilitas & Mitra, 5: Pratinjau & Cetak)
+  // Stepper State (1: Identitas, 2: Visi, Misi & Jurusan, 3: Mata Pelajaran/Mata Kuliah, 4: Fasilitas & Mitra, 5: Pratinjau & Cetak)
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -318,7 +318,7 @@ export default function AiSchoolProfilePage() {
     },
     {
       num: 2,
-      label: "Visi & Jurusan",
+      label: "Visi, Misi & Jurusan",
       desc: "Profil & Konsentrasi",
       isCompleted: Boolean((vision || shortDescription) && majors.length > 0),
     },
@@ -1261,20 +1261,20 @@ export default function AiSchoolProfilePage() {
                   onClick={() => setCurrentStep(2)}
                   className="px-5 py-2.5 bg-[#035a70] text-white text-xs font-bold rounded-xl flex items-center gap-1.5"
                 >
-                  Lanjut ke Visi & Jurusan
+                  Lanjut ke Visi, Misi & Jurusan
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step 2: Visi & Jurusan */}
+          {/* Step 2: Visi, Misi & Jurusan */}
           {currentStep === 2 && (
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
               <div className="border-b border-gray-100 pb-3">
                 <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                   <GraduationCap className="w-5 h-5 text-[#035a70]" />
-                  Langkah 2: Visi & Program Keahlian (Jurusan)
+                  Langkah 2: Visi, Misi & Program Keahlian (Jurusan)
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Tentukan visi misi sekolah serta daftar konsentrasi keahlian/jurusan yang aktif.

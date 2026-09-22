@@ -265,12 +265,13 @@ export default function BuatCvPintarPage() {
     if (formData.fullName.trim()) score += 15;
     if (formData.email.trim()) score += 10;
     if (formData.phone.trim()) score += 10;
-    if (formData.schoolName.trim()) score += 15;
+    if (formData.linkedin.trim()) score += 10;
+    if (formData.schoolName.trim()) score += 10;
     if (formData.major.trim()) score += 10;
     if (formData.competencyArea.trim()) score += 10;
-    if (formData.competencyDescription.trim().length > 20) score += 15;
-    if (formData.skills.length >= 3) score += 10;
-    if (formData.projects.length > 0 && formData.projects[0].name.trim()) score += 15;
+    if (formData.competencyDescription.trim().length > 20) score += 10;
+    if (formData.skills.length >= 3) score += 5;
+    if (formData.projects.length > 0 && formData.projects[0].name.trim()) score += 10;
     return Math.min(100, score);
   }, [formData]);
 
@@ -480,6 +481,12 @@ export default function BuatCvPintarPage() {
       return;
     }
 
+    if (!formData.linkedin.trim()) {
+      alertError("Akun LinkedIn wajib diisi. Mohon masukkan link atau username LinkedIn Anda.");
+      setActiveStep(1);
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const profileUserPayload = {
@@ -621,7 +628,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      const filename = `CV_${(formData.fullName || "Prakerin").replace(/\s+/g, "_")}_ATS.pdf`;
+      const filename = `CV_${(formData.fullName || "Prakerin").replace(/\s+/g, "_")}_${selectedTemplate}.pdf`;
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -631,7 +638,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      alertSuccess("Berhasil mengunduh dokumen CV ATS!");
+      alertSuccess(`Berhasil mengunduh dokumen CV ${selectedTemplate}!`);
     } catch (err: any) {
       console.error("Error downloading CV PDF:", err);
       window.print();
@@ -644,7 +651,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
   const handleSaveToDashboard = async () => {
     const saveName = window.prompt(
       "Masukkan nama CV untuk disimpan ke Dashboard:",
-      `CV ATS - ${formData.fullName || "Siswa"}`
+      `CV ${selectedTemplate} - ${formData.fullName || "Siswa"}`
     );
     if (!saveName || !saveName.trim()) return;
 
@@ -666,7 +673,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      const defaultFilename = `CV_${(formData.fullName || "Prakerin").replace(/\s+/g, "_")}_ATS.pdf`;
+      const defaultFilename = `CV_${(formData.fullName || "Prakerin").replace(/\s+/g, "_")}_${selectedTemplate}.pdf`;
       const formDataUpload = new FormData();
       formDataUpload.append("name", saveName.trim());
       formDataUpload.append("file", blob, defaultFilename);
@@ -852,7 +859,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                   />
                   <div>
                     <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                      💻 Bidang Teknis (IT &amp; Rekayasa)
+                      Bidang Teknis (IT &amp; Rekayasa)
                     </div>
                     <p className="text-[11px] text-gray-500 mt-0.5">
                       Coding, RPL, TKJ, Web/Mobile Dev, Cloud, UI/UX, dll. Form GitHub wajib diisi.
@@ -878,7 +885,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                   />
                   <div>
                     <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                      📂 Bidang Non-Teknis / Humaniora
+                      Bidang Non-Teknis / Humaniora
                     </div>
                     <p className="text-[11px] text-gray-500 mt-0.5">
                       Bisnis, Administrasi, Akuntansi, Manajemen, Pemasaran, Sosial, dll. (Tanpa GitHub).
@@ -925,7 +932,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  LinkedIn (URL / Username) <span className="text-gray-400 font-normal">(Opsional)</span>
+                  LinkedIn (URL / Username) <span className="text-red-500 font-bold">* (Wajib)</span>
                 </label>
                 <input
                   type="text"
@@ -1524,6 +1531,10 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                               alertError("Bidang Teknis mewajibkan akun GitHub. Mohon masukkan link atau username GitHub Anda.");
                               return;
                             }
+                            if (!formData.linkedin.trim()) {
+                              alertError("Akun LinkedIn wajib diisi. Mohon masukkan link atau username LinkedIn Anda.");
+                              return;
+                            }
                           }
                           setActiveStep((prev) => prev + 1);
                         }}
@@ -1602,7 +1613,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
             {/* Header: Title & Badges */}
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                Pratinjau CV ATS
+                Pratinjau CV {selectedTemplate === "ATS" ? "ATS" : "Classic"}
               </h3>
               <div className="flex items-center gap-2">
                 <span
@@ -1613,7 +1624,7 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                   }`}
                 >
                   <ShieldCheck size={13} />
-                  {completeness >= 70 ? "ATS Ready" : "Data Parsial"}
+                  {completeness >= 70 ? (selectedTemplate === "ATS" ? "ATS Ready" : "Format Siap") : "Data Parsial"}
                 </span>
                 <span className="text-[11px] font-bold text-accent bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
                   Kelengkapan {completeness}%
@@ -1621,115 +1632,250 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
               </div>
             </div>
 
-            {/* ATS Paper Canvas Container */}
-            <div className="border border-gray-200 rounded-xl bg-white shadow-inner p-6 font-sans text-gray-800 text-[11px] leading-relaxed max-h-[580px] overflow-y-auto print:border-none print:p-0">
-              {/* ATS Header */}
-              <div className="text-center pb-3 border-b-2 border-teal-800 mb-3">
-                <h1 className="text-xl font-extrabold tracking-wider uppercase text-gray-900">
-                  {formData.fullName || "NAMA LENGKAP ANDA"}
-                </h1>
-                <p className="text-xs font-semibold text-teal-700 mt-0.5">
-                  {formData.competencyArea || "Frontend Developer"}
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-x-2 text-[10px] text-gray-600 mt-1.5">
-                  {formData.email && <span>✉ {formData.email}</span>}
-                  {formData.phone && <span>| 📞 {formData.phone}</span>}
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-x-2 text-[10px] text-gray-500 mt-0.5">
-                  {formData.careerTrack === "technical" && formData.github && (
-                    <span>🐙 {formData.github}</span>
-                  )}
-                  {formData.careerTrack === "non_technical" && formData.portfolioUrl && (
-                    <span>🌐 {formData.portfolioUrl}</span>
-                  )}
-                  {formData.linkedin && <span>| 💼 {formData.linkedin}</span>}
-                  {formData.address && <span>| 📍 {formData.address}</span>}
-                </div>
-              </div>
-
-              {/* SECTION: PROFIL */}
-              {formData.competencyDescription && (
-                <div className="mb-3.5">
-                  <h2 className="text-[11px] font-bold uppercase text-teal-900 border-b border-gray-300 pb-0.5 mb-1 tracking-wider">
-                    Profil
-                  </h2>
-                  <p className="text-justify text-gray-700 leading-normal text-[10.5px]">
-                    {formData.competencyDescription}
+            {/* Paper Canvas Container (Dynamically Styled for ATS or Classic) */}
+            {selectedTemplate === "ATS" ? (
+              /* ATS FRIENDLY PREVIEW */
+              <div className="border border-gray-200 rounded-xl bg-white shadow-inner p-6 font-sans text-gray-800 text-[11px] leading-relaxed max-h-[580px] overflow-y-auto print:border-none print:p-0 transition-all">
+                {/* ATS Header */}
+                <div className="text-center pb-3 border-b-2 border-teal-800 mb-3">
+                  <h1 className="text-xl font-extrabold tracking-wider uppercase text-gray-900">
+                    {formData.fullName || "NAMA LENGKAP ANDA"}
+                  </h1>
+                  <p className="text-xs font-semibold text-teal-700 mt-0.5">
+                    {formData.competencyArea || "Frontend Developer"}
                   </p>
+                  <div className="flex flex-wrap items-center justify-center gap-x-2 text-[10px] text-gray-600 mt-1.5">
+                    {formData.email && <span>✉ {formData.email}</span>}
+                    {formData.phone && <span>| 📞 {formData.phone}</span>}
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-x-2 text-[10px] text-gray-500 mt-0.5">
+                    {formData.careerTrack === "technical" && formData.github && (
+                      <span>🐙 {formData.github}</span>
+                    )}
+                    {formData.careerTrack === "non_technical" && formData.portfolioUrl && (
+                      <span>🌐 {formData.portfolioUrl}</span>
+                    )}
+                    {formData.linkedin && <span>| 💼 {formData.linkedin}</span>}
+                    {formData.address && <span>| 📍 {formData.address}</span>}
+                  </div>
                 </div>
-              )}
 
-              {/* SECTION: PENDIDIKAN */}
-              {(formData.schoolName || formData.major) && (
-                <div className="mb-3.5">
-                  <h2 className="text-[11px] font-bold uppercase text-teal-900 border-b border-gray-300 pb-0.5 mb-1 tracking-wider">
-                    Pendidikan
-                  </h2>
-                  <div className="flex justify-between items-baseline">
-                    <p className="font-bold text-gray-900 text-[11px]">
-                      {formData.schoolName || "SMK Negeri 4 Bandung"}
-                    </p>
-                    <p className="text-[10px] text-gray-500 font-medium">
-                      {formData.degreeYear || "2022 - 2025"}
+                {/* ATS SECTION: PROFIL */}
+                {formData.competencyDescription && (
+                  <div className="mb-3.5">
+                    <h2 className="text-[11px] font-bold uppercase text-teal-900 border-b border-gray-300 pb-0.5 mb-1 tracking-wider">
+                      Profil
+                    </h2>
+                    <p className="text-justify text-gray-700 leading-normal text-[10.5px]">
+                      {formData.competencyDescription}
                     </p>
                   </div>
-                  <p className="text-gray-700 text-[10.5px]">
-                    {formData.major || "Rekayasa Perangkat Lunak"}
-                  </p>
-                </div>
-              )}
+                )}
 
-              {/* SECTION: KOMPETENSI */}
-              {formData.skills.length > 0 && (
-                <div className="mb-3.5">
-                  <h2 className="text-[11px] font-bold uppercase text-teal-900 border-b border-gray-300 pb-0.5 mb-1 tracking-wider">
-                    Kompetensi
-                  </h2>
-                  <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] text-gray-700 list-disc list-inside">
-                    {formData.skills.map((skill, idx) => (
-                      <li key={idx} className="truncate">
-                        {skill}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                {/* ATS SECTION: PENDIDIKAN */}
+                {(formData.schoolName || formData.major) && (
+                  <div className="mb-3.5">
+                    <h2 className="text-[11px] font-bold uppercase text-teal-900 border-b border-gray-300 pb-0.5 mb-1 tracking-wider">
+                      Pendidikan
+                    </h2>
+                    <div className="flex justify-between items-baseline">
+                      <p className="font-bold text-gray-900 text-[11px]">
+                        {formData.schoolName || "SMK Negeri 4 Bandung"}
+                      </p>
+                      <p className="text-[10px] text-gray-500 font-medium">
+                        {formData.degreeYear || "2022 - 2025"}
+                      </p>
+                    </div>
+                    <p className="text-gray-700 text-[10.5px]">
+                      {formData.major || "Rekayasa Perangkat Lunak"}
+                    </p>
+                  </div>
+                )}
 
-              {/* SECTION: PROYEK */}
-              {formData.projects.length > 0 && formData.projects[0].name && (
-                <div className="mb-2">
-                  <h2 className="text-[11px] font-bold uppercase text-teal-900 border-b border-gray-300 pb-0.5 mb-1 tracking-wider">
-                    Proyek
-                  </h2>
-                  <div className="space-y-2.5">
-                    {formData.projects
-                      .filter((p) => p.name.trim())
-                      .map((proj) => (
-                        <div key={proj.id}>
-                          <div className="flex justify-between items-baseline">
-                            <span className="font-bold text-gray-900 text-[11px]">
-                              {proj.name}
-                            </span>
-                            <span className="text-[10px] text-gray-500 italic">
-                              {proj.role} {proj.year ? `| ${proj.year}` : ""}
-                            </span>
-                          </div>
-                          {proj.technologies && (
-                            <p className="text-[10px] text-teal-700 font-medium italic">
-                              {proj.technologies}
-                            </p>
-                          )}
-                          {proj.description && (
-                            <p className="text-[10.5px] text-gray-700 mt-0.5">
-                              • {proj.description}
-                            </p>
-                          )}
-                        </div>
+                {/* ATS SECTION: KOMPETENSI */}
+                {formData.skills.length > 0 && (
+                  <div className="mb-3.5">
+                    <h2 className="text-[11px] font-bold uppercase text-teal-900 border-b border-gray-300 pb-0.5 mb-1 tracking-wider">
+                      Kompetensi
+                    </h2>
+                    <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] text-gray-700 list-disc list-inside">
+                      {formData.skills.map((skill, idx) => (
+                        <li key={idx} className="truncate">
+                          {skill}
+                        </li>
                       ))}
+                    </ul>
                   </div>
+                )}
+
+                {/* ATS SECTION: PROYEK */}
+                {formData.projects.length > 0 && formData.projects[0].name && (
+                  <div className="mb-2">
+                    <h2 className="text-[11px] font-bold uppercase text-teal-900 border-b border-gray-300 pb-0.5 mb-1 tracking-wider">
+                      Proyek
+                    </h2>
+                    <div className="space-y-2.5">
+                      {formData.projects
+                        .filter((p) => p.name.trim())
+                        .map((proj) => (
+                          <div key={proj.id}>
+                            <div className="flex justify-between items-baseline">
+                              <span className="font-bold text-gray-900 text-[11px]">
+                                {proj.name}
+                              </span>
+                              <span className="text-[10px] text-gray-500 italic">
+                                {proj.role} {proj.year ? `| ${proj.year}` : ""}
+                              </span>
+                            </div>
+                            {proj.technologies && (
+                              <p className="text-[10px] text-teal-700 font-medium italic">
+                                {proj.technologies}
+                              </p>
+                            )}
+                            {proj.description && (
+                              <p className="text-[10.5px] text-gray-700 mt-0.5">
+                                • {proj.description}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* CLASSIC SERIF PREVIEW (Matching ClassicCv.blade.php) */
+              <div className="border border-gray-300 rounded-xl bg-white shadow-inner p-6 font-serif text-gray-900 text-[11px] leading-relaxed max-h-[580px] overflow-y-auto print:border-none print:p-0 transition-all">
+                {/* Classic Header (2 columns, Left text, Right photo) */}
+                <div className="flex items-start justify-between border-b-2 border-gray-900 pb-3 mb-3.5">
+                  <div className="flex-1 pr-3">
+                    <h1 className="text-2xl font-bold font-serif text-gray-900 tracking-tight leading-none">
+                      {formData.fullName || "Nama Lengkap Anda"}
+                    </h1>
+                    <div className="text-xs italic text-gray-600 font-serif mt-1 mb-2">
+                      {formData.competencyArea || "Peserta Magang"}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-[10px] text-gray-600">
+                      {formData.email && <span>Email: <strong className="text-gray-800">{formData.email}</strong></span>}
+                      {formData.phone && <span>Telepon: <strong className="text-gray-800">{formData.phone}</strong></span>}
+                      {formData.linkedin && <span>LinkedIn: <strong className="text-gray-800">{formData.linkedin}</strong></span>}
+                      {formData.careerTrack === "technical" && formData.github && (
+                        <span>GitHub: <strong className="text-gray-800">{formData.github}</strong></span>
+                      )}
+                      {formData.careerTrack === "non_technical" && formData.portfolioUrl && (
+                        <span>Portofolio: <strong className="text-gray-800">{formData.portfolioUrl}</strong></span>
+                      )}
+                      {formData.address && <span>Domisili: <strong className="text-gray-800">{formData.address}</strong></span>}
+                    </div>
+                  </div>
+
+                  {formData.photoUrl && (
+                    <div className="shrink-0 ml-2 self-start">
+                      <img
+                        src={formData.photoUrl}
+                        alt="Foto Profil"
+                        className="w-16 h-20 object-cover rounded border border-gray-300 shadow-xs"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* CLASSIC SECTION: PROFIL */}
+                {formData.competencyDescription && (
+                  <div className="mb-3.5">
+                    <h2 className="text-[11.5px] font-bold uppercase font-serif text-gray-900 border-b border-gray-400 pb-0.5 mb-1.5 tracking-wider">
+                      Ringkasan Profesional
+                    </h2>
+                    <p className="text-justify text-gray-800 leading-relaxed text-[10.5px] font-serif">
+                      {formData.competencyDescription}
+                    </p>
+                  </div>
+                )}
+
+                {/* CLASSIC SECTION: PENDIDIKAN */}
+                {(formData.schoolName || formData.major) && (
+                  <div className="mb-3.5">
+                    <h2 className="text-[11.5px] font-bold uppercase font-serif text-gray-900 border-b border-gray-400 pb-0.5 mb-1.5 tracking-wider">
+                      Pendidikan
+                    </h2>
+                    <div className="flex justify-between items-baseline gap-2">
+                      <div>
+                        <strong className="text-gray-900 font-serif text-[11px]">
+                          {formData.schoolName || "SMK Negeri 4 Bandung"}
+                        </strong>
+                        <span className="font-serif text-[10.5px] text-gray-600 italic">
+                          {" "}— {formData.degreeYear || "Peserta Didik"} di {formData.major || "Rekayasa Perangkat Lunak"}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-sans text-gray-500 italic shrink-0">
+                        Lulus: {formData.degreeYear || "2025"}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* CLASSIC SECTION: PROYEK */}
+                {formData.projects.length > 0 && formData.projects[0].name && (
+                  <div className="mb-3.5">
+                    <h2 className="text-[11.5px] font-bold uppercase font-serif text-gray-900 border-b border-gray-400 pb-0.5 mb-1.5 tracking-wider">
+                      Pengalaman / Proyek
+                    </h2>
+                    <div className="space-y-3">
+                      {formData.projects
+                        .filter((p) => p.name.trim())
+                        .map((proj) => (
+                          <div key={proj.id}>
+                            <div className="flex justify-between items-baseline gap-2">
+                              <div>
+                                <span className="font-bold text-gray-900 font-serif text-[11px]">
+                                  {proj.name}
+                                </span>
+                                {proj.role && (
+                                  <span className="font-serif text-[10.5px] text-gray-600 italic">
+                                    {" "}— {proj.role}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] font-sans text-gray-500 italic shrink-0">
+                                {proj.year || "2024"} - Sekarang
+                              </span>
+                            </div>
+                            {proj.technologies && (
+                              <p className="text-[10px] font-sans text-gray-500 italic mt-0.5">
+                                {proj.technologies}
+                              </p>
+                            )}
+                            {proj.description && (
+                              <p className="text-[10.5px] font-serif text-gray-700 mt-1 leading-normal">
+                                • {proj.description}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* CLASSIC SECTION: KOMPETENSI (Classic Skill Tags) */}
+                {formData.skills.length > 0 && (
+                  <div className="mb-2">
+                    <h2 className="text-[11.5px] font-bold uppercase font-serif text-gray-900 border-b border-gray-400 pb-0.5 mb-1.5 tracking-wider">
+                      Keahlian &amp; Kompetensi
+                    </h2>
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      {formData.skills.map((skill, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-block bg-slate-100 text-slate-800 border border-slate-200 px-2.5 py-0.5 rounded text-[10px] font-sans font-medium"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Bottom Download & Save Card (Responsive & Contained) */}
             <div className="p-3.5 border border-gray-200 rounded-xl bg-gray-50/70 space-y-3 overflow-hidden">
@@ -1740,15 +1886,17 @@ Tolong susun ringkasan profil (summary) profesional standar ATS, sempurnakan bul
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <p className="text-xs font-bold text-gray-900 truncate">
-                      CV_{(formData.fullName || "Prakerin").replace(/\s+/g, "_")}_ATS.pdf
+                      CV_{(formData.fullName || "Prakerin").replace(/\s+/g, "_")}_{selectedTemplate}.pdf
                     </p>
                     <span className="text-[9px] px-1.5 py-0.2 bg-teal-100 text-teal-800 rounded font-semibold shrink-0">
-                      PDF Ringan
+                      {selectedTemplate === "ATS" ? "PDF Ringan" : "Format Classic"}
                     </span>
                   </div>
                   <p className="text-[10px] text-gray-500 truncate">
                     {completeness >= 70
-                      ? "Format PDF Ringan • Riwayat tersimpan pada akun Anda"
+                      ? selectedTemplate === "ATS"
+                        ? "Format ATS Ringan • Standar Scanner HRD"
+                        : "Format Klasik Elegan • Pas Foto & Tag Keahlian"
                       : "Siap dibuat setelah data lengkap"}
                   </p>
                 </div>
